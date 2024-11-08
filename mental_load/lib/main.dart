@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:mental_load/Screens/home_screen.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Your app name',
       home: HomeScreen(),
     );

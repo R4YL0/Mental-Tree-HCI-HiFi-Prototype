@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mental_load/screens/navigator_screen.dart';
+import 'package:mental_load/Screens/home_screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -7,8 +7,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      title: 'Mental Tree',
-      home: NavigatorScreen(),
+      title: 'Your app name',
+      home: HomeScreen(),
     );
   }
 }

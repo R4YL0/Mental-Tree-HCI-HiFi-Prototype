@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mental_load/screens/navigator_screen.dart';
+import 'package:mental_load/Screens/navigator_screen.dart';
 
 void main() => runApp(MyApp());
 

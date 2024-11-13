@@ -1,1 +1,8 @@
+*
+!*/
 
+# whitelist lib folder
+!lib/**
+
+# whitelist gitignore file
+!.gitignore

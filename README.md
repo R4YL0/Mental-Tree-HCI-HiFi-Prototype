@@ -1,4 +1,4 @@
-# mental_load
+# hci_hifiprototype_mentaltree
 
 A new Flutter project.
 

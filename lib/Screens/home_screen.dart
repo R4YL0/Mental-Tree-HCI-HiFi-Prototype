@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/constants/colors.dart';
+import 'package:mental_load/widgets/flower_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,9 +11,15 @@ class HomeScreen extends StatelessWidget {
       body: Center(
         child: Container(
           color: AppColors.primary,
-          child: const Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text("HOME - Todo", style: TextStyle(fontWeight: FontWeight.bold),),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(children: [
+              const Text(
+                "HOME - Todo",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              FlowerWidget(mood: Moods.good)
+            ]),
           ),
         ),
       ),

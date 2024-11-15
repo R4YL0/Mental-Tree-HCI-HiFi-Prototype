@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 enum Moods { bad, okay, good }
+
+const String flowerGoodPath = '../assets/state_good.svg';
+const String flowerOkayPath = '../assets/state_okay.svg';
 
 class FlowerWidget extends StatefulWidget {
   final Moods mood;
 
-  FlowerWidget({super.key, required this.mood});
+  const FlowerWidget({super.key, required this.mood});
 
   @override
   State<FlowerWidget> createState() => _FlowerWidgetState();
@@ -13,6 +17,9 @@ class FlowerWidget extends StatefulWidget {
 
 class _FlowerWidgetState extends State<FlowerWidget> {
   Moods _mood = Moods.good;
+
+  final Widget svgFlowerGood =
+      SvgPicture.asset(flowerGoodPath, semanticsLabel: 'flower in state good');
 
   @override
   void initState() {
@@ -22,6 +29,7 @@ class _FlowerWidgetState extends State<FlowerWidget> {
 
   @override
   Widget build(BuildContext context) {
+    String moodName = _mood.name;
     return GestureDetector(
         onTap: () {
           showDialog(
@@ -29,10 +37,16 @@ class _FlowerWidgetState extends State<FlowerWidget> {
               builder: (context) {
                 return MoodDialog(
                     mood: _mood,
-                    onChangedMood: (mood) => setState(() => this._mood = mood));
+                    onChangedMood: (mood) => setState(() => _mood = mood));
               });
         },
-        child: Text(_mood.toString()));
+        child: Column(
+          children: [
+            Text(_mood.toString()),
+            SvgPicture.asset('lib/assets/state_$moodName.svg',
+                semanticsLabel: 'flower in state $moodName'),
+          ],
+        ));
   }
 }
 

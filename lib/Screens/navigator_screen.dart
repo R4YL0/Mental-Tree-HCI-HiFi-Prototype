@@ -6,7 +6,7 @@ import 'package:mental_load/Screens/diagrams_screen.dart';
 import '../constants/colors.dart';
 
 class NavigatorScreen extends StatelessWidget {
-  const NavigatorScreen({super.key});
+  const NavigatorScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +53,7 @@ class NavigatorScreen extends StatelessWidget {
     );
   }
 }
+
 
 class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;

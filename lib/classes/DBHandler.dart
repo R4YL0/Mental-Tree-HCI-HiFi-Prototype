@@ -1,4 +1,5 @@
 import 'package:localstorage/localstorage.dart';
+import 'package:mental_load/classes/Mood.dart';
 import 'Task.dart';
 import 'Subtask.dart';
 import 'User.dart';
@@ -21,11 +22,13 @@ class DBHandler {
   static const String taskKey = 'last_task_id';
   static const String subtaskKey = 'last_subtask_id';
   static const String assignedTaskKey = 'last_assigned_task_id';
+  static const String moodKey = 'last_mood_id';
 
   final LocalStorage _taskStorage = LocalStorage('tasks');
   final LocalStorage _subtaskStorage = LocalStorage('subtasks');
   final LocalStorage _userStorage = LocalStorage('users');
   final LocalStorage _assignedTaskStorage = LocalStorage('assigned_tasks');
+  final LocalStorage _moodStorage = LocalStorage('moods');
 
   Future<void> initDb() async {
     await Future.wait([
@@ -34,6 +37,7 @@ class DBHandler {
       _subtaskStorage.ready,
       _userStorage.ready,
       _assignedTaskStorage.ready,
+      _moodStorage.ready,
     ]);
   }
 
@@ -69,6 +73,12 @@ class DBHandler {
     return id;
   }
 
+  Future<int> getNextMoodId() async {
+    final id = await _getLastId(moodKey) + 1;
+    await _setLastId(moodKey, id);
+    return id;
+  }
+
   Future<List<Task>> getTasks() async {
     final tasksJson = _taskStorage.getItem('tasks') ?? [];
     return List<Map<String, dynamic>>.from(tasksJson)
@@ -92,7 +102,10 @@ class DBHandler {
   Future<void> saveSubtask(Subtask subtask) async {
     final subtasks = await getSubtasks();
     subtasks.add(subtask);
-    await _subtaskStorage.setItem('subtasks', subtasks.map((subtask) => subtask.toJson()).toList());
+    await _subtaskStorage.setItem(
+      'subtasks',
+      subtasks.map((subtask) => subtask.toJson()).toList(),
+    );
   }
 
   Future<List<User>> getUsers() async {
@@ -119,6 +132,35 @@ class DBHandler {
     final assignedTasks = await getAssignedTasks();
     assignedTasks.add(assignedTask);
     await _assignedTaskStorage.setItem(
-        'assigned_tasks', assignedTasks.map((task) => task.toJson()).toList());
+      'assigned_tasks',
+      assignedTasks.map((task) => task.toJson()).toList(),
+    );
+  }
+
+  Future<List<Mood>> getMoods() async {
+    final moodsJson = _moodStorage.getItem('moods') ?? [];
+    return List<Map<String, dynamic>>.from(moodsJson)
+        .map<Mood>((json) => Mood.fromJson(json))
+        .toList();
+  }
+
+  Future<void> saveMood(Mood mood) async {
+    final moods = await getMoods();
+    moods.add(mood);
+    await _moodStorage.setItem('moods', moods.map((mood) => mood.toJson()).toList());
+  }
+
+  Future<List<Mood>> getMoodsByUserId(int userId) async {
+    final moods = await getMoods();
+    return moods.where((mood) => mood.userId == userId).toList();
+  }
+
+  Future<Mood?> getLatestMoodByUserId(int userId) async {
+    final moods = await getMoodsByUserId(userId);
+    if (moods.isNotEmpty) {
+      moods.sort((a, b) => b.date.compareTo(a.date)); // Sort by date descending
+      return moods.first;
+    }
+    return null;
   }
 }

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:mental_load/classes/AssignedTask.dart';
+import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -100,79 +103,121 @@ class TaskBox extends StatelessWidget {
   }
 }
 
-class CompletedTasks extends StatelessWidget {
-
+class CompletedTasks extends StatefulWidget {
   const CompletedTasks({super.key});
+
+  @override
+  State<CompletedTasks> createState() => _CompletedTasksState();
+}
+
+class _CompletedTasksState extends State<CompletedTasks> {
+  List<bool> activeCurves = [];
+  List<User> users = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _myInit();
+  }
+
+  _myInit() async {
+    users = await DBHandler().getUsers();
+    int length = users.length;
+    setState(() {
+      activeCurves = List.filled(length, false);
+    });
+  }
+
+  _setNewCurveBoolean(bool newValue, int index){
+    setState(() {
+      activeCurves[index] = newValue;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        CompletedTasksDiagram(),
-        CompletedTasksLegend(),
+        CompletedTasksDiagram(activeCurves: activeCurves, users: users),
+        CompletedTasksLegend(activeCurves: activeCurves, users: users, tapped: (bool newValue, int index){_setNewCurveBoolean(newValue, index);},),
       ],
     );
   }
 }
 
 class CompletedTasksDiagram extends StatefulWidget {
-  const CompletedTasksDiagram({super.key});
+  final List<bool> activeCurves;
+  final List<User> users;
+  const CompletedTasksDiagram({super.key, required this.activeCurves, required this.users});
 
   @override
   State<CompletedTasksDiagram> createState() => _CompletedTasksDiagramState();
 }
 
 class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
-  final List<_CompletedTask> completedTasks = [_CompletedTask(0,3), _CompletedTask(1, 5), _CompletedTask(2,1),_CompletedTask(3,7),_CompletedTask(4,4),_CompletedTask(5,2),_CompletedTask(6,3),];
-  final List<_CompletedTask> completedTasks2 = [_CompletedTask(0,2), _CompletedTask(1, 1), _CompletedTask(2,5),_CompletedTask(3,0),_CompletedTask(4,3),_CompletedTask(5,1),_CompletedTask(6,6),];
-  final List<_CompletedTask> completedTasks3 = [_CompletedTask(0,1), _CompletedTask(1, 4), _CompletedTask(2,2),_CompletedTask(3,3),_CompletedTask(4,1),_CompletedTask(5,3),_CompletedTask(6,3),];
-  final List<_CompletedTask> completedTasks4 = [_CompletedTask(0,0), _CompletedTask(1, 8), _CompletedTask(2,1),_CompletedTask(3,2),_CompletedTask(4,5),_CompletedTask(5,2),_CompletedTask(6,1),];
-  final List<_CompletedTask> completedTasks5 = [_CompletedTask(0,6), _CompletedTask(1, 2), _CompletedTask(2,0),_CompletedTask(3,0),_CompletedTask(4,2),_CompletedTask(5,1),_CompletedTask(6,2),];
-  
+  //final List<_CompletedTask> completedTasks = [_CompletedTask(0,3), _CompletedTask(1, 5), _CompletedTask(2,1),_CompletedTask(3,7),_CompletedTask(4,4),_CompletedTask(5,2),_CompletedTask(6,3),];
+  final Map<String, List<_CompletedTask>> data = {"abc": [_CompletedTask(0,3), _CompletedTask(1, 5)]};
+
+  @override
+  void initState() {
+    super.initState();
+    _myInit();
+  }
+
+  _myInit() async {
+    List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
+    print(completedTasks.length);
+
+    for(int i=0;i<completedTasks.length;i++){
+      int differenceInDays = DateTime.now().difference(completedTasks[i].finishDate!).inDays;
+      String user = completedTasks[i].user.userName;
+      _CompletedTask tmp = _CompletedTask(differenceInDays, 1);
+      if(data.keys.contains(user)){
+        bool entryExists = false;
+        for (var entry in data[user]!) {
+          if (entry.daysAgo == differenceInDays) {
+            entry.number += 1;
+            entryExists = true;
+            break;
+          }
+        }
+        if(!entryExists){
+          data[user]!.add(tmp);
+        }
+      }else{
+       data[user] = [tmp];
+      }
+
+      setState(() {
+        /*data.forEach((user, taskList) {
+          print('User: $user');
+          taskList.forEach((task) {
+            print('  Days Ago: ${task.daysAgo}, Tasks: ${task.number}');
+          });
+        });*/
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SfCartesianChart(
-          primaryXAxis: const CategoryAxis(title: AxisTitle(text: "..days ago", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 6,),
-          primaryYAxis: const CategoryAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 8,),
-          tooltipBehavior: TooltipBehavior(enable: true),
-          series: <CartesianSeries<_CompletedTask, int>>[
-            LineSeries<_CompletedTask, int>(
-              dataSource: completedTasks,
-              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-              yValueMapper: (_CompletedTask data, _) => data.number,
-              name: 'CompletedTasks1',
-              color: Colors.blue,
-            ),
-            LineSeries<_CompletedTask, int>(
-              dataSource: completedTasks2,
-              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-              yValueMapper: (_CompletedTask data, _) => data.number,
-              name: 'CompletedTasks2',
-              color: Colors.red,
-            ),
-            LineSeries<_CompletedTask, int>(
-              dataSource: completedTasks3,
-              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-              yValueMapper: (_CompletedTask data, _) => data.number,
-              name: 'CompletedTasks3',
-              color: Colors.green,
-            ),
-            LineSeries<_CompletedTask, int>(
-              dataSource: completedTasks4,
-              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-              yValueMapper: (_CompletedTask data, _) => data.number,
-              name: 'CompletedTasks4',
-              color: Colors.purple,
-            ),
-            LineSeries<_CompletedTask, int>(
-              dataSource: completedTasks5,
-              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-              yValueMapper: (_CompletedTask data, _) => data.number,
-              name: 'CompletedTasks5',
-              color: Colors.orange,
-            ),
-          ]
-        );
+      primaryXAxis: const NumericAxis(title: AxisTitle(text: "..days ago", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
+      primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 40,),
+      tooltipBehavior: TooltipBehavior(enable: true),
+      series: <CartesianSeries<_CompletedTask, int>>[
+        for(var person in data.entries)
+          for(int i=0;i<widget.users.length;i++)
+            if(widget.users[i].userName == person.key && widget.activeCurves[i])
+              LineSeries<_CompletedTask, int>(
+                dataSource: person.value,
+                xValueMapper: (_CompletedTask data, _) => data.daysAgo,
+                yValueMapper: (_CompletedTask data, _) => data.number,
+                name: person.key,
+                color: Colors.blue,
+              ), 
+      ]
+    );
   }
 }
 
@@ -180,42 +225,49 @@ class _CompletedTask{
   _CompletedTask(this.daysAgo, this.number);
 
   final int daysAgo;
-  final int number;
+  int number;
 }
 
-class CompletedTasksLegend extends StatelessWidget {
-  const CompletedTasksLegend({super.key});
+class CompletedTasksLegend extends StatefulWidget {
+  final List<bool> activeCurves;
+  final List<User> users;
+  final Function(bool newValue, int index) tapped;
+  const CompletedTasksLegend({super.key, required this.activeCurves, required this.users, required this.tapped});
+
+  @override
+  State<CompletedTasksLegend> createState() => _CompletedTasksLegendState();
+}
+
+class _CompletedTasksLegendState extends State<CompletedTasksLegend> {
 
   @override
   Widget build(BuildContext context) {
-    return const Wrap(
+    return Wrap(
       alignment: WrapAlignment.center,
       children: [
-        Person(),
-        Person(),
-        Person(),
-        Person(),
-        Person(),
+        for(int i=0; i<widget.activeCurves.length;i++)
+          Person(isActive: widget.activeCurves[i], name: widget.users[i].userName, tapped: (bool newValue){widget.tapped(newValue, i);},),
       ],
     );
   }
 }
 
 class Person extends StatelessWidget {
-  const Person({super.key});
+  final bool isActive;
+  final String name;
+  final Function(bool newValue) tapped;
+  const Person({super.key, required this.isActive, required this.name, required this.tapped});
 
   @override
   Widget build(BuildContext context) {
     return IntrinsicWidth(
-      child: Container(
-        child: Row(
+      child: Row(
           children: [
-            Transform.scale(scale: 0.8, child: Checkbox(value: false, onChanged: (bool? value){})),
-            const Text("Person", style: TextStyle(fontSize: 12),),
+            Transform.scale(scale: 0.8, child: Checkbox(value: isActive, onChanged: (bool? value){tapped(value?? false);})),
+            Text(name, style: TextStyle(fontSize: 12),),
             const Spacer(),
           ],
         ),
-      ),
     );
   }
 }

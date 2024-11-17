@@ -4,6 +4,7 @@ import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/Task.dart';
+import 'package:mental_load/classes/User.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +25,15 @@ void main() async {
   );
 
   DBHandler().saveTask(myTask);
-  
 
+  User usertmp = await User.create(name: "ae", flowerColor: Colors.lightGreenAccent);
+  AssignedTask task = await AssignedTask.create(user: usertmp, task: myTask, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,6));
+  DBHandler().saveAssignedTask(task);
+  DBHandler().saveUser(usertmp);
+  await DBHandler().getAssignedTasks().then((element) {
+    print(element);
+  });
+  
   List<Task> allTasks = await DBHandler().getTasks();
 
   // other data

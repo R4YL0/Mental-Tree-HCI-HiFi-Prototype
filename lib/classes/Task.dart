@@ -82,6 +82,9 @@ class Task {
         _difficulty = json['difficulty'],
         _priority = json['priority'],
         _subtasks = (json['subtasks'] as List).map((item) => Subtask.fromJson(item)).toList();
+
+  String get name => _name;
+
 }
 
 enum Frequency { daily, weekly, monthly, yearly }

@@ -27,6 +27,8 @@ class User {
   // Getter for userId
   int get userId => _userId;
 
+  String get userName => _name;
+
   Map<String, dynamic> toJson() => {
         'userId': _userId,
         'name': _name,

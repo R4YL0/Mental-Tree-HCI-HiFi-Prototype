@@ -92,4 +92,10 @@ class AssignedTask {
   Task get task => _task;
   DateTime get dueDate => _dueDate;
   DateTime? get finishDate => _finishDate;
+
+
+  @override
+  String toString() {
+    return 'AssignedTask(Id: $_assignedTaskId, User: ${_user.userName}, Task: ${_task.name}, Due Date: $_dueDate, Finish Date: $_finishDate)';
+  }
 }

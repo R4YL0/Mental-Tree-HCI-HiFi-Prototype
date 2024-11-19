@@ -10,16 +10,17 @@ class DiagramsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       body: Padding(
-        padding: EdgeInsets.only(top: 10, right: 10, left: 10),
+        padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              DiagramBox(title: "Task History"),
-              SizedBox(height: 10,),
-              DiagramBox(title: "Completed Tasks"),
-              SizedBox(height: 10,),
+              SizedBox(height: MediaQuery.of(context).padding.top),
+              const DiagramBox(title: "Task History"),
+              const SizedBox(height: 10,),
+              const DiagramBox(title: "Completed Tasks"),
+              const SizedBox(height: 10,),
             ],
           ),
         ),
@@ -65,18 +66,33 @@ class DiagramTitle extends StatelessWidget {
   }
 }
 
-class TaskHistory extends StatelessWidget {
+class TaskHistory extends StatefulWidget {
   const TaskHistory({super.key});
 
   @override
+  State<TaskHistory> createState() => _TaskHistoryState();
+}
+
+class _TaskHistoryState extends State<TaskHistory> {
+  List<AssignedTask> completedTasks = [];
+
+@override
+  void initState() {
+    super.initState();
+    myInit();
+  }
+
+  myInit() async {
+    completedTasks = await AssignedTask.getCompletedTasks();
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        TaskBox(task: "task", category: "category", person: "person",),
-        TaskBox(task: "task", category: "category", person: "person",),
-        TaskBox(task: "task", category: "category", person: "person",),
-        TaskBox(task: "task", category: "category", person: "person",),
-        TaskBox(task: "task", category: "category", person: "person",),
+        for(int i = 0;i<completedTasks.length;i++)
+          TaskBox(task: completedTasks[i].task.name, category: "category", person: completedTasks[i].user.userName,),
       ],
     );
   }
@@ -92,7 +108,7 @@ class TaskBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Text(task, style: TextStyle(fontSize: 14)),
+        Text(task, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
         const SizedBox(width: 5,),
         Text(category, style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6),),),
         const Spacer(),
@@ -189,12 +205,12 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
       }
 
       setState(() {
-        /*data.forEach((user, taskList) {
+        data.forEach((user, taskList) {
           print('User: $user');
           taskList.forEach((task) {
             print('  Days Ago: ${task.daysAgo}, Tasks: ${task.number}');
           });
-        });*/
+        });
       });
     }
   }
@@ -203,7 +219,7 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
   Widget build(BuildContext context) {
     return SfCartesianChart(
       primaryXAxis: const NumericAxis(title: AxisTitle(text: "..days ago", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
-      primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 40,),
+      primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 10,),
       tooltipBehavior: TooltipBehavior(enable: true),
       series: <CartesianSeries<_CompletedTask, int>>[
         for(var person in data.entries)

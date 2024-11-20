@@ -218,6 +218,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "settings_ui",
+      "rootUri": "file:///Users/thiagoknill/.pub-cache/hosted/pub.dev/settings_ui-2.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "sky_engine",
       "rootUri": "file:///Users/thiagoknill/Documents/Programmieren/SDKs/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
@@ -332,7 +338,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-11-19T12:34:44.969914Z",
+  "generated": "2024-11-20T14:51:21.364153Z",
   "generator": "pub",
   "generatorVersion": "3.4.3",
   "flutterRoot": "file:///Users/thiagoknill/Documents/Programmieren/SDKs/flutter",

@@ -11,6 +11,7 @@ class Task {
   Category _category;
   Frequency _frequency;
   String _notes;
+  String _imgDst;
   bool _isPrivate;
   int _difficulty;
   int _priority;
@@ -22,6 +23,7 @@ class Task {
   Category get category => _category;
   Frequency get frequency => _frequency;
   String get notes => _notes;
+  String get imgDst => _imgDst;
   bool get isPrivate => _isPrivate;
   int get difficulty => _difficulty;
   int get priority => _priority;
@@ -31,6 +33,7 @@ class Task {
   set category(value) => {_category = value, DBHandler().saveTask(this)};
   set frequency(value) => {_frequency = value, DBHandler().saveTask(this)};
   set notes(value) => {_notes = value, DBHandler().saveTask(this)};
+  set imgDst(value) => {_imgDst = value, DBHandler().saveTask(this)};
   set isPrivate(value) => {_isPrivate = value, DBHandler().saveTask(this)};
   set difficulty(value) => {_difficulty = value, DBHandler().saveTask(this)};
   set priority(value) => {_priority = value, DBHandler().saveTask(this)};
@@ -43,6 +46,7 @@ class Task {
     required Category category,
     required Frequency frequency,
     required String notes,
+    required String imgDst,
     required bool isPrivate,
     required int difficulty,
     required int priority,
@@ -52,6 +56,7 @@ class Task {
         _category = category,
         _frequency = frequency,
         _notes = notes,
+        _imgDst = imgDst,
         _isPrivate = isPrivate,
         _difficulty = difficulty,
         _priority = priority,
@@ -63,6 +68,7 @@ class Task {
     required Category category,
     required Frequency frequency,
     required String notes,
+    required String imgDst,
     required bool isPrivate,
     required int difficulty,
     required int priority,
@@ -75,6 +81,7 @@ class Task {
       category: category,
       frequency: frequency,
       notes: notes,
+      imgDst: imgDst,
       isPrivate: isPrivate,
       difficulty: difficulty,
       priority: priority,
@@ -99,6 +106,7 @@ class Task {
         'category': _category.toString(),
         'frequency': _frequency.toString(),
         'notes': _notes,
+        'imgDst': _imgDst,
         'isPrivate': _isPrivate,
         'difficulty': _difficulty,
         'priority': _priority,
@@ -111,6 +119,7 @@ class Task {
         _category = Category.values.firstWhere((e) => e.toString() == json['category']),
         _frequency = Frequency.values.firstWhere((e) => e.toString() == json['frequency']),
         _notes = json['notes'],
+        _imgDst = json['imgDst'],
         _isPrivate = json['isPrivate'],
         _difficulty = json['difficulty'],
         _priority = json['priority'],
@@ -124,6 +133,7 @@ class Task {
         '  category: $_category,\n'
         '  frequency: $_frequency,\n'
         '  notes: $_notes,\n'
+        '  imgDst: $_imgDst,\n'
         '  isPrivate: $_isPrivate,\n'
         '  difficulty: $_difficulty,\n'
         '  priority: $_priority,\n'

@@ -255,13 +255,13 @@
     },
     {
       "name": "syncfusion_flutter_charts",
-      "rootUri": "file:///C:/Users/khale/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_charts-27.1.58",
+      "rootUri": "file:///C:/Users/khale/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_charts-27.2.2",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
     {
       "name": "syncfusion_flutter_core",
-      "rootUri": "file:///C:/Users/khale/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_core-27.1.58",
+      "rootUri": "file:///C:/Users/khale/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_core-27.2.2",
       "packageUri": "lib/",
       "languageVersion": "2.17"
     },
@@ -338,7 +338,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-11-20T14:25:41.718011Z",
+  "generated": "2024-11-20T15:03:50.627757Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///C:/Users/khale/FlutterSDK/flutter",

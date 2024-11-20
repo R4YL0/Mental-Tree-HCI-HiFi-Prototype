@@ -26,6 +26,8 @@ class User {
 
   // Getter for userId
   int get userId => _userId;
+  String get name => _name;
+  Color get flowerColor => _flowerColor;
 
   String get userName => _name;
   Color get userColor => _flowerColor;

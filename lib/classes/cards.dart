@@ -35,7 +35,7 @@ class _CardsMini extends State<Cards> {
             Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
           ], ), textScaler: TextScaler.linear(0.65),),),
           Align(alignment: Alignment(-0.34, -0.417) , child: ColoredBox(color:Color.fromARGB(255, 254, 213, 182),child: SizedBox(width:130, height: 85,),),),
-          Align(alignment: Alignment(-0.22, -0.4) , child: Image(image: AssetImage('images/image1.png'), width:122),),
+          Align(alignment: Alignment(-0.22, -0.4) , child: Image(image: AssetImage('assets/image1.png'), width:122),),
           Align(alignment: Alignment(-0.88, 0.35) , child: Text("Priority", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.6),),),
           Align(alignment: Alignment(0.75, 0.35) , child: Text("3/5", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.7),),),
           Align(alignment: Alignment(-0.88, 0.5) , child: Text("Difficulty", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.6),),),

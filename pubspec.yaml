@@ -40,11 +40,8 @@ dependencies:
   cupertino_icons: ^1.0.6
   get: ^4.6.6
   syncfusion_flutter_charts: ^27.1.58
-<<<<<<< HEAD
-=======
   flutter_svg: ^2.0.14
   settings_ui: ^2.0.2
->>>>>>> origin/main
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +71,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
       - lib/assets/
+      - images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -100,6 +98,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
-  assets:
-    - images/

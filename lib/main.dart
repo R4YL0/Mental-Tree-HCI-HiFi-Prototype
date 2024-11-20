@@ -17,6 +17,7 @@ void main() async {
   Task myTask = await Task.create( // always use create not constructor! (also for mood, subtasks,...)
     name: "Grocery Shopping 2",
     frequency: Frequency.weekly,
+    category: Category.Admin,
     notes: "bla bla bla",
     isPrivate: false,
     difficulty: 3,

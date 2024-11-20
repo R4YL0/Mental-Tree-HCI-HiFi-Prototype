@@ -218,6 +218,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "settings_ui",
+      "rootUri": "file:///C:/Users/weder/AppData/Local/Pub/Cache/hosted/pub.dev/settings_ui-2.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "sky_engine",
       "rootUri": "file:///C:/Users/weder/Flutter/flutter/bin/cache/pkg/sky_engine",
       "packageUri": "lib/",
@@ -332,7 +338,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-11-15T10:27:15.511412Z",
+  "generated": "2024-11-19T08:23:35.626281Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///C:/Users/weder/Flutter/flutter",

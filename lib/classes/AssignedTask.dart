@@ -9,6 +9,19 @@ class AssignedTask {
   DateTime _dueDate;
   DateTime? _finishDate;
 
+  // Getters & Setters
+  int get assignedTaskId => _assignedTaskId;
+  User get user => _user;
+  Task get task => _task;
+  DateTime get dueDate => _dueDate;
+  DateTime? get finishDate => _finishDate;
+
+  set assignedTaskId(int value) => {_assignedTaskId = value, DBHandler().saveAssignedTask(this)};
+  set user(User value) => {_user = value, DBHandler().saveAssignedTask(this)};
+  set task(Task value) => {_task = value, DBHandler().saveAssignedTask(this)};
+  set dueDate(DateTime value) => {_dueDate = value, DBHandler().saveAssignedTask(this)};
+  set finishDate(DateTime? value) => {_finishDate = value, DBHandler().saveAssignedTask(this)};
+
   // Private Constructor
   AssignedTask._({
     required int assignedTaskId,
@@ -30,22 +43,24 @@ class AssignedTask {
     DateTime? finishDate,
   }) async {
     final assignedTaskId = await DBHandler().getNextAssignedTaskId();
-    return AssignedTask._(
+    AssignedTask assignedTask = AssignedTask._(
       assignedTaskId: assignedTaskId,
       user: user,
       task: task,
       dueDate: dueDate,
       finishDate: finishDate,
     );
+    await DBHandler().saveAssignedTask(assignedTask);
+    return assignedTask;
   }
 
-   // Find all tasks assigned to a specific user
+  // Find all tasks assigned to a specific user
   static Future<List<AssignedTask>> getTasksForUser(int userId) async {
     final assignedTasks = await DBHandler().getAssignedTasks();
     return assignedTasks.where((task) => task._user.userId == userId).toList();
   }
 
-  // Find all pending tasks for a specific user
+  // Find all completed tasks for a specific user
   static Future<List<AssignedTask>> getCompletedTasksForUser(int userId) async {
     final assignedTasks = await DBHandler().getAssignedTasks();
     return assignedTasks
@@ -71,6 +86,57 @@ class AssignedTask {
         .toList();
   }
 
+  static Future<Map<Category, List<AssignedTask>>> getAssignedTasksDictionary() async {
+    final assignedTasks = await DBHandler().getAssignedTasks();
+    final Map<Category, List<AssignedTask>> tasksByCategory = {};
+
+    for (var task in assignedTasks) {
+      final category = task._task.category;
+      if (!tasksByCategory.containsKey(category)) {
+        tasksByCategory[category] = [];
+      }
+      tasksByCategory[category]?.add(task);
+    }
+    return tasksByCategory;
+  }
+
+  static Future<Map<Category, List<AssignedTask>>> getAssignedButNotCompletedTasksDictionary() async {
+    final assignedTasks = await DBHandler().getAssignedTasks();
+    final Map<Category, List<AssignedTask>> tasksByCategory = {};
+
+    for (var task in assignedTasks) {
+      if (task.finishDate != null){
+        continue;
+      }
+
+      final category = task._task.category;
+      if (!tasksByCategory.containsKey(category)) {
+        tasksByCategory[category] = [];
+      }
+      tasksByCategory[category]?.add(task);
+    }
+    return tasksByCategory;
+  }
+
+  // Get assigned tasks dictionary
+  static Future<Map<Category, List<AssignedTask>>> getAssignedAndCompletedTasksDictionary() async {
+    final assignedTasks = await DBHandler().getAssignedTasks();
+    final Map<Category, List<AssignedTask>> tasksByCategory = {};
+
+    for (var task in assignedTasks) {
+      if (task.finishDate == null){
+        continue;
+      }
+
+      final category = task._task.category;
+      if (!tasksByCategory.containsKey(category)) {
+        tasksByCategory[category] = [];
+      }
+      tasksByCategory[category]?.add(task);
+    }
+    return tasksByCategory;
+  }
+
   Map<String, dynamic> toJson() => {
         'assignedTaskId': _assignedTaskId,
         'user': _user.toJson(),
@@ -86,10 +152,15 @@ class AssignedTask {
         _dueDate = DateTime.parse(json['dueDate']),
         _finishDate = json['finishDate'] != null ? DateTime.parse(json['finishDate']) : null;
 
-  // Getters for accessing private fields
-  int get assignedTaskId => _assignedTaskId;
-  User get user => _user;
-  Task get task => _task;
-  DateTime get dueDate => _dueDate;
-  DateTime? get finishDate => _finishDate;
+  @override
+  String toString() {
+    return 'AssignedTask: {\n'
+        '  assignedTaskId: $_assignedTaskId,\n'
+        '  user: ${_user.toString()},\n'
+        '  task: ${_task.toString()},\n'
+        '  dueDate: ${_dueDate.toIso8601String()},\n'
+        '  finishDate: ${_finishDate?.toIso8601String() ?? "Not finished"}\n'
+        '}';
+}
+
 }

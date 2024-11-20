@@ -1,23 +1,29 @@
 import 'package:mental_load/classes/DBHandler.dart';
 
+enum Moods {good, mid, bad}
+
 class Mood {
   int _moodId;
   int _userId;
   DateTime _date;
-  String _mood;
+  Moods _mood;
 
-  // Getters for private fields
+  // Getters & Setters
   int get moodId => _moodId;
   int get userId => _userId;
   DateTime get date => _date;
-  String get mood => _mood;
+  Moods get mood => _mood;
+  
+  set userId(value) => {_userId = value, DBHandler().saveMood(this)};
+  set date(value) => {_date = value, DBHandler().saveMood(this)};
+  set mood(value) => {_moodId = value, DBHandler().saveMood(this)};
 
   // Private Constructor
   Mood._({
     required int moodId,
     required int userId,
     required DateTime date,
-    required String mood,
+    required Moods mood,
   })  : _moodId = moodId,
         _userId = userId,
         _date = date,
@@ -27,22 +33,24 @@ class Mood {
   static Future<Mood> create({
     required int userId,
     required DateTime date,
-    required String mood,
+    required Moods mood,
   }) async {
     final id = await DBHandler().getNextMoodId();
-    return Mood._(
+    Mood mood2 = Mood._(
       moodId: id,
       userId: userId,
       date: date,
       mood: mood,
     );
+    await DBHandler().saveMood(mood2);
+    return mood2;
   }
 
   Map<String, dynamic> toJson() => {
         'moodId': _moodId,
         'userId': _userId,
         'date': _date.toIso8601String(),
-        'mood': _mood,
+        'mood': _mood.toString(),
       };
 
   static Mood fromJson(Map<String, dynamic> json) {
@@ -50,7 +58,18 @@ class Mood {
       moodId: json['moodId'],
       userId: json['userId'],
       date: DateTime.parse(json['date']),
-      mood: json['mood'],
+      mood: Moods.values.firstWhere((e) => e.toString() == json['mood']),
     );
   }
+
+  @override
+  String toString() {
+    return 'Mood: {\n'
+        '  moodId: $_moodId,\n'
+        '  userId: $_userId,\n'
+        '  date: ${_date.toIso8601String()},\n'
+        '  mood: $_mood\n'
+        '}';
+}
+
 }

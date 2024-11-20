@@ -28,6 +28,7 @@ class User {
   int get userId => _userId;
 
   String get userName => _name;
+  Color get userColor => _flowerColor;
 
   Map<String, dynamic> toJson() => {
         'userId': _userId,

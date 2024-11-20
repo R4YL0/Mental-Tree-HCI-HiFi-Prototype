@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -12,15 +13,14 @@ class DiagramsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: const EdgeInsets.only(top: 10, right: 10, left: 10),
-        child: SingleChildScrollView(
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, right: 10, left: 10),
+        child: const SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: MediaQuery.of(context).padding.top),
-              const DiagramBox(title: "Task History"),
-              const SizedBox(height: 10,),
-              const DiagramBox(title: "Completed Tasks"),
-              const SizedBox(height: 10,),
+              DiagramBox(title: "Task History"),
+              SizedBox(height: 10,),
+              DiagramBox(title: "Completed Tasks"),
+              SizedBox(height: 10,),
             ],
           ),
         ),
@@ -75,6 +75,7 @@ class TaskHistory extends StatefulWidget {
 
 class _TaskHistoryState extends State<TaskHistory> {
   List<AssignedTask> completedTasks = [];
+  bool showAllEntries = false;
 
 @override
   void initState() {
@@ -89,12 +90,44 @@ class _TaskHistoryState extends State<TaskHistory> {
 
   @override
   Widget build(BuildContext context) {
+    List<AssignedTask> completedTasksRev = completedTasks.reversed.toList();
     return Column(
       children: [
-        for(int i = 0;i<completedTasks.length;i++)
-          TaskBox(task: completedTasks[i].task.name, category: "category", person: completedTasks[i].user.userName,),
+        for(int i = 0;i<completedTasksRev.length;i++)
+          if(showAllEntries || i<10)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DateBox(lasttask: i > 0 ? completedTasksRev[i-1] : null, task: completedTasksRev[i]),
+                TaskBox(task: completedTasksRev[i].task.name, category: "category", person: completedTasksRev[i].user.userName,),
+              ],
+            ),
+        ShowMoreLess(showAllEntries: showAllEntries, onTap: () {setState(() {showAllEntries = !showAllEntries;});},),
       ],
     );
+  }
+}
+
+class DateBox extends StatelessWidget {
+  final AssignedTask? lasttask;
+  final AssignedTask task;
+  const DateBox({super.key, required this.lasttask, required this.task});
+
+  @override
+  Widget build(BuildContext context) {
+    if(lasttask != null && lasttask?.finishDate == task.finishDate){
+      return const SizedBox();
+    }else {
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: Text(
+          task.finishDate != null
+          ? "${task.finishDate!.year}-${task.finishDate!.month.toString().padLeft(2, '0')}-${task.finishDate!.day.toString().padLeft(2, '0')}"
+          : "0000-00-00",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      );
+    }
   }
 }
 
@@ -115,6 +148,37 @@ class TaskBox extends StatelessWidget {
         Text("done by ", style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6),)),
         Text(person, style: const TextStyle(fontSize: 14)),
       ],
+    );
+  }
+}
+
+class ShowMoreLess extends StatefulWidget {
+  final bool showAllEntries;
+  final Function () onTap;
+  const ShowMoreLess({super.key, required this.showAllEntries, required this.onTap});
+
+  @override
+  State<ShowMoreLess> createState() => _ShowMoreLessState();
+}
+
+class _ShowMoreLessState extends State<ShowMoreLess> {
+  late bool showAllEntries;
+  
+@override
+  void initState() {
+    super.initState();
+    showAllEntries = widget.showAllEntries;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: (){widget.onTap(); setState(() {showAllEntries = !showAllEntries;});},
+        child: Center(child: Text(widget.showAllEntries? "show less" : "show more"))
+      ),
     );
   }
 }
@@ -140,7 +204,7 @@ class _CompletedTasksState extends State<CompletedTasks> {
     users = await DBHandler().getUsers();
     int length = users.length;
     setState(() {
-      activeCurves = List.filled(length, false);
+      activeCurves = List.filled(length, true);
     });
   }
 
@@ -172,7 +236,7 @@ class CompletedTasksDiagram extends StatefulWidget {
 
 class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
   //final List<_CompletedTask> completedTasks = [_CompletedTask(0,3), _CompletedTask(1, 5), _CompletedTask(2,1),_CompletedTask(3,7),_CompletedTask(4,4),_CompletedTask(5,2),_CompletedTask(6,3),];
-  final Map<String, List<_CompletedTask>> data = {"abc": [_CompletedTask(0,3), _CompletedTask(1, 5)]};
+  final Map<User, List<_CompletedTask>> data = {};
 
   @override
   void initState() {
@@ -180,17 +244,18 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
     _myInit();
   }
 
-  _myInit() async {
+  void _myInit() async {
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
-    print(completedTasks.length);
+    /*print("length ${completedTasks.length}");*/
 
     for(int i=0;i<completedTasks.length;i++){
       int differenceInDays = DateTime.now().difference(completedTasks[i].finishDate!).inDays;
-      String user = completedTasks[i].user.userName;
+      User user = completedTasks[i].user;
       _CompletedTask tmp = _CompletedTask(differenceInDays, 1);
-      if(data.keys.contains(user)){
+      if(data.keys.any((tmpUser) => tmpUser.userId == user.userId)){
         bool entryExists = false;
-        for (var entry in data[user]!) {
+        User? userWithId = data.keys.firstWhere((tmpUser) => tmpUser.userId == user.userId);
+        for (var entry in data[userWithId]!) {
           if (entry.daysAgo == differenceInDays) {
             entry.number += 1;
             entryExists = true;
@@ -198,19 +263,19 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
           }
         }
         if(!entryExists){
-          data[user]!.add(tmp);
+          data[userWithId]!.add(tmp);
         }
       }else{
        data[user] = [tmp];
       }
 
       setState(() {
-        data.forEach((user, taskList) {
+        /*data.forEach((user, taskList) {
           print('User: $user');
           taskList.forEach((task) {
             print('  Days Ago: ${task.daysAgo}, Tasks: ${task.number}');
           });
-        });
+        });*/
       });
     }
   }
@@ -224,14 +289,13 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
       series: <CartesianSeries<_CompletedTask, int>>[
         for(var person in data.entries)
           for(int i=0;i<widget.users.length;i++)
-            if(widget.users[i].userName == person.key && widget.activeCurves[i])
-              LineSeries<_CompletedTask, int>(
-                dataSource: person.value,
-                xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-                yValueMapper: (_CompletedTask data, _) => data.number,
-                name: person.key,
-                color: Colors.blue,
-              ), 
+            LineSeries<_CompletedTask, int>(
+              dataSource: person.value,
+              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
+              yValueMapper: (_CompletedTask data, _) => data.number,
+              name: person.key.userName,
+              color: (widget.users[i].userId == person.key.userId) && (widget.activeCurves[i])? person.key.userColor : Colors.transparent,
+            ), 
       ]
     );
   }

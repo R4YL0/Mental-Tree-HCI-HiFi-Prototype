@@ -84,6 +84,7 @@ class Task {
         _subtasks = (json['subtasks'] as List).map((item) => Subtask.fromJson(item)).toList();
 
   String get name => _name;
+  int get taskid => _taskId;
 
 }
 

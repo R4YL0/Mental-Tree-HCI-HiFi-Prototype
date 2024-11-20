@@ -163,4 +163,37 @@ class DBHandler {
     }
     return null;
   }
+
+  Future<void> removeUser(int id) async {
+    final users = await getUsers();
+
+    int index = users.indexWhere((user) => user.userId == id);
+    if(index != -1){
+      users.removeAt(index);
+    }
+
+    await _userStorage.setItem('users', users.map((user) => user.toJson()).toList());
+  }
+
+  Future<void> removeTask(int id) async {
+    final tasks = await getTasks();
+
+    int index = tasks.indexWhere((task) => task.taskid == id);
+    if(index != -1){
+      tasks.removeAt(index);
+    }
+
+    await _taskStorage.setItem('tasks', tasks.map((task) => task.toJson()).toList());
+  }
+
+  Future<void> removeAssignedTask(int id) async {
+    final assignedTask = await getAssignedTasks();
+
+    int index = assignedTask.indexWhere((assignedTask) => assignedTask.assignedTaskId == id);
+    if(index != -1){
+      assignedTask.removeAt(index);
+    }
+
+    await _assignedTaskStorage.setItem('assigned_tasks', assignedTask.map((assignedTask) => assignedTask.toJson()).toList());
+  }
 }

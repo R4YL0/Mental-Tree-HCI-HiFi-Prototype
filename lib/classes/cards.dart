@@ -85,7 +85,7 @@ class _CardsShow extends State<Cards> {
             Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
           ], ), textScaler: TextScaler.linear(1.4),),),
           Align(alignment: Alignment(0, -0.51) , child: ColoredBox(color:Color.fromARGB(255, 254, 213, 182),child: SizedBox(width:326, height: 208,),),),
-          Align(alignment: Alignment(0, -0.5) , child: Image(image: AssetImage('images/image1.png'), width:320, height: 200),),
+          Align(alignment: Alignment(0, -0.5) , child: Image(image: AssetImage('assets/image1.png'), width:320, height: 200),),
         ],)
       ),
     );

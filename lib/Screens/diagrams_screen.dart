@@ -13,17 +13,27 @@ class DiagramsScreen extends StatelessWidget {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, right: 10, left: 10),
-        child: const SingleChildScrollView(
-          child: Column(
-            children: [
-              DiagramBox(title: "Task History"),
-              SizedBox(height: 10,),
-              DiagramBox(title: "Completed Tasks"),
-              SizedBox(height: 10,),
-              DiagramBox(title: "Category Bar Chart"),
-              SizedBox(height: 10,),
-            ],
-          ),
+        child: const Column(
+          children: [
+            Text("Completed Tasks", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            SizedBox(height: 10,),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    DiagramBox(title: "Distribution"),
+                    SizedBox(height: 10,),
+                    DiagramBox(title: "Last 20 days"),
+                    SizedBox(height: 10,),
+                    DiagramBox(title: "By Category"),
+                    SizedBox(height: 10,),
+                    DiagramBox(title: "History"),
+                    SizedBox(height: 10,),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -45,12 +55,13 @@ class DiagramBox extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DiagramTitle(text: title,),
-            const SizedBox(height: 10,),
-            if(title == "Task History")
+            if(title == "Distribution")
+              const PieChart()
+            else if(title == "History")
               const TaskHistory()
-            else if(title == "Completed Tasks")
+            else if(title == "Last 20 days")
               const CompletedTasks()
-            else if(title == "Category Bar Chart")
+            else if(title == "By Category")
               const CategoryBarChart()
           ],
         ),
@@ -67,6 +78,86 @@ class DiagramTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),);
   }
+}
+
+class PieChart extends StatelessWidget {
+  const PieChart({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        PieChartDiagram(),
+        Info(),
+      ],
+    );
+  }
+}
+
+class PieChartDiagram extends StatefulWidget {
+  const PieChartDiagram({super.key});
+
+  @override
+  State<PieChartDiagram> createState() => _PieChartDiagramState();
+}
+
+class _PieChartDiagramState extends State<PieChartDiagram> {
+  List<_PieChartData> pieData = [];
+  int totalTasks = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _myInit();
+  }
+
+  _myInit() async {
+    List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
+    for(AssignedTask assTask in completedTasks){
+      bool entryExists = false;
+      for(_PieChartData pD in pieData){
+        if(assTask.user.userId == pD.user.userId){
+          pD.taskCount += 1;
+          totalTasks += 1;
+          entryExists = true;
+        }
+      }
+      if(entryExists == false){
+        pieData.add(_PieChartData(assTask.user, 1));
+        totalTasks += 1;
+      }
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SfCircularChart(
+      legend: const Legend(
+        isVisible: true, 
+        overflowMode: LegendItemOverflowMode.wrap,
+      ),
+      tooltipBehavior: TooltipBehavior(enable: true),
+      series: <CircularSeries>[
+        PieSeries<_PieChartData, String>(
+          dataSource: pieData,
+          xValueMapper: (_PieChartData data, _) => data.user.name,
+          yValueMapper: (_PieChartData data, _) => data.taskCount,
+          pointColorMapper: (_PieChartData data, _) => data.user.flowerColor,
+          dataLabelMapper: (_PieChartData data, _) => "${data.taskCount.toString()} Tasks",
+          dataLabelSettings: const DataLabelSettings(isVisible: true,),
+          enableTooltip: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _PieChartData {
+  final User user;
+  int taskCount;
+
+  _PieChartData(this.user, this.taskCount);
 }
 
 class TaskHistory extends StatefulWidget {
@@ -180,7 +271,7 @@ class _ShowMoreLessState extends State<ShowMoreLess> {
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: (){widget.onTap(); setState(() {showAllEntries = !showAllEntries;});},
-        child: Center(child: Text(widget.showAllEntries? "show less" : "show more"))
+        child: Center(child: Text(widget.showAllEntries? "show less" : "show more", style: const TextStyle(fontSize: 12)))
       ),
     );
   }
@@ -385,10 +476,10 @@ class _CategoryBarChartDiagramState extends State<CategoryBarChartDiagram> {
   @override
   void initState() {
     super.initState();
-    myInit();
+    _myInit();
   }
 
-  myInit() async {
+  _myInit() async {
     users = await DBHandler().getUsers();
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
     for(AssignedTask aTask in completedTasks){

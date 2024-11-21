@@ -9,19 +9,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: Center(
-          child: Container(
-            color: AppColors.primary,
-            child: const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Column(children: [
-                Text(
-                  "HOME - Todo",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                FlowerWidget(mood: Moods.good)
-              ]),
-            ),
+        body: Padding(
+        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, right: 10, left: 10),
+          child: const Center(
+            child: Column(children: [
+              Text(
+                "HOME - Todo",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              FlowerWidget(mood: Moods.good)
+            ]),
           ),
         ),
         floatingActionButton: FloatingActionButton(

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
-import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -20,6 +19,8 @@ class DiagramsScreen extends StatelessWidget {
               DiagramBox(title: "Task History"),
               SizedBox(height: 10,),
               DiagramBox(title: "Completed Tasks"),
+              SizedBox(height: 10,),
+              DiagramBox(title: "Category Bar Chart"),
               SizedBox(height: 10,),
             ],
           ),
@@ -49,6 +50,8 @@ class DiagramBox extends StatelessWidget {
               const TaskHistory()
             else if(title == "Completed Tasks")
               const CompletedTasks()
+            else if(title == "Category Bar Chart")
+              const CategoryBarChart()
           ],
         ),
       ),
@@ -99,7 +102,7 @@ class _TaskHistoryState extends State<TaskHistory> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DateBox(lasttask: i > 0 ? completedTasksRev[i-1] : null, task: completedTasksRev[i]),
-                TaskBox(task: completedTasksRev[i].task.name, category: "category", person: completedTasksRev[i].user.name,),
+                TaskBox(task: completedTasksRev[i].task.name, category: completedTasksRev[i].task.category.name, person: completedTasksRev[i].user.name,),
               ],
             ),
         ShowMoreLess(showAllEntries: showAllEntries, onTap: () {setState(() {showAllEntries = !showAllEntries;});},),
@@ -219,7 +222,7 @@ class _CompletedTasksState extends State<CompletedTasks> {
     return Column(
       children: [
         CompletedTasksDiagram(activeCurves: activeCurves, users: users),
-        CompletedTasksLegend(activeCurves: activeCurves, users: users, tapped: (bool newValue, int index){_setNewCurveBoolean(newValue, index);},),
+        //CompletedTasksLegend(activeCurves: activeCurves, users: users, tapped: (bool newValue, int index){_setNewCurveBoolean(newValue, index);},),
       ],
     );
   }
@@ -285,17 +288,17 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
     return SfCartesianChart(
       primaryXAxis: const NumericAxis(title: AxisTitle(text: "..days ago", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
       primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 10,),
+      legend: const Legend(isVisible: true,),
       tooltipBehavior: TooltipBehavior(enable: true),
       series: <CartesianSeries<_CompletedTask, int>>[
         for(var person in data.entries)
-          for(int i=0;i<widget.users.length;i++)
-            LineSeries<_CompletedTask, int>(
-              dataSource: person.value,
-              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-              yValueMapper: (_CompletedTask data, _) => data.number,
-              name: person.key.name,
-              color: (widget.users[i].userId == person.key.userId) && (widget.activeCurves[i])? person.key.flowerColor : Colors.transparent,
-            ), 
+          LineSeries<_CompletedTask, int>(
+            dataSource: person.value,
+            xValueMapper: (_CompletedTask data, _) => data.daysAgo,
+            yValueMapper: (_CompletedTask data, _) => data.number,
+            name: person.key.name,
+            color: person.key.flowerColor,
+          ),   
       ]
     );
   }
@@ -344,10 +347,75 @@ class Person extends StatelessWidget {
       child: Row(
           children: [
             Transform.scale(scale: 0.8, child: Checkbox(value: isActive, onChanged: (bool? value){tapped(value?? false);})),
-            Text(name, style: TextStyle(fontSize: 12),),
+            Text(name, style: const TextStyle(fontSize: 12),),
             const Spacer(),
           ],
         ),
     );
   }
+}
+
+class CategoryBarChart extends StatefulWidget {
+  const CategoryBarChart({super.key});
+
+  @override
+  State<CategoryBarChart> createState() => _CategoryBarChartState();
+}
+
+class _CategoryBarChartState extends State<CategoryBarChart> {
+  List<User> users = [];
+  List<_CategoryCount> chartData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    myInit();
+  }
+
+  myInit() async {
+    users = await DBHandler().getUsers();
+    List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
+    for(AssignedTask aTask in completedTasks){
+      bool entryExists = false;
+      for(_CategoryCount catCount in chartData){
+        if(catCount.userId == aTask.user.userId && catCount.category == aTask.task.category.name){
+          catCount.count += 1;
+          entryExists = true;
+        }
+      }
+      if(entryExists == false){
+        chartData.add(_CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
+      }
+    }
+    chartData.sort((a, b) => a.category.compareTo(b.category));
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SfCartesianChart(
+      primaryXAxis: const CategoryAxis(title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),),
+      primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
+      legend: const Legend(isVisible: true),
+      tooltipBehavior: TooltipBehavior(enable: true),
+      series: <CartesianSeries>[
+        for(User tmpUser in users)
+          ColumnSeries<_CategoryCount, String>(
+            dataSource: chartData.where((data) => data.userId == tmpUser.userId).toList(),
+            xValueMapper: (_CategoryCount data, _) => data.category,
+            yValueMapper: (_CategoryCount data, _) => data.count,
+            name: tmpUser.name,
+            color: tmpUser.flowerColor,
+          ),
+      ],
+    );
+  }
+}
+
+class _CategoryCount {
+  final String category;
+  int count;
+  final int userId;
+
+  _CategoryCount(this.category, this.count, this.userId);
 }

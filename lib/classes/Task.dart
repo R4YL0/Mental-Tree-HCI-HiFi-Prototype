@@ -108,7 +108,7 @@ class Task {
   Task.fromJson(Map<String, dynamic> json)
       : _taskId = json['taskId'],
         _name = json['name'],
-        _category = Category.values.firstWhere((e) => e.toString() == json['category']),
+        _category = json['category'] != null ? Category.values.firstWhere((e) => e.toString() == json['category']) : Category.Admin,
         _frequency = Frequency.values.firstWhere((e) => e.toString() == json['frequency']),
         _notes = json['notes'],
         _isPrivate = json['isPrivate'],

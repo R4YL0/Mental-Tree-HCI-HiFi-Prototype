@@ -42,6 +42,7 @@ dependencies:
   syncfusion_flutter_charts: ^27.1.58
   flutter_svg: ^2.0.14
   settings_ui: ^2.0.2
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:

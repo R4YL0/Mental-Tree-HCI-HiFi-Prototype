@@ -99,7 +99,7 @@ class _TaskHistoryState extends State<TaskHistory> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DateBox(lasttask: i > 0 ? completedTasksRev[i-1] : null, task: completedTasksRev[i]),
-                TaskBox(task: completedTasksRev[i].task.name, category: "category", person: completedTasksRev[i].user.userName,),
+                TaskBox(task: completedTasksRev[i].task.name, category: "category", person: completedTasksRev[i].user.name,),
               ],
             ),
         ShowMoreLess(showAllEntries: showAllEntries, onTap: () {setState(() {showAllEntries = !showAllEntries;});},),
@@ -293,8 +293,8 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
               dataSource: person.value,
               xValueMapper: (_CompletedTask data, _) => data.daysAgo,
               yValueMapper: (_CompletedTask data, _) => data.number,
-              name: person.key.userName,
-              color: (widget.users[i].userId == person.key.userId) && (widget.activeCurves[i])? person.key.userColor : Colors.transparent,
+              name: person.key.name,
+              color: (widget.users[i].userId == person.key.userId) && (widget.activeCurves[i])? person.key.flowerColor : Colors.transparent,
             ), 
       ]
     );
@@ -326,7 +326,7 @@ class _CompletedTasksLegendState extends State<CompletedTasksLegend> {
       alignment: WrapAlignment.center,
       children: [
         for(int i=0; i<widget.activeCurves.length;i++)
-          Person(isActive: widget.activeCurves[i], name: widget.users[i].userName, tapped: (bool newValue){widget.tapped(newValue, i);},),
+          Person(isActive: widget.activeCurves[i], name: widget.users[i].name, tapped: (bool newValue){widget.tapped(newValue, i);},),
       ],
     );
   }

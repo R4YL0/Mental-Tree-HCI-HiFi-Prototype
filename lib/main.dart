@@ -26,7 +26,7 @@ void main() async {
 
   await DBHandler().getTasks().then((tasks) async {
     for(Task currTask in tasks){
-      await DBHandler().removeTask(currTask.taskid);
+      await DBHandler().removeTask(currTask.taskId);
     }
   });
   await DBHandler().getTasks().then((task){print("task number: ${task.length}");});
@@ -53,6 +53,7 @@ void main() async {
     isPrivate: false,
     difficulty: 3,
     priority: 4,
+    category: Category.Admin,
   );
   Task task2 = await Task.create(
     name: "Task 2",
@@ -61,6 +62,7 @@ void main() async {
     isPrivate: false,
     difficulty: 3,
     priority: 4,
+    category: Category.Childcare,
   );
   Task task3 = await Task.create(
     name: "Task 3",
@@ -69,6 +71,7 @@ void main() async {
     isPrivate: false,
     difficulty: 3,
     priority: 4,
+    category: Category.Cleaning,
   );
   Task task4 = await Task.create(
     name: "Task 4",
@@ -77,6 +80,7 @@ void main() async {
     isPrivate: false,
     difficulty: 3,
     priority: 4,
+    category: Category.Laundry,
   );
   await DBHandler().saveTask(task1);
   await DBHandler().saveTask(task2);

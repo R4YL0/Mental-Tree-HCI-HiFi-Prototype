@@ -222,6 +222,7 @@ class _CompletedTasksState extends State<CompletedTasks> {
     return Column(
       children: [
         CompletedTasksDiagram(activeCurves: activeCurves, users: users),
+        const Info(),
         //CompletedTasksLegend(activeCurves: activeCurves, users: users, tapped: (bool newValue, int index){_setNewCurveBoolean(newValue, index);},),
       ],
     );
@@ -355,14 +356,29 @@ class Person extends StatelessWidget {
   }
 }
 
-class CategoryBarChart extends StatefulWidget {
+class CategoryBarChart extends StatelessWidget {
   const CategoryBarChart({super.key});
 
   @override
-  State<CategoryBarChart> createState() => _CategoryBarChartState();
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        CategoryBarChartDiagram(),
+        Info(),
+      ],
+    );
+  }
 }
 
-class _CategoryBarChartState extends State<CategoryBarChart> {
+
+class CategoryBarChartDiagram extends StatefulWidget {
+  const CategoryBarChartDiagram({super.key});
+
+  @override
+  State<CategoryBarChartDiagram> createState() => _CategoryBarChartDiagramState();
+}
+
+class _CategoryBarChartDiagramState extends State<CategoryBarChartDiagram> {
   List<User> users = [];
   List<_CategoryCount> chartData = [];
 
@@ -418,4 +434,19 @@ class _CategoryCount {
   final int userId;
 
   _CategoryCount(this.category, this.count, this.userId);
+}
+
+class Info extends StatelessWidget {
+  const Info({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.lightbulb_outline, size: 16,),
+        Text("You can click on a name to deactivate its data!", style: TextStyle(fontSize: 12)),
+      ],
+    );
+  }
 }

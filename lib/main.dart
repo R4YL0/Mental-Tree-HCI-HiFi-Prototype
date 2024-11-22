@@ -210,6 +210,8 @@ void main() async {
   AssignedTask btask40 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,19));
   AssignedTask btask41 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,20));
   AssignedTask btask42 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,20));
+  AssignedTask btask43 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,21));
+  AssignedTask btask44 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,21));
   await DBHandler().saveAssignedTask(btask1);
   await DBHandler().saveAssignedTask(btask2);
   await DBHandler().saveAssignedTask(btask3);
@@ -252,11 +254,9 @@ void main() async {
   await DBHandler().saveAssignedTask(btask40);
   await DBHandler().saveAssignedTask(btask41);
   await DBHandler().saveAssignedTask(btask42);
+  await DBHandler().saveAssignedTask(btask43);
+  await DBHandler().saveAssignedTask(btask44);
   ///CREATE USERS AND TASKS///
-
-
-
-
 
 
   // Tasks example

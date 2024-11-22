@@ -151,16 +151,4 @@ class AssignedTask {
         _task = Task.fromJson(json['task']),
         _dueDate = DateTime.parse(json['dueDate']),
         _finishDate = json['finishDate'] != null ? DateTime.parse(json['finishDate']) : null;
-
-  @override
-  String toString() {
-    return 'AssignedTask: {\n'
-        '  assignedTaskId: $_assignedTaskId,\n'
-        '  user: ${_user.toString()},\n'
-        '  task: ${_task.toString()},\n'
-        '  dueDate: ${_dueDate.toIso8601String()},\n'
-        '  finishDate: ${_finishDate?.toIso8601String() ?? "Not finished"}\n'
-        '}';
-}
-
 }

@@ -1,9 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/Screens/group_screen.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class SettingsScreen extends StatelessWidget {
+const testVersion = "test_version";
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  late bool _switchAB; // true = A, false = B
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSwitchAB();
+  }
+
+  Future<void> _loadSwitchAB() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _switchAB = prefs.getBool(testVersion) ?? true;
+    });
+  }
+
+  void _onSwitchAB(bool newValue) async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _switchAB = !_switchAB;
+      prefs.setBool(testVersion, _switchAB);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +45,7 @@ class SettingsScreen extends StatelessWidget {
         body: SettingsList(sections: [
           SettingsSection(
             title: const Text('User'),
-            tiles: <SettingsTile>[
+            tiles: [
               SettingsTile.navigation(
                 leading: const Icon(Icons.group),
                 title: const Text('Group'),
@@ -28,6 +59,12 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+          SettingsSection(tiles: [
+            SettingsTile.switchTile(
+                initialValue: _switchAB,
+                onToggle: _onSwitchAB,
+                title: const Text("Test A/B"))
+          ])
         ]));
   }
 }

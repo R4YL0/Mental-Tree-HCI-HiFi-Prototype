@@ -6,3 +6,6 @@
 
 # whitelist gitignore file
 !.gitignore
+
+# whitelist pubspec.yaml
+!pubspec.yaml

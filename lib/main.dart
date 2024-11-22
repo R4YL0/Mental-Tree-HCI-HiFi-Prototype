@@ -14,7 +14,7 @@ void main() async {
 
 
   ///DELETE ALL DATA///
-  
+
   await DBHandler().getUsers().then((user) async {
     for(User currUser in user){
       await DBHandler().removeUser(currUser.userId);

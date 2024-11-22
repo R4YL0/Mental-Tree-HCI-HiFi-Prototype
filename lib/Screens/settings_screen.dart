@@ -13,7 +13,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late bool _switchAB; // true = A, false = B
+  bool _switchAB = true; // true = A, false = B
 
   @override
   void initState() {

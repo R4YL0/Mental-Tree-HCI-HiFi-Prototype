@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 enum Moods { bad, okay, good }
@@ -17,36 +18,64 @@ class FlowerWidget extends StatefulWidget {
 
 class _FlowerWidgetState extends State<FlowerWidget> {
   Moods _mood = Moods.good;
-
-  final Widget svgFlowerGood =
-      SvgPicture.asset(flowerGoodPath, semanticsLabel: 'flower in state good');
+  String svgContent = '';
 
   @override
   void initState() {
     super.initState();
     _mood = widget.mood;
+    _loadSvgFromAsset();
+  }
+
+  Future<void> _loadSvgFromAsset() async {
+    String svgAssetPath = 'lib/assets/flower_${_mood.name}.svg';
+
+    //read SVG content from asset file
+    String rawSvgContent = await rootBundle.loadString(svgAssetPath);
+
+    String modifiedSvgContent = _modifySvgContent(rawSvgContent);
+
+    setState(() {
+      svgContent = modifiedSvgContent;
+    });
+  }
+
+  String _modifySvgContent(String rawSvgContent) {
+    Color color = Colors.orange;
+    Color color2 = const Color.fromARGB(255, 235, 141, 0);
+    rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor"',
+        'fill="#${color.value.toRadixString(16).substring(2)}"');
+    rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor2"',
+        'fill="#${color2.value.toRadixString(16).substring(2)}"');
+    return rawSvgContent;
+  }
+
+  void _flowerMoodChanged(Moods mood){
+    _mood = mood;
+    _loadSvgFromAsset();
   }
 
   @override
   Widget build(BuildContext context) {
-    String moodName = _mood.name;
     return GestureDetector(
-        onTap: () {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return MoodDialog(
-                    mood: _mood,
-                    onChangedMood: (mood) => setState(() => _mood = mood));
-              });
-        },
-        child: Column(
-          children: [
-            Text(_mood.toString()),
-            SvgPicture.asset('lib/assets/state_$moodName.svg',
-                semanticsLabel: 'flower in state $moodName'),
-          ],
-        ));
+      onTap: () {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return MoodDialog(
+                  mood: _mood,
+                  onChangedMood: (mood) {_flowerMoodChanged(mood);});
+            });
+      },
+      child: SizedBox(
+        width: 120,
+        height: 100,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: svgContent.isEmpty ? const SizedBox() : SvgPicture.string(svgContent),
+        ),
+      ),
+    );
   }
 }
 
@@ -68,7 +97,6 @@ class _MoodDialogState extends State<MoodDialog> {
   @override
   void initState() {
     super.initState();
-
     mood = widget.mood;
   }
 

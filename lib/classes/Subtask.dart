@@ -1,7 +1,7 @@
 import 'DBHandler.dart';
 
 class Subtask {
-  int _id;
+  final int _id;
   String _name;
   bool _isDone;
 
@@ -36,9 +36,9 @@ class Subtask {
   static Future<Subtask?> findById(int id) async {
     final subtasks = await DBHandler().getSubtasks();
     return subtasks.cast<Subtask?>().firstWhere(
-      (subtask) => subtask?._id == id,
-      orElse: () => null,
-    );
+          (subtask) => subtask?._id == id,
+          orElse: () => null,
+        );
   }
 
   Map<String, dynamic> toJson() => {
@@ -59,10 +59,5 @@ class Subtask {
         '  name: $_name,\n'
         '  isDone: $_isDone\n'
         '}';
+  }
 }
-
-}
-
-
-
-

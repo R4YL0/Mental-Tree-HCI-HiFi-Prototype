@@ -1,31 +1,23 @@
 // shows users and maybe settings, ... of one group
 
-import 'package:flutter/material.dart'
-    show
-        AppBar,
-        BuildContext,
-        CircularProgressIndicator,
-        Column,
-        ConnectionState,
-        Expanded,
-        FloatingActionButton,
-        FloatingActionButtonLocation,
-        FutureBuilder,
-        Icon,
-        Icons,
-        ListTile,
-        ListView,
-        Scaffold,
-        StatelessWidget,
-        Text,
-        Widget,
-        showDialog;
+import 'package:flutter/material.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/User.dart';
-import 'package:mental_load/widgets/user_add_widget.dart';
+import 'package:mental_load/Screens/user_add_screen.dart';
 
-class GroupScreen extends StatelessWidget {
+class GroupScreen extends StatefulWidget {
   const GroupScreen({super.key});
+
+  @override
+  State<GroupScreen> createState() => _GroupScreenState();
+}
+
+class _GroupScreenState extends State<GroupScreen> {
+  onPressedAdd(BuildContext context) async {
+    final bool result = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => const UserAddScreen()));
+    if (result) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,14 +55,10 @@ class GroupScreen extends StatelessWidget {
               }
             }),
         floatingActionButton: FloatingActionButton(
-          child: const Icon(Icons.add),
-          onPressed: () => {
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return const UserAddWidget();
-                })
+          onPressed: () {
+            onPressedAdd(context);
           },
+          child: const Icon(Icons.add),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endDocked);
   }

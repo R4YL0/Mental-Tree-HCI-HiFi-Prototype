@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/Screens/settings_screen.dart';
-import 'package:mental_load/constants/colors.dart';
 import 'package:mental_load/widgets/flower_widget.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,7 +9,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
         body: Padding(
-        padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, right: 10, left: 10),
+          padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top, right: 10, left: 10),
           child: const Center(
             child: Column(children: [
               Text(

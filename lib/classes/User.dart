@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'DBHandler.dart';
 
 class User {
-  int _userId;
+  final int _userId;
   String _name;
   Color _flowerColor;
 
-   // Getters & Setters
+  // Getters & Setters
   int get userId => _userId;
   String get name => _name;
   Color get flowerColor => _flowerColor;

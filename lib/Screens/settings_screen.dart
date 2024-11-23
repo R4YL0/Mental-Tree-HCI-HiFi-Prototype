@@ -13,7 +13,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _switchAB = true; // true = A, false = B
+  Set<String> _segmentAB = {"A"};
 
   @override
   void initState() {
@@ -23,16 +23,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSwitchAB() async {
     final prefs = await SharedPreferences.getInstance();
+
     setState(() {
-      _switchAB = prefs.getBool(testVersion) ?? true;
+      _segmentAB = {prefs.getString(testVersion) ?? "A"};
     });
   }
 
-  void _onSwitchAB(bool newValue) async {
+  void _onSelectionChangedAB(Set<String> newValue) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _switchAB = !_switchAB;
-      prefs.setBool(testVersion, _switchAB);
+      _segmentAB = newValue;
+      prefs.setString(testVersion, _segmentAB.first);
     });
   }
 
@@ -60,10 +61,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           ),
           SettingsSection(tiles: [
-            SettingsTile.switchTile(
-                initialValue: _switchAB,
-                onToggle: _onSwitchAB,
-                title: const Text("Test A/B"))
+            CustomSettingsTile(
+              child: SegmentedButton(
+                segments: const [
+                  ButtonSegment(value: "A", label: Text("Test A")),
+                  ButtonSegment<String>(value: "B", label: Text("Test B")),
+                ],
+                selected: _segmentAB,
+                onSelectionChanged: _onSelectionChangedAB,
+              ),
+            ),
           ])
         ]));
   }

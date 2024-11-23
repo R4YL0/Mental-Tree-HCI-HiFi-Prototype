@@ -23,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _loadSwitchAB() async {
     final prefs = await SharedPreferences.getInstance();
+
     setState(() {
       _segmentAB = {prefs.getString(testVersion) ?? "A"};
     });

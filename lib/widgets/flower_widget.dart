@@ -4,10 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mental_load/classes/Mood.dart';
 
 class FlowerWidget extends StatefulWidget {
-  final Moods mood;
-  final ValueChanged<Moods>? onChanged;
+  //final Color flowerColor;
+  final Mood mood;
+  final Function(Moods newMood) onMoodChanged;
 
-  const FlowerWidget({super.key, required this.mood, this.onChanged});
+  const FlowerWidget({super.key, /*required this.flowerColor,*/ required this.mood, required this.onMoodChanged});
 
   @override
   State<FlowerWidget> createState() => _FlowerWidgetState();
@@ -20,7 +21,7 @@ class _FlowerWidgetState extends State<FlowerWidget> {
   @override
   void initState() {
     super.initState();
-    _mood = widget.mood;
+    _mood = widget.mood.mood;
     _loadSvgFromAsset();
   }
 
@@ -38,8 +39,8 @@ class _FlowerWidgetState extends State<FlowerWidget> {
   }
 
   String _modifySvgContent(String rawSvgContent) {
-    Color color = Colors.orange;
-    Color color2 = const Color.fromARGB(255, 235, 141, 0);
+    Color color = widget.mood.color;
+    Color color2 = Color.fromRGBO((widget.mood.color.red * 0.8).toInt(),(widget.mood.color.green * 0.8).toInt(),(widget.mood.color.blue * 0.8).toInt(),1.0,);
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor"',
         'fill="#${color.value.toRadixString(16).substring(2)}"');
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor2"',
@@ -57,15 +58,18 @@ class _FlowerWidgetState extends State<FlowerWidget> {
     return GestureDetector(
       onTap: () {
         showDialog(
-            context: context,
-            builder: (context) {
-              return MoodDialog(
-                  mood: _mood,
-                  onChangedMood: (mood) {_flowerMoodChanged(mood);});
-            });
+          context: context,
+          builder: (context) {
+            return MoodDialog(
+              mood: _mood,
+              onChangedMood: (newMood) {
+                widget.onMoodChanged(newMood);
+                _flowerMoodChanged(newMood);
+              });
+          });
       },
       child: Container(
-        color: Color(0xFFAAD07C),
+        color: const Color(0xFFAAD07C),
         width: 120,
         height: 100,
         child: Align(

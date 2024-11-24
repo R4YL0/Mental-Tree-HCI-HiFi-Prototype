@@ -49,14 +49,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.18.0"
-  color_picker_field:
-    dependency: "direct main"
-    description:
-      name: color_picker_field
-      sha256: b1030f0d6460b22f992d169c1cc13889606a90e7865649783d802facc9f122af
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   cupertino_icons:
     dependency: "direct main"
     description:
@@ -94,6 +86,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_colorpicker:
+    dependency: "direct main"
+    description:
+      name: flutter_colorpicker
+      sha256: "969de5f6f9e2a570ac660fb7b501551451ea2a1ab9e2097e89475f60e07816ea"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   flutter_lints:
     dependency: "direct dev"
     description:

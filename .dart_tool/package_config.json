@@ -38,12 +38,6 @@
       "languageVersion": "2.18"
     },
     {
-      "name": "color_picker_field",
-      "rootUri": "file:///C:/Users/thiag/AppData/Local/Pub/Cache/hosted/pub.dev/color_picker_field-2.1.0",
-      "packageUri": "lib/",
-      "languageVersion": "2.19"
-    },
-    {
       "name": "cupertino_icons",
       "rootUri": "file:///C:/Users/thiag/AppData/Local/Pub/Cache/hosted/pub.dev/cupertino_icons-1.0.8",
       "packageUri": "lib/",
@@ -72,6 +66,12 @@
       "rootUri": "file:///C:/Users/thiag/AppData/Local/flutter/packages/flutter",
       "packageUri": "lib/",
       "languageVersion": "3.3"
+    },
+    {
+      "name": "flutter_colorpicker",
+      "rootUri": "file:///C:/Users/thiag/AppData/Local/Pub/Cache/hosted/pub.dev/flutter_colorpicker-1.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
     },
     {
       "name": "flutter_lints",
@@ -410,7 +410,7 @@
       "languageVersion": "3.4"
     }
   ],
-  "generated": "2024-11-23T12:39:58.324718Z",
+  "generated": "2024-11-24T11:50:36.134537Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///C:/Users/thiag/AppData/Local/flutter",

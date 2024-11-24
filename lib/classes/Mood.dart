@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 
 enum Moods { good, mid, bad }
@@ -7,12 +8,14 @@ class Mood {
   int _userId;
   DateTime _date;
   Moods _mood;
+  final Color _color;
 
   // Getters & Setters
   int get moodId => _moodId;
   int get userId => _userId;
   DateTime get date => _date;
   Moods get mood => _mood;
+  Color get color => _color;
 
   set userId(value) => {_userId = value, DBHandler().saveMood(this)};
   set date(value) => {_date = value, DBHandler().saveMood(this)};
@@ -24,16 +27,19 @@ class Mood {
     required int userId,
     required DateTime date,
     required Moods mood,
+    required Color color,
   })  : _moodId = moodId,
         _userId = userId,
         _date = date,
-        _mood = mood;
+        _mood = mood,
+        _color = color;
 
   // Factory Constructor with Auto ID
   static Future<Mood> create({
     required int userId,
     required DateTime date,
     required Moods mood,
+    required Color color,
   }) async {
     final id = await DBHandler().getNextMoodId();
     Mood mood2 = Mood._(
@@ -41,6 +47,7 @@ class Mood {
       userId: userId,
       date: date,
       mood: mood,
+      color: color,
     );
     await DBHandler().saveMood(mood2);
     return mood2;
@@ -51,6 +58,7 @@ class Mood {
         'userId': _userId,
         'date': _date.toIso8601String(),
         'mood': _mood.toString(),
+        'color': _color.value.toRadixString(16),
       };
 
   static Mood fromJson(Map<String, dynamic> json) {
@@ -59,6 +67,7 @@ class Mood {
       userId: json['userId'],
       date: DateTime.parse(json['date']),
       mood: Moods.values.firstWhere((e) => e.toString() == json['mood']),
+      color: Color(int.parse(json['color'] ?? "0xFFFFFFFF", radix: 16)),
     );
   }
 
@@ -69,6 +78,7 @@ class Mood {
         '  userId: $_userId,\n'
         '  date: ${_date.toIso8601String()},\n'
         '  mood: $_mood\n'
+        '  color: $_color\n'
         '}';
   }
 }

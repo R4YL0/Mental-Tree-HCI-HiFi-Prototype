@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'Task.dart';
@@ -6,6 +7,8 @@ import 'User.dart';
 import 'AssignedTask.dart';
 
 class DBHandler {
+  late Uint8List defaultTaskImg;
+
   // Singleton instance
   static final DBHandler _instance = DBHandler._internal();
 
@@ -38,6 +41,13 @@ class DBHandler {
       _assignedTaskStorage.ready,
       _moodStorage.ready,
     ]);
+    try {
+        ByteData byteData = await rootBundle.load('lib/assets/images/defaultTaskImg.jpg');
+        defaultTaskImg = byteData.buffer.asUint8List();
+
+    } catch (e) {
+        throw Exception("Error loading default image: $e");
+    }
   }
 
   // Next id handlers
@@ -100,6 +110,15 @@ class DBHandler {
         .map<AssignedTask>((json) => AssignedTask.fromJson(json))
         .toList();
   }
+
+  Future<List<AssignedTask>> getAssignedTasksByTaskId() async {
+    final assignedTasksJson = _assignedTaskStorage.getItem('assigned_tasks') ?? [];
+    return List<Map<String, dynamic>>.from(assignedTasksJson)
+        .map<AssignedTask>((json) => AssignedTask.fromJson(json))
+        .toList();
+  }
+
+
 
   Future<List<User>> getUsers() async {
     final usersJson = _userStorage.getItem('users') ?? [];
@@ -200,7 +219,6 @@ class DBHandler {
 
     await _moodStorage.setItem('moods', moods.map((mood) => mood.toJson()).toList());
   }
-
 
   // Remove from db
 

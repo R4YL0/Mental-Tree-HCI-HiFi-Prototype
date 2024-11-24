@@ -34,15 +34,17 @@ dependencies:
   localstorage: ^4.0.0
 
 
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.6
   get: ^4.6.6
   syncfusion_flutter_charts: ^27.1.58
   flutter_svg: ^2.0.14
   settings_ui: ^2.0.2
   image_picker: ^1.1.2
+  shared_preferences: ^2.3.3
+  provider: ^6.1.2
+  http: ^1.2.2
+  color_picker_field: ^2.1.0
+  swipeable_card_stack: ^0.0.5
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +74,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
       - lib/assets/
+      - lib/assets/images/defaultTaskImg.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

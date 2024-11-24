@@ -1,5 +1,5 @@
+import 'package:color_picker_field/color_picker_field.dart';
 import 'package:flutter/material.dart';
-import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/User.dart';
 
 class UserAddWidget extends StatefulWidget {
@@ -12,19 +12,24 @@ class UserAddWidget extends StatefulWidget {
 class _UserAddWidgetState extends State<UserAddWidget> {
   final _formKey = GlobalKey<FormState>();
   TextEditingController nameController = TextEditingController();
-  TextEditingController initialsController = TextEditingController();
+  // TextEditingController initialsController = TextEditingController();
+  Color _color = Colors.blue;
 
   void onSubmitPress() async {
     if (_formKey.currentState!.validate()) {
-      User newUser = await User.create(
-          name: nameController.text, flowerColor: Colors.blue);
-      await DBHandler().saveUser(newUser);
+      await User.create(name: nameController.text, flowerColor: _color);
       if (context.mounted) Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill input')),
       );
     }
+  }
+
+  void onChangedColor(List<Color> value) {
+    setState(() {
+      _color = value.first;
+    });
   }
 
   @override
@@ -52,6 +57,7 @@ class _UserAddWidgetState extends State<UserAddWidget> {
                         return null;
                       },
                     ),
+                    /* 
                     TextFormField(
                       controller: initialsController,
                       decoration: const InputDecoration(
@@ -66,6 +72,23 @@ class _UserAddWidgetState extends State<UserAddWidget> {
                         }
                         return null;
                       },
+                    ), */
+                    ColorPickerFormField(
+                      initialValue: const [],
+                      defaultColor: Colors.blue,
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      maxColors: 1,
+                      decoration: const InputDecoration(
+                        labelText: 'Colors',
+                        helperText: 'Choose a color for your user',
+                      ),
+                      validator: (List<Color>? value) {
+                        if (value!.isEmpty) {
+                          return 'a minimum of 1 color is required';
+                        }
+                        return null;
+                      },
+                      onChanged: onChangedColor,
                     ),
                   ],
                 )),

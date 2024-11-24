@@ -140,22 +140,10 @@ class FlowersHomeScreen extends StatefulWidget {
 }
 
 class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
-  //List<User> users = [];
-  //Map<int, Color> colors = {};
-
   @override
   void initState() {
     super.initState();
-    //_myInit();
   }
-
-  /*_myInit() async {
-    List<User> allUsers = await DBHandler().getUsers();
-    for(User u in allUsers){
-      colors[u.userId] = u.flowerColor;
-    }
-    setState(() {users = allUsers;});
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -172,16 +160,10 @@ class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
             children: [
               for(Mood currentMood in widget.moods)
                 FlowerWidget(
-                  //flowerColor: colors[currentMood.userId] ?? Colors.red,
                   mood: currentMood, 
                   onMoodChanged: (Moods newMood) async {
-                    Mood moodToSave = await Mood.create(userId: currentMood.userId, date: DateTime.now(), mood: newMood, color: currentMood.color);
+                    Mood moodToSave = await Mood.create(userId: currentMood.userId, date: DateTime.now(), mood: newMood);
                     DBHandler().saveMood(moodToSave);
-                    /*List<Mood> tmpMoods = await DBHandler().getMoods();
-                    print("------------------");
-                    for(Mood tmpM in tmpMoods){
-                      print("mood: ${tmpM.mood.toString()} user: ${tmpM.userId.toString()} date: ${tmpM.date.toString()}");
-                    }*/
                   }, 
                 ),
             ],

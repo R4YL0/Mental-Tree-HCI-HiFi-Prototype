@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mental_load/classes/Mood.dart';
+import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/classes/DBHandler.dart';
 
 class FlowerWidget extends StatefulWidget {
-  //final Color flowerColor;
   final Mood mood;
   final Function(Moods newMood) onMoodChanged;
 
-  const FlowerWidget({super.key, /*required this.flowerColor,*/ required this.mood, required this.onMoodChanged});
+  const FlowerWidget({super.key, required this.mood, required this.onMoodChanged});
 
   @override
   State<FlowerWidget> createState() => _FlowerWidgetState();
@@ -31,16 +32,17 @@ class _FlowerWidgetState extends State<FlowerWidget> {
     //read SVG content from asset file
     String rawSvgContent = await rootBundle.loadString(svgAssetPath);
 
-    String modifiedSvgContent = _modifySvgContent(rawSvgContent);
+    String modifiedSvgContent = await _modifySvgContent(rawSvgContent);
 
     setState(() {
       svgContent = modifiedSvgContent;
     });
   }
 
-  String _modifySvgContent(String rawSvgContent) {
-    Color color = widget.mood.color;
-    Color color2 = Color.fromRGBO((widget.mood.color.red * 0.8).toInt(),(widget.mood.color.green * 0.8).toInt(),(widget.mood.color.blue * 0.8).toInt(),1.0,);
+  Future<String> _modifySvgContent(String rawSvgContent) async {
+    User? tmpUser = await DBHandler().getUserByUserId(widget.mood.userId);
+    Color color = tmpUser?.flowerColor ?? Colors.red;
+    Color color2 = Color.fromRGBO((color.red * 0.8).toInt(),(color.green * 0.8).toInt(),(color.blue * 0.8).toInt(),1.0,);
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor"',
         'fill="#${color.value.toRadixString(16).substring(2)}"');
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor2"',

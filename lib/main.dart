@@ -680,11 +680,11 @@ void main() async {
 
   ///CREATE MOODS PER USER///
   await Mood.create(
-    date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId, color: theo.flowerColor);
+    date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId);
   await Mood.create(
-    date: DateTime(2024, 11, 1), mood: Moods.good, userId: anna.userId, color: anna.flowerColor);
+    date: DateTime(2024, 11, 1), mood: Moods.good, userId: anna.userId);
   await Mood.create(
-    date: DateTime(2024, 11, 1), mood: Moods.mid, userId: sebastian.userId, color: sebastian.flowerColor);
+    date: DateTime(2024, 11, 1), mood: Moods.mid, userId: sebastian.userId);
 
   // Tasks example
   /*Task myTask = await Task.create( // always use create not constructor! (also for mood, subtasks,...)

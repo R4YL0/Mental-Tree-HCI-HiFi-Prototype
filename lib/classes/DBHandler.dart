@@ -108,6 +108,16 @@ class DBHandler {
         .toList();
   }
 
+  Future<User?> getUserByUserId(int userId) async {
+    final List<User> users = await getUsers();
+    for(User u in users){
+      if(u.userId == userId){
+        return u;
+      }
+    }
+    return null;
+  }
+
   Future<List<Mood>> getMoods() async {
     final moodsJson = _moodStorage.getItem('moods') ?? [];
     return List<Map<String, dynamic>>.from(moodsJson)

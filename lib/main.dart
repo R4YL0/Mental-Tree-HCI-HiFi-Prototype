@@ -19,7 +19,7 @@ void main() async {
     frequency: Frequency.weekly,
     category: Category.Admin,
     notes: "bla bla bla",
-    imgDst: "lib/assets/image1.png",
+    //imgDst: "lib/assets/image1.png",
     isPrivate: false,
     difficulty: 3,
     priority: 4,

@@ -4,7 +4,7 @@ import 'package:mental_load/constants/colors.dart';
 import 'package:mental_load/classes/cards.dart';
 import 'package:mental_load/classes/Task.dart';
 
-Future<Task> test = Task.create(name: "Antidisestablishment(very long example)", category: Category.Cleaning, frequency: Frequency.daily, notes: "none", imgDst: "lib/assets/image1.png", isPrivate: false, difficulty: 3, priority: 3);
+Future<Task> test = Task.create(name: "Task Namw", category: Category.Cleaning, frequency: Frequency.daily, notes: "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.", /*imgDst: "lib/assets/image1.png",*/ isPrivate: false, difficulty: 3, priority: 3, subtasks: []);
 
 class CardsScreen extends StatelessWidget {
   const CardsScreen({super.key});
@@ -12,8 +12,8 @@ class CardsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: <Widget>[Center(child:CardsMini(thisTask: test,),),
-        Center(child:CardsBig(thisTask:test))
+      children: <Widget>[Center(child:Cards(thisTask: test, sState: SmallState.info, size: Size.small,),),
+        Center(child:Cards(thisTask:test, sState: SmallState.edit, size: Size.big,)),
       ]
     );
   }

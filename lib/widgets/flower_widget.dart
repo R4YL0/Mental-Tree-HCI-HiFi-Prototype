@@ -67,7 +67,8 @@ class _FlowerWidgetState extends State<FlowerWidget> {
                   onChangedMood: (mood) {_flowerMoodChanged(mood);});
             });
       },
-      child: SizedBox(
+      child: Container(
+        color: Color(0xFFAAD07C),
         width: 120,
         height: 100,
         child: Align(

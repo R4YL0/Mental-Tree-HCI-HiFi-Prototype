@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:color_picker_field/color_picker_field.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
@@ -62,9 +62,8 @@ class _UserAddEditScreenState extends State<UserAddEditScreen> {
         title: const Text('Pick a color!'),
         content: SingleChildScrollView(
           child: ColorPicker(
-            pickerColor: _pickerColor,
-            onColorChanged: _changeColor,
-            enableAlpha: false,
+            currentColor: _pickerColor,
+            onChange: _changeColor,
           ),
           // Use Block color picker if just a selection of colors wanted:
           //

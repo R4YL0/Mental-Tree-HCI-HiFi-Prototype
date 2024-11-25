@@ -304,12 +304,6 @@ class _CompletedTasksState extends State<CompletedTasks> {
     });
   }
 
-  _setNewCurveBoolean(bool newValue, int index){
-    setState(() {
-      activeCurves[index] = newValue;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(

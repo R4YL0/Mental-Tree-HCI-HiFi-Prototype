@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../classes/widgets/card_big.dart';
+import 'package:mental_load/widgets/cards_widget.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:swipeable_card_stack/swipeable_card_stack.dart';
 
@@ -37,14 +37,14 @@ class CardsScreen extends StatelessWidget {
               context: context,
               // Add the first set of BigCard widgets
               items: [
-                CardBig(thisTask: test),
-                CardBig(thisTask: test),
-                CardBig(thisTask: test),
+                Cards(thisTask: test, sState: SmallState.info, bState: BigState.info, size: Size.big),
+                Cards(thisTask: test, sState: SmallState.info, bState: BigState.info, size: Size.big),
+                Cards(thisTask: test, sState: SmallState.info, bState: BigState.info, size: Size.big),
               ],
               // Card swipe callback
               onCardSwiped: (dir, index, widget) {
                 // Add the next card dynamically
-                _cardController.addItem(CardBig(thisTask: test));
+                _cardController.addItem(Cards(thisTask: test, sState: SmallState.info, bState: BigState.info, size: Size.big));
                 
                 // Optional: Handle swipe direction
                 if (dir == Direction.left) {

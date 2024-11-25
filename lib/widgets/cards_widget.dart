@@ -8,19 +8,19 @@ import 'package:mental_load/classes/Subtask.dart';
 import 'package:mental_load/constants/colors.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 enum SmallState{info, edit, todo, done}
 enum BigState{info, edit}
 enum Size{small, big}
 enum Section{general, subtasks, notes}
-String imgDest = "lib/assets/image1.png";
 
 class Cards extends StatefulWidget {
   final Future<Task> thisTask;
   var sState = SmallState.edit;
-  var bState = BigState.edit;
+  var bState = BigState.info;
   var size = Size.small;
-  Cards({ super.key, required this.thisTask, required this.sState, this.size = Size.small});
+  Cards({ super.key, required this.thisTask, required this.sState, this.size = Size.small, required this.bState});
 
   @override
   State<Cards> createState() => _Cards();
@@ -83,7 +83,7 @@ class _Cards extends State<Cards> {
                 ColoredBox(color:Color.fromARGB(255, 254, 213, 182), child:
                   SizedBox(width:130, height: 85,),),),
               Align(alignment: Alignment(-0.22, -0.4) , child:
-                Image(image: AssetImage(imgDest), width:122),),
+                Image.memory(snapshot.requireData.img, width:122, fit: BoxFit.cover),),
               Align(alignment: Alignment(-0.88, 0.35) , child:
                 Text("Priority", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.6),),),
               Align(alignment: Alignment(0.75, 0.35) , child:
@@ -129,7 +129,7 @@ class _Cards extends State<Cards> {
             ColoredBox(color:Color.fromARGB(255, 254, 213, 182),child:
               SizedBox(width:326, height: 208,),),),
           Align(alignment: Alignment(0, -0.6) , child:
-            Image(image: AssetImage(imgDest), width:320, height: 200),),
+            Image.memory(snapshot.requireData.img, width:320, height: 200, fit: BoxFit.cover),),
           //Exit Button
           Align(alignment: Alignment(1, -1), child:
             IconButton(onPressed: () => setState((){widget.size = Size.small; section = Section.general;}), icon: Icon(Icons.close, color: AppColors.attention,))),
@@ -164,14 +164,14 @@ class _Cards extends State<Cards> {
           Align(alignment: Alignment(0, -0.61) , child:
             ColoredBox(color:Color.fromARGB(255, 254, 213, 182),child: SizedBox(width:326, height: 208,),),),
           Align(alignment: Alignment(0, -0.6) , child:
-            Image(image: AssetImage(imgDest), width:320, height: 200),),
+            Image.memory(snapshot.requireData.img, width:320, height: 200, fit: BoxFit.cover),),
           sections(snapshot),
           Align(alignment: Alignment(1, -1), child:
             IconButton(onPressed: () => setState((){widget.size = Size.small; section = Section.general;}), icon:
               Icon(Icons.close, color: AppColors.attention,))
           ),
           Align(alignment: Alignment(0.9, -0.1), child:
-            IconButton(onPressed: () => setState((){chooseImage(snapshot);}), icon:
+            IconButton(onPressed: (){chooseImage(snapshot);}, icon:
               Icon(Icons.edit, color: Colors.white, shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],))
           ),
         ],)
@@ -184,8 +184,8 @@ class _Cards extends State<Cards> {
 
   void chooseImage(AsyncSnapshot<Task> s) async {
     final ImagePicker picker = ImagePicker();
-    XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    //s.requireData.image = image;
+    XFile image = await picker.pickImage(source: ImageSource.gallery) as XFile;
+    setState((){s.requireData.img = File(image.path).readAsBytesSync();});
   }
 
   Widget general(AsyncSnapshot<Task> s) {
@@ -488,8 +488,7 @@ class _Cards extends State<Cards> {
     ],);
   }
 
-  Widget names(String name, Size s, {String imgDst = "lib/assets/image1.png"}) {
-    imgDest = imgDst;
+  Widget names(String name, Size s) {
     if(s == Size.small) {
       if(name.length>10 && name.substring(10,11) != ' ') {
         return Stack(children: <Widget> [

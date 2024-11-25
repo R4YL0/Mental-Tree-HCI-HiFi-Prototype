@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
@@ -501,7 +503,7 @@ class _CategoryBarChartDiagramState extends State<CategoryBarChartDiagram> {
   @override
   Widget build(BuildContext context) {
     return SfCartesianChart(
-      primaryXAxis: const CategoryAxis(title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),),
+      primaryXAxis: const CategoryAxis(title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),labelStyle: TextStyle(fontSize: 10),),
       primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
       legend: const Legend(isVisible: true),
       tooltipBehavior: TooltipBehavior(enable: true),

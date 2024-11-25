@@ -1,9 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 
-enum Moods {good, mid, bad}
+enum Moods { good, mid, bad }
 
 class Mood {
-  int _moodId;
+  final int _moodId;
   int _userId;
   DateTime _date;
   Moods _mood;
@@ -13,10 +14,10 @@ class Mood {
   int get userId => _userId;
   DateTime get date => _date;
   Moods get mood => _mood;
-  
+
   set userId(value) => {_userId = value, DBHandler().saveMood(this)};
   set date(value) => {_date = value, DBHandler().saveMood(this)};
-  set mood(value) => {_moodId = value, DBHandler().saveMood(this)};
+  set mood(value) => {_mood = value, DBHandler().saveMood(this)};
 
   // Private Constructor
   Mood._({
@@ -70,6 +71,5 @@ class Mood {
         '  date: ${_date.toIso8601String()},\n'
         '  mood: $_mood\n'
         '}';
-}
-
+  }
 }

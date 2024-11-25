@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
-enum Moods { bad, okay, good }
-
-const String flowerGoodPath = '../assets/state_good.svg';
-const String flowerOkayPath = '../assets/state_okay.svg';
+import 'package:mental_load/classes/Mood.dart';
+import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/classes/DBHandler.dart';
 
 class FlowerWidget extends StatefulWidget {
-  final Moods mood;
+  final Mood mood;
+  final Function(Moods newMood) onMoodChanged;
 
-  const FlowerWidget({super.key, required this.mood});
+  const FlowerWidget({super.key, required this.mood, required this.onMoodChanged});
 
   @override
   State<FlowerWidget> createState() => _FlowerWidgetState();
@@ -17,36 +17,69 @@ class FlowerWidget extends StatefulWidget {
 
 class _FlowerWidgetState extends State<FlowerWidget> {
   Moods _mood = Moods.good;
-
-  final Widget svgFlowerGood =
-      SvgPicture.asset(flowerGoodPath, semanticsLabel: 'flower in state good');
+  String svgContent = '';
 
   @override
   void initState() {
     super.initState();
-    _mood = widget.mood;
+    _mood = widget.mood.mood;
+    _loadSvgFromAsset();
+  }
+
+  Future<void> _loadSvgFromAsset() async {
+    String svgAssetPath = 'lib/assets/flower_${_mood.name}.svg';
+
+    //read SVG content from asset file
+    String rawSvgContent = await rootBundle.loadString(svgAssetPath);
+
+    String modifiedSvgContent = await _modifySvgContent(rawSvgContent);
+
+    setState(() {
+      svgContent = modifiedSvgContent;
+    });
+  }
+
+  Future<String> _modifySvgContent(String rawSvgContent) async {
+    User? tmpUser = await DBHandler().getUserByUserId(widget.mood.userId);
+    Color color = tmpUser?.flowerColor ?? Colors.red;
+    Color color2 = Color.fromRGBO((color.red * 0.8).toInt(),(color.green * 0.8).toInt(),(color.blue * 0.8).toInt(),1.0,);
+    rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor"',
+        'fill="#${color.value.toRadixString(16).substring(2)}"');
+    rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor2"',
+        'fill="#${color2.value.toRadixString(16).substring(2)}"');
+    return rawSvgContent;
+  }
+
+  void _flowerMoodChanged(Moods mood){
+    _mood = mood;
+    _loadSvgFromAsset();
   }
 
   @override
   Widget build(BuildContext context) {
-    String moodName = _mood.name;
     return GestureDetector(
-        onTap: () {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return MoodDialog(
-                    mood: _mood,
-                    onChangedMood: (mood) => setState(() => _mood = mood));
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return MoodDialog(
+              mood: _mood,
+              onChangedMood: (newMood) {
+                widget.onMoodChanged(newMood);
+                _flowerMoodChanged(newMood);
               });
-        },
-        child: Column(
-          children: [
-            Text(_mood.toString()),
-            SvgPicture.asset('lib/assets/state_$moodName.svg',
-                semanticsLabel: 'flower in state $moodName'),
-          ],
-        ));
+          });
+      },
+      child: Container(
+        color: const Color(0xFFAAD07C),
+        width: 120,
+        height: 100,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: svgContent.isEmpty ? const SizedBox() : SvgPicture.string(svgContent),
+        ),
+      ),
+    );
   }
 }
 
@@ -68,7 +101,6 @@ class _MoodDialogState extends State<MoodDialog> {
   @override
   void initState() {
     super.initState();
-
     mood = widget.mood;
   }
 
@@ -94,9 +126,9 @@ class _MoodDialogState extends State<MoodDialog> {
             ),
             IconButton(
                 iconSize: iconSize,
-                isSelected: widget.mood == Moods.okay,
+                isSelected: widget.mood == Moods.mid,
                 onPressed: () {
-                  onPressedIcon(Moods.okay);
+                  onPressedIcon(Moods.mid);
                 },
                 icon: const Icon(Icons.sentiment_neutral)),
             IconButton(

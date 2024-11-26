@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:math';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
     "Admin": [_Position(-130, 340), _Position(-50, 460), _Position(-60, 400), _Position(-180, 360), _Position(-170, 420), _Position(-120, 430)]
   };
   Map<int, String> blossomStrings = {}; //userId -> blossom string
+  Map<String, int> angles = {
+    "Cleaning": 210,
+    "Laundry": 150,
+    "Cooking": 90,
+    "Childcare": 30,
+    "Outdoor": -30,
+    "Admin": -90,
+  };
 
   @override
   void initState() {
@@ -103,6 +113,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    int maxRadius = ((MediaQuery.sizeOf(context).width-10)/2).toInt();
+    int r = Random().nextInt(maxRadius);
+    double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles["Childcare"]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
+    double x = r * cos(angle);
+    double y = r * sin(angle);
     return Scaffold(
       backgroundColor: const Color(0xFFCFFAFF),
         body: Padding(
@@ -112,11 +127,14 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Column(
                   children: [
+                    Names(users: users, blossomStrings: blossomStrings),
                     const TreeHomeScreen(),
                     FlowersHomeScreen(moods: userMoods),
                   ]
                 ),
-                for(int i=0;i<cleaningEntries.length;i++)
+                Positioned(left: MediaQuery.sizeOf(context).width/2, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50, child: Container(color:Colors.black, height: 5, width: 5,)),
+                Positioned(left: MediaQuery.sizeOf(context).width/2+x, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50-y, child: Container(color:Colors.black, height: 5, width: 5,)),
+                /*for(int i=0;i<cleaningEntries.length;i++)
                   Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Cleaning"]![i].x, top: positions["Cleaning"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + cleaningEntries[i].value*0.05, 1.2), child: blossomStrings[cleaningEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[cleaningEntries[i].key]!))),
                 for(int i=0;i<laundryEntries.length;i++)
                   Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Laundry"]![i].x, top: positions["Laundry"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + laundryEntries[i].value*0.05, 1.2), child: blossomStrings[laundryEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[laundryEntries[i].key]!))),
@@ -127,17 +145,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 for(int i=0;i<outdoorEntries.length;i++)
                   Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Outdoor"]![i].x, top: positions["Outdoor"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + outdoorEntries[i].value*0.05, 1.2), child: blossomStrings[outdoorEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[outdoorEntries[i].key]!))),
                 for(int i=0;i<adminEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Admin"]![i].x, top: positions["Admin"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + adminEntries[i].value*0.05, 1.2), child: blossomStrings[adminEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[adminEntries[i].key]!))),
-                Names(users: users, blossomStrings: blossomStrings),
+                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Admin"]![i].x, top: positions["Admin"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + adminEntries[i].value*0.05, 1.2), child: blossomStrings[adminEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[adminEntries[i].key]!))),*/
               ],
             ),
           ),
         ),
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.settings),
-          onPressed: () => {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()))
+          onPressed: () async {
+            await Navigator.push(context, MaterialPageRoute(builder: (context) => const SettingsScreen()));
+            setState(() {});
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startTop);
@@ -155,12 +172,28 @@ class TreeHomeScreen extends StatelessWidget {
   const TreeHomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 600,
-      child: SvgPicture.asset('lib/assets/tree_3_branches_with_category_names.svg'),
-    );
-  }
+Widget build(BuildContext context) {
+  return Container(
+    color: Colors.red,
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return SvgPicture.asset(
+              'lib/assets/tree_3_branches_with_category_names.svg',
+              width: constraints.maxWidth,
+              fit: BoxFit.contain,
+            );
+          },
+        ),
+      ],
+    ),
+  );
+}
+
+
 }
 
 class FlowersHomeScreen extends StatefulWidget {
@@ -183,7 +216,7 @@ class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
       children: [
         Container(
           color: const Color(0xFFAAD07C),
-          height: 220,
+          height: max(MediaQuery.sizeOf(context).height-560-MediaQuery.of(context).padding.top, ((widget.moods.length)/((MediaQuery.sizeOf(context).width/120).toInt())).toInt()*120.0),
           width: MediaQuery.sizeOf(context).width,
         ),
         Center(
@@ -214,7 +247,7 @@ class Names extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: MediaQuery.sizeOf(context).height-60,
+      height: 30,
       width: double.infinity,
       child: Align(
         alignment: Alignment.bottomCenter,

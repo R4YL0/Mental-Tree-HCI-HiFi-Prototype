@@ -22,13 +22,13 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Mood> userMoods = [];
   List<User> users = [];
-  Map<String, Map<int, int>> blossomData = {};
-  List<MapEntry<int, int>> cleaningEntries = [];
-  List<MapEntry<int, int>> laundryEntries = [];
-  List<MapEntry<int, int>> cookingEntries = [];
-  List<MapEntry<int, int>> outdoorEntries = [];
-  List<MapEntry<int, int>> childcareEntries = [];
-  List<MapEntry<int, int>> adminEntries = [];
+  Map<String, Map<int, _Blossom>> blossomData = {}; //category -> userId -> blossom infos
+ /* List<MapEntry<int, _Blossom>> cleaningEntries = [];
+  List<MapEntry<int, _Blossom>> laundryEntries = [];
+  List<MapEntry<int, _Blossom>> cookingEntries = [];
+  List<MapEntry<int, _Blossom>> outdoorEntries = [];
+  List<MapEntry<int, _Blossom>> childcareEntries = [];
+  List<MapEntry<int, _Blossom>> adminEntries = [];*/
   Map<String, List<_Position>> positions = {
     "Cleaning": [_Position(60, 400), _Position(80, 450), _Position(130, 460), _Position(160, 420), _Position(200, 370), _Position(120, 370)],
     "Laundry": [_Position(120, 320), _Position(190, 320), _Position(220, 280), _Position(160, 240), _Position(50, 280), _Position(60, 330)],
@@ -46,6 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
     "Outdoor": -30,
     "Admin": -90,
   };
+  double screenWidth = 0;
+  double screenPaddingTop = 0;
 
   @override
   void initState() {
@@ -53,10 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
     _myInit();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    screenWidth = MediaQuery.sizeOf(context).width;
+    screenPaddingTop = MediaQuery.of(context).padding.top;
+  }
+
   _myInit() async {
     _getUserMoods();
-    _getTasks();
-    _initializeUserBlossoms();
+    _initializeData();
   }
 
   void _getUserMoods() async {
@@ -76,30 +84,42 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _getTasks() async {
+  void _initializeData() async {
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
-    Map<String, Map<int, int>> data = {"Cleaning": {}, "Laundry": {}, "Cooking": {}, "Outdoor": {}, "Childcare": {}, "Admin": {}};
+    Map<String, Map<int, _Blossom>> data = {"Cleaning": {}, "Laundry": {}, "Cooking": {}, "Outdoor": {}, "Childcare": {}, "Admin": {}};
     for(AssignedTask tmp in completedTasks){
       if(data.containsKey(tmp.task.category.name)){
         if(data[tmp.task.category.name]!.containsKey(tmp.user.userId)){
-          data[tmp.task.category.name]![tmp.user.userId] = (data[tmp.task.category.name]![tmp.user.userId])! + 1;
+          data[tmp.task.category.name]![tmp.user.userId]!.count = data[tmp.task.category.name]![tmp.user.userId]!.count + 1;
         }else{
-          data[tmp.task.category.name]![tmp.user.userId] = 1;
+          /* load blossom svg */
+          Color tmpColor = await DBHandler().getUserByUserId(tmp.user.userId).then((user) {return user?.flowerColor ?? Colors.red;});
+          String svgContent = await rootBundle.loadString('lib/assets/blossom.svg');
+          svgContent = svgContent.replaceAll('stroke="blossomColor"','fill="#${tmpColor.value.toRadixString(16).substring(2)}"');
+          blossomStrings[tmp.user.userId] = svgContent;
+          /* load position */
+          int maxRadius = ((screenWidth-10)/2).toInt();
+          int r = Random().nextInt(maxRadius); //random number between 0 and maxRadius
+          double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
+          double x = r * cos(angle);
+          double y = r * sin(angle);
+          /* */
+          data[tmp.task.category.name]![tmp.user.userId] = _Blossom(_Position((screenWidth/2+x).toInt(), (screenWidth/2+screenPaddingTop+50-y).toInt()), 1, svgContent);
         }
       }
     }
     setState(() {
       blossomData = data;
-      cleaningEntries = blossomData["Cleaning"]!.entries.toList();
+      /*cleaningEntries = blossomData["Cleaning"]!.entries.toList();
       laundryEntries = blossomData["Laundry"]!.entries.toList();
       cookingEntries = blossomData["Cooking"]!.entries.toList();
       outdoorEntries = blossomData["Outdoor"]!.entries.toList();
       childcareEntries = blossomData["Childcare"]!.entries.toList();
-      adminEntries = blossomData["Admin"]!.entries.toList();
+      adminEntries = blossomData["Admin"]!.entries.toList();*/
     });
   }
 
-  void _initializeUserBlossoms() async {
+  /*void _initializeUserBlossoms() async {
     List<User> allUsers = await DBHandler().getUsers();
     blossomStrings.clear();
     for(User tmpU in allUsers){
@@ -109,15 +129,10 @@ class _HomeScreenState extends State<HomeScreen> {
       blossomStrings[tmpU.userId] = svgContent;
     }
     setState(() {});
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
-    int maxRadius = ((MediaQuery.sizeOf(context).width-10)/2).toInt();
-    int r = Random().nextInt(maxRadius);
-    double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles["Childcare"]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
-    double x = r * cos(angle);
-    double y = r * sin(angle);
     return Scaffold(
       backgroundColor: const Color(0xFFCFFAFF),
         body: Padding(
@@ -132,11 +147,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     FlowersHomeScreen(moods: userMoods),
                   ]
                 ),
-                Positioned(left: MediaQuery.sizeOf(context).width/2, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50, child: Container(color:Colors.black, height: 5, width: 5,)),
-                Positioned(left: MediaQuery.sizeOf(context).width/2+x, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50-y, child: Container(color:Colors.black, height: 5, width: 5,)),
-                /*for(int i=0;i<cleaningEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Cleaning"]![i].x, top: positions["Cleaning"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + cleaningEntries[i].value*0.05, 1.2), child: blossomStrings[cleaningEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[cleaningEntries[i].key]!))),
-                for(int i=0;i<laundryEntries.length;i++)
+                //Positioned(left: MediaQuery.sizeOf(context).width/2, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50, child: Container(color:Colors.black, height: 5, width: 5,)),
+                //Positioned(left: MediaQuery.sizeOf(context).width/2+x, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50-y, child: Container(color:Colors.black, height: 5, width: 5,)),
+                for(int i=0;i<blossomData["Cleaning"]!.entries.toList().length;i++)
+                  Positioned(left: blossomData["Cleaning"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Cleaning"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Cleaning"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Cleaning"]!.entries.toList()[i].value.svg))),
+                /*for(int i=0;i<laundryEntries.length;i++)
                   Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Laundry"]![i].x, top: positions["Laundry"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + laundryEntries[i].value*0.05, 1.2), child: blossomStrings[laundryEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[laundryEntries[i].key]!))),
                 for(int i=0;i<cookingEntries.length;i++)
                   Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Cooking"]![i].x, top: positions["Cooking"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + cookingEntries[i].value*0.05, 1.2), child: blossomStrings[cookingEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[cookingEntries[i].key]!))),
@@ -159,6 +174,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startTop);
   }
+}
+
+class _Blossom{
+  final _Position pos;
+  int count;
+  final String svg;
+
+  _Blossom(this.pos, this.count, this.svg);
 }
 
 class _Position{

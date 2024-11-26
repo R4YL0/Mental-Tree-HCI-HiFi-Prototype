@@ -22,7 +22,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Mood> userMoods = [];
   List<User> users = [];
-  Map<String, Map<int, _Blossom>> blossomData = {}; //category -> userId -> blossom infos
+  Map<String, Map<int, _Blossom>> blossomData = { //category -> userId -> blossom infos
+    "Cleaning": {},
+    "Laundry": {},
+    "Cooking": {},
+    "Childcare": {},
+    "Outdoor": {},
+    "Admin": {},
+  };
  /* List<MapEntry<int, _Blossom>> cleaningEntries = [];
   List<MapEntry<int, _Blossom>> laundryEntries = [];
   List<MapEntry<int, _Blossom>> cookingEntries = [];
@@ -43,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
     "Laundry": 150,
     "Cooking": 90,
     "Childcare": 30,
-    "Outdoor": -30,
-    "Admin": -90,
+    "Outdoor": 270,
+    "Admin": 330,
   };
   double screenWidth = 0;
   double screenPaddingTop = 0;
@@ -91,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if(data.containsKey(tmp.task.category.name)){
         if(data[tmp.task.category.name]!.containsKey(tmp.user.userId)){
           data[tmp.task.category.name]![tmp.user.userId]!.count = data[tmp.task.category.name]![tmp.user.userId]!.count + 1;
+          //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${data[tmp.task.category.name]![tmp.user.userId]!.pos.x}, y-${data[tmp.task.category.name]![tmp.user.userId]!.pos.y}, count: ${data[tmp.task.category.name]![tmp.user.userId]!.count}");
         }else{
           /* load blossom svg */
           Color tmpColor = await DBHandler().getUserByUserId(tmp.user.userId).then((user) {return user?.flowerColor ?? Colors.red;});
@@ -98,13 +106,14 @@ class _HomeScreenState extends State<HomeScreen> {
           svgContent = svgContent.replaceAll('stroke="blossomColor"','fill="#${tmpColor.value.toRadixString(16).substring(2)}"');
           blossomStrings[tmp.user.userId] = svgContent;
           /* load position */
-          int maxRadius = ((screenWidth-10)/2).toInt();
-          int r = Random().nextInt(maxRadius); //random number between 0 and maxRadius
+          int maxRadius = ((screenWidth-100)/2).toInt();
+          int r = Random().nextInt(maxRadius)+40; //random number between 0 and maxRadius
           double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
           double x = r * cos(angle);
           double y = r * sin(angle);
           /* */
           data[tmp.task.category.name]![tmp.user.userId] = _Blossom(_Position((screenWidth/2+x).toInt(), (screenWidth/2+screenPaddingTop+50-y).toInt()), 1, svgContent);
+          //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${(screenWidth/2+x).toInt()}, y-${(screenWidth/2+screenPaddingTop+50-y).toInt()}, count: ${1}");
         }
       }
     }
@@ -147,20 +156,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     FlowersHomeScreen(moods: userMoods),
                   ]
                 ),
-                //Positioned(left: MediaQuery.sizeOf(context).width/2, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50, child: Container(color:Colors.black, height: 5, width: 5,)),
+                Positioned(left: MediaQuery.sizeOf(context).width/2, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50, child: Container(color:Colors.black, height: 5, width: 5,)),
                 //Positioned(left: MediaQuery.sizeOf(context).width/2+x, top: MediaQuery.sizeOf(context).width/2+MediaQuery.of(context).padding.top+50-y, child: Container(color:Colors.black, height: 5, width: 5,)),
                 for(int i=0;i<blossomData["Cleaning"]!.entries.toList().length;i++)
                   Positioned(left: blossomData["Cleaning"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Cleaning"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Cleaning"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Cleaning"]!.entries.toList()[i].value.svg))),
-                /*for(int i=0;i<laundryEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Laundry"]![i].x, top: positions["Laundry"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + laundryEntries[i].value*0.05, 1.2), child: blossomStrings[laundryEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[laundryEntries[i].key]!))),
-                for(int i=0;i<cookingEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Cooking"]![i].x, top: positions["Cooking"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + cookingEntries[i].value*0.05, 1.2), child: blossomStrings[cookingEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[cookingEntries[i].key]!))),
-                for(int i=0;i<childcareEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Childcare"]![i].x, top: positions["Childcare"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + childcareEntries[i].value*0.05, 1.2), child: blossomStrings[childcareEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[childcareEntries[i].key]!))),
-                for(int i=0;i<outdoorEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Outdoor"]![i].x, top: positions["Outdoor"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + outdoorEntries[i].value*0.05, 1.2), child: blossomStrings[outdoorEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[outdoorEntries[i].key]!))),
-                for(int i=0;i<adminEntries.length;i++)
-                  Positioned(left: MediaQuery.sizeOf(context).width/2-positions["Admin"]![i].x, top: positions["Admin"]![i].y.toDouble(), child: Transform.scale(scale: min(0.2 + adminEntries[i].value*0.05, 1.2), child: blossomStrings[adminEntries[i].key]?.isEmpty ?? true ? const SizedBox() : SvgPicture.string(blossomStrings[adminEntries[i].key]!))),*/
+                for(int i=0;i<blossomData["Laundry"]!.entries.toList().length;i++)
+                  Positioned(left: blossomData["Laundry"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Cleaning"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Laundry"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Laundry"]!.entries.toList()[i].value.svg))),
+                for(int i=0;i<blossomData["Cooking"]!.entries.toList().length;i++)
+                  Positioned(left: blossomData["Cooking"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Cooking"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Cooking"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Cooking"]!.entries.toList()[i].value.svg))),
+                for(int i=0;i<blossomData["Childcare"]!.entries.toList().length;i++)
+                  Positioned(left: blossomData["Childcare"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Childcare"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Childcare"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Childcare"]!.entries.toList()[i].value.svg))),
+                for(int i=0;i<blossomData["Outdoor"]!.entries.toList().length;i++)
+                  Positioned(left: blossomData["Outdoor"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Outdoor"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Outdoor"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Outdoor"]!.entries.toList()[i].value.svg))),
+                for(int i=0;i<blossomData["Admin"]!.entries.toList().length;i++)
+                  Positioned(left: blossomData["Admin"]!.entries.toList()[i].value.pos.x.toDouble(), top: blossomData["Admin"]!.entries.toList()[i].value.pos.y.toDouble(), child: Transform.scale(scale: min(0.2 + blossomData["Admin"]!.entries.toList()[i].value.count*0.05, 1.2), child: SvgPicture.string(blossomData["Admin"]!.entries.toList()[i].value.svg))),
+                
+                SizedBox(
+                  width: MediaQuery.sizeOf(context).width,
+                  height: MediaQuery.sizeOf(context).height,
+                  child: Points(),
+                ),
               ],
             ),
           ),
@@ -173,6 +188,42 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startTop);
+  }
+}
+
+class Points extends StatelessWidget {
+  const Points({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    /**/
+    final width = MediaQuery.sizeOf(context).width;
+    final centerX = width / 2;
+    final centerY = width / 2 + MediaQuery.of(context).padding.top + 50;
+    final radius = 10; // Radius of the circle
+
+    // Generate 6 points (60° apart)
+    final List<Widget> points = [];
+    for(int r=0;r<200;r++){
+      for (int i = 0; i < 6; i++) {
+        final angle = (2 * pi / 6) * i + (pi / 6); // Calculate angle in radians
+        final dx = centerX + r * cos(angle); // X position
+        final dy = centerY + r * sin(angle); // Y position
+
+        points.add(
+          Positioned(
+            left: dx,
+            top: dy,
+            child: Container(
+              color: Colors.black,
+              height: 2,
+              width: 2,
+            ),
+          ),
+        );
+      }
+    }
+    return Stack(children: points);
   }
 }
 
@@ -196,23 +247,20 @@ class TreeHomeScreen extends StatelessWidget {
 
   @override
 Widget build(BuildContext context) {
-  return Container(
-    color: Colors.red,
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        LayoutBuilder(
-          builder: (context, constraints) {
-            return SvgPicture.asset(
-              'lib/assets/tree_3_branches_with_category_names.svg',
-              width: constraints.maxWidth,
-              fit: BoxFit.contain,
-            );
-          },
-        ),
-      ],
-    ),
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      LayoutBuilder(
+        builder: (context, constraints) {
+          return SvgPicture.asset(
+            'lib/assets/tree_3_branches_with_category_names.svg',
+            width: constraints.maxWidth,
+            fit: BoxFit.contain,
+          );
+        },
+      ),
+    ],
   );
 }
 

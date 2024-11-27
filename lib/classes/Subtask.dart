@@ -29,7 +29,7 @@ class Subtask {
   }) async {
     final id = await DBHandler().getNextSubtaskId();
     Subtask subtask = Subtask._(id: id, name: name, isDone: isDone);
-    await DBHandler().saveSubtask(subtask);
+    //await DBHandler().saveSubtask(subtask); needed -> already saved in task!?
     return subtask;
   }
 

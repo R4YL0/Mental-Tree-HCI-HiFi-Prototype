@@ -158,6 +158,49 @@ class DBHandler {
     return null;
   }
 
+  Future<List<Task>> getLikedTasksByUserId(int userId) async {
+    User? user = await getUserByUserId(userId);
+    if (user == null) {
+      throw Exception("User with userId $userId not found");
+    }
+
+    final List<Task> tasks = await getTasks();
+
+    return tasks.where((task) {
+      return user.taskStates[task.taskId] == TaskState.Like;
+    }).toList();
+  }
+
+  Future<List<Task>> getDislikedTasksByUserId(int userId) async {
+    User? user = await getUserByUserId(userId);
+    if (user == null) {
+      throw Exception("User with userId $userId not found");
+    }
+
+    final List<Task> tasks = await getTasks();
+
+    return tasks.where((task) {
+      return user.taskStates[task.taskId] == TaskState.Dislike;
+    }).toList();
+  }
+
+
+  Future<List<Task>> getUndecidedTasksByUserID(int userId) async {
+    User? user = await getUserByUserId(userId);
+    if (user == null) {
+      throw Exception("User with userId $userId not found");
+    }
+
+    final List<Task> tasks = await getTasks();
+
+    // Filter out the tasks which the user has not yet liked or disliked
+    List<Task> undecidedTasks = tasks.where((task) {
+      return !user.taskStates.containsKey(task.taskId);
+    }).toList();
+
+    return undecidedTasks;
+  }
+
   // save data in DB
   Future<void> saveTask(Task newTask) async {
     final tasks = await getTasks();

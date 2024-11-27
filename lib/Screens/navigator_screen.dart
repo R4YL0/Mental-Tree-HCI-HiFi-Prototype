@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mental_load/Screens/home_screen.dart';
-import 'package:mental_load/Screens/cards_screen.dart';
 import 'package:mental_load/Screens/diagrams_screen.dart';
+import 'package:mental_load/Screens/swipable_card_screen.dart';
 import '../constants/colors.dart';
 
 class NavigatorScreen extends StatelessWidget {
@@ -59,7 +59,7 @@ class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
 
   final screens = [
-    const CardsScreen(),
+    const SwipableCardScreen(),
     const HomeScreen(),
     const DiagramsScreen(),
   ];

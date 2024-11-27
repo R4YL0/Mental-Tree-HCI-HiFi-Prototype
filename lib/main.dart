@@ -3,8 +3,11 @@ import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/classes/Mood.dart';
+import 'package:mental_load/classes/Subtask.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
+
+late User currUser;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,66 +47,166 @@ void main() async {
   User sebastian = await User.create(name: "Sebastian", flowerColor: Colors.yellow);
   await DBHandler().saveUser(anna);
 
-  Task task1 = await Task.create(
-    name: "Task 1",
-    frequency: Frequency.weekly,
-    notes: "bla bla bla",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Admin,
-  );
-  Task task2 = await Task.create(
-    name: "Task 2",
-    frequency: Frequency.weekly,
-    notes: "bla bla bla",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Childcare,
-  );
-  Task task3 = await Task.create(
-    name: "Task 3",
-    frequency: Frequency.weekly,
-    notes: "bla bla bla",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Cleaning,
-  );
-  Task task4 = await Task.create(
-    name: "Task 4",
-    frequency: Frequency.weekly,
-    notes: "bla bla bla",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Laundry,
-  );
-  Task task5 = await Task.create(
-    name: "Task 5",
-    frequency: Frequency.weekly,
-    notes: "bla bla bla",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Outdoor,
-  );
-  Task task6 = await Task.create(
-    name: "Task 6",
-    frequency: Frequency.weekly,
-    notes: "bla bla bla",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Cooking,
-  );
-  await DBHandler().saveTask(task1);
+Task task1 = await Task.create(
+  name: "Clean Living Room",
+  frequency: Frequency.weekly,
+  notes: "Vacuum the carpet and dust the furniture.",
+  isPrivate: false,
+  difficulty: 3,
+  priority: 4,
+  category: Category.Cleaning,
+  subtasks: [
+    await Subtask.create(name: "Vacuum the carpet"),
+    await Subtask.create(name: "Dust the furniture"),
+    await Subtask.create(name: "Organize the shelves"),
+  ],
+);
+
+Task task2 = await Task.create(
+  name: "Wash Bedsheets",
+  frequency: Frequency.weekly,
+  notes: "Use gentle cycle and fabric softener.",
+  isPrivate: true,
+  difficulty: 2,
+  priority: 3,
+  category: Category.Laundry,
+  subtasks: [
+    await Subtask.create(name: "Remove bedsheets from all rooms"),
+    await Subtask.create(name: "Sort bedsheets by color"),
+    await Subtask.create(name: "Wash and dry"),
+  ],
+);
+
+Task task3 = await Task.create(
+  name: "Meal Prep",
+  frequency: Frequency.daily,
+  notes: "Chop vegetables and prepare ingredients for dinner.",
+  isPrivate: false,
+  difficulty: 3,
+  priority: 4,
+  category: Category.Cooking,
+  subtasks: [
+    await Subtask.create(name: "Chop vegetables"),
+    await Subtask.create(name: "Prepare protein (chicken, tofu, etc.)"),
+    await Subtask.create(name: "Marinate ingredients"),
+  ],
+);
+
+Task task4 = await Task.create(
+  name: "Weed the Garden",
+  frequency: Frequency.weekly,
+  notes: "Remove weeds and trim hedges.",
+  isPrivate: false,
+  difficulty: 4,
+  priority: 3,
+  category: Category.Outdoor,
+  subtasks: [
+    await Subtask.create(name: "Remove weeds from flower beds"),
+    await Subtask.create(name: "Trim hedges"),
+    await Subtask.create(name: "Rake and collect debris"),
+  ],
+);
+
+Task task5 = await Task.create(
+  name: "Pick Up Kids from School",
+  frequency: Frequency.daily,
+  notes: "Arrive 10 minutes early to avoid traffic.",
+  isPrivate: false,
+  difficulty: 2,
+  priority: 5,
+  category: Category.Childcare,
+  subtasks: [
+    await Subtask.create(name: "Pack snacks and water"),
+    await Subtask.create(name: "Check traffic route"),
+    await Subtask.create(name: "Pick up and return home safely"),
+  ],
+);
+
+Task task6 = await Task.create(
+  name: "File Taxes",
+  frequency: Frequency.yearly,
+  notes: "Organize all receipts and documents before filing.",
+  isPrivate: true,
+  difficulty: 5,
+  priority: 5,
+  category: Category.Admin,
+  subtasks: [
+    await Subtask.create(name: "Gather all income statements"),
+    await Subtask.create(name: "Organize deductible receipts"),
+    await Subtask.create(name: "Submit forms online"),
+  ],
+);
+
+Task task7 = await Task.create(
+  name: "Deep Clean Bathroom",
+  frequency: Frequency.monthly,
+  notes: "Scrub tiles, clean mirrors, and disinfect surfaces.",
+  isPrivate: true,
+  difficulty: 4,
+  priority: 5,
+  category: Category.Cleaning,
+  subtasks: [
+    await Subtask.create(name: "Scrub tiles and grout"),
+    await Subtask.create(name: "Clean mirrors"),
+    await Subtask.create(name: "Disinfect sink and toilet"),
+  ],
+);
+
+Task task8 = await Task.create(
+  name: "Do Laundry",
+  frequency: Frequency.weekly,
+  notes: "Wash whites and colored clothes separately.",
+  isPrivate: false,
+  difficulty: 2,
+  priority: 4,
+  category: Category.Laundry,
+  subtasks: [
+    await Subtask.create(name: "Sort clothes by color"),
+    await Subtask.create(name: "Load the washing machine"),
+    await Subtask.create(name: "Fold and put away clothes"),
+  ],
+);
+
+Task task9 = await Task.create(
+  name: "Bake Cookies",
+  frequency: Frequency.monthly,
+  notes: "Bake a batch of chocolate chip cookies for the family.",
+  isPrivate: false,
+  difficulty: 3,
+  priority: 3,
+  category: Category.Cooking,
+  subtasks: [
+    await Subtask.create(name: "Gather ingredients"),
+    await Subtask.create(name: "Mix ingredients"),
+    await Subtask.create(name: "Bake in the oven"),
+  ],
+);
+
+Task task10 = await Task.create(
+  name: "Mow the Lawn",
+  frequency: Frequency.weekly,
+  notes: "Ensure even cutting and dispose of grass clippings.",
+  isPrivate: false,
+  difficulty: 3,
+  priority: 4,
+  category: Category.Outdoor,
+  subtasks: [
+    await Subtask.create(name: "Start the lawn mower"),
+    await Subtask.create(name: "Mow the lawn evenly"),
+    await Subtask.create(name: "Dispose of grass clippings"),
+  ],
+);
+
+  /*await DBHandler().saveTask(task1);
   await DBHandler().saveTask(task2);
   await DBHandler().saveTask(task3);
   await DBHandler().saveTask(task4);
   await DBHandler().saveTask(task5);
   await DBHandler().saveTask(task6);
+  await DBHandler().saveTask(task7);
+  await DBHandler().saveTask(task8);
+  await DBHandler().saveTask(task9);
+  await DBHandler().saveTask(task10);*/
 
   AssignedTask atask1 = await AssignedTask.create(
       user: theo,
@@ -759,6 +862,7 @@ void main() async {
   */
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  currUser = (await DBHandler().getUsers())[0];
   runApp(MyApp());
 }
 

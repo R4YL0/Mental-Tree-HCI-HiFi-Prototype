@@ -36,22 +36,22 @@ class _HomeScreenState extends State<HomeScreen> {
   List<MapEntry<int, _Blossom>> outdoorEntries = [];
   List<MapEntry<int, _Blossom>> childcareEntries = [];
   List<MapEntry<int, _Blossom>> adminEntries = [];*/
-  Map<String, List<_Position>> positions = {
+  /*Map<String, List<_Position>> positions = {
     "Cleaning": [_Position(60, 400), _Position(80, 450), _Position(130, 460), _Position(160, 420), _Position(200, 370), _Position(120, 370)],
     "Laundry": [_Position(120, 320), _Position(190, 320), _Position(220, 280), _Position(160, 240), _Position(50, 280), _Position(60, 330)],
     "Cooking": [_Position(40, 120), _Position(70, 180), _Position(90, 140), _Position(140, 190), _Position(160, 140), _Position(90, 80)],
     "Childcare": [_Position(-35, 205), _Position(-30, 130), _Position(-60, 90), _Position(-160, 100), _Position(-130, 170), _Position(-100, 130)],
     "Outdoor": [_Position(-120, 200), _Position(-120, 270), _Position(-40, 280), _Position(-60, 230), _Position(-200, 240), _Position(-50, 330)],
     "Admin": [_Position(-130, 340), _Position(-50, 460), _Position(-60, 400), _Position(-180, 360), _Position(-170, 420), _Position(-120, 430)]
-  };
+  };*/
   Map<int, String> blossomStrings = {}; //userId -> blossom string
   Map<String, int> angles = {
     "Cleaning": 210,
     "Laundry": 150,
     "Cooking": 90,
     "Childcare": 30,
-    "Outdoor": 270,
-    "Admin": 330,
+    "Outdoor": 330,
+    "Admin": 270,
   };
   double screenWidth = 0;
   double screenPaddingTop = 0;
@@ -98,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if(data.containsKey(tmp.task.category.name)){
         if(data[tmp.task.category.name]!.containsKey(tmp.user.userId)){
           data[tmp.task.category.name]![tmp.user.userId]!.count = data[tmp.task.category.name]![tmp.user.userId]!.count + 1;
+          
           //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${data[tmp.task.category.name]![tmp.user.userId]!.pos.x}, y-${data[tmp.task.category.name]![tmp.user.userId]!.pos.y}, count: ${data[tmp.task.category.name]![tmp.user.userId]!.count}");
         }else{
           /* load blossom svg */
@@ -108,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
           /* load position */
           int maxRadius = ((screenWidth-140)/2).toInt();
           int r = Random().nextInt(maxRadius)+60; //random number between 0 and maxRadius
-          double angle = (Random().nextInt(21)+5)+(angles[tmp.task.category.name] ?? 0).toDouble(); //20 degree random angle
+          double angle = (Random().nextInt(51)+5)+(angles[tmp.task.category.name] ?? 0).toDouble(); //50 degree random angle
           angle = (math.pi/180)*angle; //convert degrees to radians
           //double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
           double x = r * cos(angle);

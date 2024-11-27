@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:color_picker_field/color_picker_field.dart';
+import 'package:mental_load/Screens/home_screen.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
+import 'package:mental_load/widgets/tutorial_widget.dart';
 
 class UserAddEditScreen extends StatefulWidget {
   final User? user;
@@ -37,13 +39,26 @@ class _UserAddEditScreenState extends State<UserAddEditScreen> {
   void _onSubmitPress() async {
     if (_formKey.currentState!.validate()) {
       if (widget.user == null) {
-        await User.create(
+        final newUser = await User.create(
             name: _nameController.text, flowerColor: _currentColor);
+
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => HomeScreen(),
+            ),
+            (Route<dynamic> route) => false,
+          );
+
+          showDialog(
+              context: context,
+              builder: (BuildContext context) => TutorialWidget(user: newUser));
+        }
       } else {
         widget.user?.name = _nameController.text;
         widget.user?.flowerColor = _currentColor;
+        if (context.mounted) Navigator.pop(context, true);
       }
-      if (context.mounted) Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill input')),

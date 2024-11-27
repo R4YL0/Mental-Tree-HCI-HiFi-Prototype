@@ -3,7 +3,7 @@ import 'package:mental_load/Screens/group_screen.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const testVersion = "test_version";
+const constTestVersion = "test_version";
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -25,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
 
     setState(() {
-      _segmentAB = {prefs.getString(testVersion) ?? "A"};
+      _segmentAB = {prefs.getString(constTestVersion) ?? "A"};
     });
   }
 
@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _segmentAB = newValue;
-      prefs.setString(testVersion, _segmentAB.first);
+      prefs.setString(constTestVersion, _segmentAB.first);
     });
   }
 

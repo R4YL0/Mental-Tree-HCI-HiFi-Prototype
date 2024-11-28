@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:mental_load/Screens/verify_submission_screen.dart';
+import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/main.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
-import 'package:mental_load/classes/Task.dart';
-import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 
 class SwipableCardScreen extends StatefulWidget {
-  const SwipableCardScreen({super.key});
+  final TabController tabController;
+
+  const SwipableCardScreen({Key? key, required this.tabController}) : super(key: key);
 
   @override
   State<SwipableCardScreen> createState() => _SwipableCardScreenState();
@@ -17,8 +18,7 @@ class SwipableCardScreen extends StatefulWidget {
 class _SwipableCardScreenState extends State<SwipableCardScreen> {
   List<Task> _remainingTasks = [];
   late CardSwiperController _cardController;
-  int currentTaskIndex = 0; // Index to track the current task
-  bool _isLoading = true; // Flag to indicate loading state
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -29,190 +29,215 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
 
   Future<void> _initializeData() async {
     setState(() {
-      _isLoading = true; // Set loading to true while data is being fetched
+      _isLoading = true;
     });
 
     List<Task> tasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-    print(tasks.length);
-
-    if (tasks.isEmpty) {
-      // Navigate to IncompletePreferencesScreen if no tasks are left
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const TaskSubmissionScreen(),
-          ),
-        );
-      });
-    } else {
-      setState(() {
-        _remainingTasks = tasks;
-        _isLoading = false; // Set loading to false once data is initialized
-      });
-    }
-  }
-
-  void _showFeedback(BuildContext context, String message, Color color, {VoidCallback? onUndo}) {
-    // Implement your feedback mechanism here if needed
+    setState(() {
+      _remainingTasks = tasks;
+      _isLoading = false;
+    });
   }
 
   void _likeTask(Task task) {
+    //setState(() {
+    _remainingTasks.remove(task);
+    //});
     currUser.updateTaskState(task.taskId, TaskState.Like);
-    _showFeedback(
-      context,
-      "Added '${task.name}' to Favorites!",
-      Colors.green,
-    );
   }
 
   void _dislikeTask(Task task) {
+    //setState(() {
+    _remainingTasks.remove(task);
+    //});
     currUser.updateTaskState(task.taskId, TaskState.Dislike);
-    _showFeedback(
-      context,
-      "Added '${task.name}' to Dislikes!",
-      Colors.red,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      // Show a loading indicator while data is being loaded
-      return Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (_remainingTasks.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.check_circle_outline,
+              size: 80,
+              color: Colors.blueGrey,
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "You're all caught up!",
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  List<int> submittedUsers = await DBHandler().getSubmittedUsers();
+
+                  print("Submitted Users: $submittedUsers");
+                  print("Current User ID: ${currUser.userId}");
+
+                  if (submittedUsers.contains(currUser.userId)) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Restart Swiping"),
+                        content: const Text(
+                          "You have already submitted your preferences. Continuing will remove your submission from the database and refresh your tasks. Do you want to proceed?",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await DBHandler().removeSubmittedUser(currUser.userId);
+                              currUser.taskStates = {};
+
+                              await _initializeData();
+                            },
+                            child: const Text(
+                              "Continue",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    currUser.taskStates = {};
+                    await _initializeData();
+                    setState(() {});
+                  }
+                } catch (e) {
+                  print("Error fetching submitted users: $e");
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0),
+                ),
+              ),
+              child: const Text(
+                "Restart Swiping",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    // Calculate the number of remaining cards
-    int cardsRemaining = _remainingTasks.length - currentTaskIndex;
-    print("remaining: $cardsRemaining");
-    // Determine how many cards to display at once
-    int numberOfCards = cardsRemaining < 3 ? cardsRemaining : 3;
+    int cardsToShow = _remainingTasks.length < 3 ? _remainingTasks.length : 3;
 
-    return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.only(
-          top: MediaQuery.of(context).padding.top + 10,
-          right: 10,
-          left: 10,
-          bottom: 0,
+    return Column(
+      children: [
+        const Text(
+          "Swipe left to Like, Swipe right to Dislike",
+          style: TextStyle(fontSize: 16, color: Colors.grey),
         ),
-        child: Column(
-          children: [
-            const Text(
-              "Task Preferences",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "Swipe left to Favorite, Swipe right to Dislike",
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            Expanded(
-              child: CardSwiper(
-                controller: _cardController,
-                cardsCount: cardsRemaining,
-                isLoop: false,
-                numberOfCardsDisplayed: numberOfCards,
-                cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-                  int taskIndex = currentTaskIndex + index;
-                  if (taskIndex >= _remainingTasks.length) {
-                    print("ERROR NO CARDS LEFT");
-                    return Container();
-                  }
-                  return Cards(
-                    thisTask: Future.value(_remainingTasks[taskIndex]),
-                    sState: SmallState.info,
-                    bState: BigState.info,
-                    size: Size.big,
-                  );
-                },
-                onSwipe: (previousIndex, currentIndex, direction) async {
-                  int taskIndex = currentIndex ?? 0 + previousIndex ?? 0;
+        Expanded(
+          child: CardSwiper(
+            controller: _cardController,
+            cardsCount: _remainingTasks.length,
+            isLoop: false,
+            numberOfCardsDisplayed: cardsToShow,
+            cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+              return Cards(
+                thisTask: Future.value(_remainingTasks[0]),
+                sState: SmallState.info,
+                bState: BigState.info,
+                size: Size.big,
+              );
+            },
+            onSwipe: (previousIndex, currentIndex, direction) async {
+              final task = _remainingTasks[0];
 
-                  print("taskindex: $currentIndex");
-                  final task = _remainingTasks[taskIndex];
-                  if (direction == CardSwiperDirection.left) {
-                    _likeTask(task);
-                  } else if (direction == CardSwiperDirection.right) {
-                    _dislikeTask(task);
-                  }
+              if (direction == CardSwiperDirection.left) {
+                _likeTask(task);
+              } else if (direction == CardSwiperDirection.right) {
+                _dislikeTask(task);
+              }
 
-                  return true;
-                },
-                onEnd: () {
-                  print("END OF STACK REACHED");
-
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TaskSubmissionScreen(),
-                      ),
-                    );
-                  });
-                },
-                allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      if (currentTaskIndex < _remainingTasks.length) {
-                        _cardController.swipe(CardSwiperDirection.left);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.favorite, color: Colors.white, size: 30),
-                        SizedBox(width: 8),
-                        Text("Like", style: TextStyle(fontSize: 18, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (currentTaskIndex < _remainingTasks.length) {
-                        _cardController.swipe(CardSwiperDirection.right);
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30.0),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.thumb_down, color: Colors.white, size: 30),
-                        SizedBox(width: 8),
-                        Text("Dislike", style: TextStyle(fontSize: 18, color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              return true;
+            },
+            onEnd: () {
+              widget.tabController.animateTo(1);
+            },
+            allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+          ),
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  if (_remainingTasks.isNotEmpty) {
+                    _cardController.swipe(CardSwiperDirection.left);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.favorite, color: Colors.white, size: 30),
+                    SizedBox(width: 8),
+                    Text("Like", style: TextStyle(fontSize: 18, color: Colors.white)),
+                  ],
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  if (_remainingTasks.isNotEmpty) {
+                    _cardController.swipe(CardSwiperDirection.right);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.thumb_down, color: Colors.white, size: 30),
+                    SizedBox(width: 8),
+                    Text("Dislike", style: TextStyle(fontSize: 18, color: Colors.white)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

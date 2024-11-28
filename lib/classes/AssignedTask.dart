@@ -17,10 +17,14 @@ class AssignedTask {
   DateTime? get finishDate => _finishDate;
 
   set assignedTaskId(int value) => {_assignedTaskId = value, DBHandler().saveAssignedTask(this)};
-  set user(User value) => {_user = value, DBHandler().saveAssignedTask(this)};
   set task(Task value) => {_task = value, DBHandler().saveAssignedTask(this)};
   set dueDate(DateTime value) => {_dueDate = value, DBHandler().saveAssignedTask(this)};
   set finishDate(DateTime? value) => {_finishDate = value, DBHandler().saveAssignedTask(this)};
+
+  setUser(User value) async {
+    _user = value;
+    await DBHandler().saveAssignedTask(this);
+  }
 
   // Private Constructor
   AssignedTask._({
@@ -63,27 +67,19 @@ class AssignedTask {
   // Find all completed tasks for a specific user
   static Future<List<AssignedTask>> getCompletedTasksForUser(int userId) async {
     final assignedTasks = await DBHandler().getAssignedTasks();
-    return assignedTasks
-        .where((task) =>
-            task._user.userId == userId && task._finishDate != null)
-        .toList();
+    return assignedTasks.where((task) => task._user.userId == userId && task._finishDate != null).toList();
   }
 
   // Find all completed tasks ordered by the finish date
   static Future<List<AssignedTask>> getCompletedTasks() async {
     final assignedTasks = await DBHandler().getAssignedTasks();
-    return assignedTasks
-        .where((task) => task._finishDate != null)
-        .toList()
-      ..sort((a, b) => a._finishDate!.compareTo(b._finishDate!));
+    return assignedTasks.where((task) => task._finishDate != null).toList()..sort((a, b) => a._finishDate!.compareTo(b._finishDate!));
   }
 
   // Get all tasks not completed for a specific user
   static Future<List<AssignedTask>> getIncompleteTasksForUser(int userId) async {
     final assignedTasks = await DBHandler().getAssignedTasks();
-    return assignedTasks
-        .where((task) => task._user.userId == userId && task._finishDate == null)
-        .toList();
+    return assignedTasks.where((task) => task._user.userId == userId && task._finishDate == null).toList();
   }
 
   static Future<Map<Category, List<AssignedTask>>> getAssignedTasksDictionary() async {
@@ -105,7 +101,7 @@ class AssignedTask {
     final Map<Category, List<AssignedTask>> tasksByCategory = {};
 
     for (var task in assignedTasks) {
-      if (task.finishDate != null){
+      if (task.finishDate != null) {
         continue;
       }
 
@@ -124,7 +120,7 @@ class AssignedTask {
     final Map<Category, List<AssignedTask>> tasksByCategory = {};
 
     for (var task in assignedTasks) {
-      if (task.finishDate == null){
+      if (task.finishDate == null) {
         continue;
       }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'DBHandler.dart';
 
-enum TaskState { Like, Dislike }
+enum TaskState { Like, Dislike, Undecided }
 
 class User {
   final int _userId; // Unique ID for the user
@@ -30,8 +30,13 @@ class User {
     DBHandler().saveUser(this);
   }
 
-  updateTaskState(int taskId, TaskState newState) async {
-    _taskStates[taskId] = newState;
+  updateTaskState(int taskId, TaskState? newState) async {
+    if (newState == null) {
+      _taskStates.remove(taskId);
+    } else {
+      _taskStates[taskId] = newState;
+    }
+
     await DBHandler().saveUser(this);
   }
 
@@ -62,8 +67,7 @@ class User {
         'userId': _userId,
         'name': _name,
         'flowerColor': _flowerColor.value,
-        'taskStates': _taskStates
-            .map((key, value) => MapEntry(key.toString(), value.name)),
+        'taskStates': _taskStates.map((key, value) => MapEntry(key.toString(), value.name)),
       };
 
   // Parse JSON Data to Create User

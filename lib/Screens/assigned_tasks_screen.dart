@@ -40,105 +40,152 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
     _selectedUserAssignedTasksFuture = AssignedTask.getTasksForUser(userId);
   }
 
-
-void _showTaskActions(BuildContext context, AssignedTask assignedTask) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent, // Transparent to allow custom background
-    builder: (BuildContext context) {
-      return Container(
-        width: MediaQuery.of(context).size.width, // Full width of the screen
-        decoration: BoxDecoration(
-          color: Colors.grey[100], // Lighter background
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Enlarged Card
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8.0,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Cards(
-                  thisTask: Future.value(assignedTask.task),
-                  sState: SmallState.info,
-                  bState: BigState.info,
-                  size: Size.big, // Bigger size for modal
-                ),
-              ),
-              SizedBox(height: 20),
-              // Buttons with Padding
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context); // Close the modal
-                    // Implement Offer Help logic
-                  },
-                  icon: Icon(Icons.volunteer_activism, color: Colors.white),
-                  label: Text("Offer Help"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal, // Professional teal color
-                    foregroundColor: Colors.white, // Button text color
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context); // Close the modal
-                    // Implement Ask for Trade logic
-                  },
-                  icon: Icon(Icons.swap_horiz, color: Colors.white),
-                  label: Text("Ask for Trade"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.indigo,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context); // Close the modal
-                    // Implement Remind logic
-                  },
-                  icon: Icon(Icons.notifications, color: Colors.white),
-                  label: Text("Remind ${assignedTask.user.name}"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-            ],
+  void _showConfirmationDialog(BuildContext context, AssignedTask assignedTask) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Confirm Action"),
+          content: Text(
+            "Are you sure you want to finish the task '${assignedTask.task.name}' "
+            "from ${assignedTask.user.name} that is due on ${assignedTask.dueDate.toLocal().toString().split(' ')[0]}?",
           ),
-        ),
-      );
-    },
-  );
-}
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
 
+                try {
+                  await assignedTask.setUser(currUser);
+                  setState(() {
+                    _fetchMyAssignedTasks();
+                    if (_selectedUserId != null) {
+                      _fetchSelectedUserAssignedTasks(_selectedUserId!);
+                    }
+                  });
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Task '${assignedTask.task.name}' is now your responsibility."),
+                    ),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text("Failed to update task: ${e.toString()}"),
+                    ),
+                  );
+                }
+              },
+              child: Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showTaskActions(BuildContext context, AssignedTask assignedTask) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 8.0,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Cards(
+                    thisTask: Future.value(assignedTask.task),
+                    sState: SmallState.info,
+                    bState: BigState.info,
+                    size: Size.big,
+                  ),
+                ),
+                SizedBox(height: 20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _showConfirmationDialog(context, assignedTask);
+                    },
+                    icon: Icon(Icons.volunteer_activism, color: Colors.white),
+                    label: Text("Offer Help"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // TODO Implement Ask for Trade logic
+                    },
+                    icon: Icon(Icons.swap_horiz, color: Colors.white),
+                    label: Text("Ask for Trade"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.indigo,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 10),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // TODO Implement Remind logic
+                    },
+                    icon: Icon(Icons.notifications, color: Colors.white),
+                    label: Text("Remind ${assignedTask.user.name}"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +231,7 @@ void _showTaskActions(BuildContext context, AssignedTask assignedTask) {
                       thisTask: Future.value(assignedTask.task),
                       sState: SmallState.info,
                       bState: BigState.info,
-                      size: Size.small, // Use a smaller size for grid display
+                      size: Size.small,
                       //dueDate: assignedTask.dueDate, // Uncomment if needed
                       //finishDate: assignedTask.finishDate, // Uncomment if needed
                     );
@@ -194,11 +241,9 @@ void _showTaskActions(BuildContext context, AssignedTask assignedTask) {
             },
           ),
 
-          // Others' Tasks Tab
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Dropdown to select a user
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: FutureBuilder<List<User>>(

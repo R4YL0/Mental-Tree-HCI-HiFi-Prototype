@@ -222,22 +222,7 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
       _submitted = true;
     });
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Selection Submitted"),
-        content: const Text("Your task preferences have been submitted successfully."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              widget.tabController.animateTo(2);
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
+    widget.tabController.animateTo(2);
   }
 
   void _editSubmission() {

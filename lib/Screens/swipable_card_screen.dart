@@ -160,6 +160,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
             controller: _cardController,
             cardsCount: _remainingTasks.length,
             isLoop: false,
+            duration: const Duration(milliseconds: 500),
             numberOfCardsDisplayed: cardsToShow,
             cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
               return Cards(

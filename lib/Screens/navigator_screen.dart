@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:mental_load/Screens/cards_screen.dart';
 import 'package:mental_load/Screens/home_screen.dart';
 import 'package:mental_load/Screens/diagrams_screen.dart';
-import 'package:mental_load/Screens/swipable_card_screen.dart';
 import '../constants/colors.dart';
 
 class NavigatorScreen extends StatelessWidget {
@@ -15,38 +14,29 @@ class NavigatorScreen extends StatelessWidget {
 
     return Scaffold(
       bottomNavigationBar: Obx(
-        () => NavigationBar(
-          height: 50,
-          elevation: 0,
-          selectedIndex: controller.selectedIndex.value,
-          onDestinationSelected: (index) =>
-              controller.selectedIndex.value = index,
+        () => BottomNavigationBar(
+          currentIndex: controller.selectedIndex.value,
+          onTap: (index) => controller.selectedIndex.value = index,
           backgroundColor: AppColors.primary,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysHide,
-          indicatorColor: Colors.white.withOpacity(0.1),
-          animationDuration: const Duration(milliseconds: 100),
-          destinations: const [
-            NavigationDestination(
-                icon: Icon(
-                  Icons.style,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                label: "Cards"),
-            NavigationDestination(
-                icon: Icon(
-                  Icons.home,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                label: "Home"),
-            NavigationDestination(
-                icon: Icon(
-                  Icons.bar_chart,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                label: "Diagrams"),
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white.withOpacity(0.7),
+          showUnselectedLabels: true,
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 14,
+          unselectedFontSize: 12,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.style),
+              label: "Cards",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: "Home",
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.bar_chart),
+              label: "Diagrams",
+            ),
           ],
         ),
       ),
@@ -54,7 +44,6 @@ class NavigatorScreen extends StatelessWidget {
     );
   }
 }
-
 
 class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;

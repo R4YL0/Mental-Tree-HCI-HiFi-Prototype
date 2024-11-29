@@ -17,13 +17,16 @@ class FlowerWidget extends StatefulWidget {
 
 class _FlowerWidgetState extends State<FlowerWidget> {
   Moods _mood = Moods.good;
+  Color color = Colors.red;
   String svgContent = '';
+  String name = "";
 
   @override
   void initState() {
     super.initState();
     _mood = widget.mood.mood;
     _loadSvgFromAsset();
+    _loadName();
   }
 
   Future<void> _loadSvgFromAsset() async {
@@ -41,7 +44,9 @@ class _FlowerWidgetState extends State<FlowerWidget> {
 
   Future<String> _modifySvgContent(String rawSvgContent) async {
     User? tmpUser = await DBHandler().getUserByUserId(widget.mood.userId);
-    Color color = tmpUser?.flowerColor ?? Colors.red;
+    setState(() {
+      color = tmpUser?.flowerColor ?? Colors.red;
+    });
     Color color2 = Color.fromRGBO((color.red * 0.8).toInt(),(color.green * 0.8).toInt(),(color.blue * 0.8).toInt(),1.0,);
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor"',
         'fill="#${color.value.toRadixString(16).substring(2)}"');
@@ -53,6 +58,13 @@ class _FlowerWidgetState extends State<FlowerWidget> {
   void _flowerMoodChanged(Moods mood){
     _mood = mood;
     _loadSvgFromAsset();
+  }
+
+  void _loadName() async {
+    User? user = await DBHandler().getUserByUserId(widget.mood.userId);
+    setState(() {
+      name = user?.name ?? "";
+    });
   }
 
   @override
@@ -70,14 +82,20 @@ class _FlowerWidgetState extends State<FlowerWidget> {
               });
           });
       },
-      child: Container(
-        color: const Color(0xFFAAD07C),
-        width: 120,
-        height: 100,
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          child: svgContent.isEmpty ? const SizedBox() : SvgPicture.string(svgContent),
-        ),
+      child: Column(
+        children: [
+          Container(
+            color: const Color(0xFFAAD07C),
+            width: 120,
+            height: 100,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: svgContent.isEmpty ? const SizedBox() : SvgPicture.string(svgContent),
+            ),
+          ),
+          const SizedBox(height: 10,),
+          Text(name, style: TextStyle(fontSize: 12, color: color)),
+        ],
       ),
     );
   }

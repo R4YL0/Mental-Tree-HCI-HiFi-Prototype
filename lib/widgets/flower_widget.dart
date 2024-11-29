@@ -94,7 +94,17 @@ class _FlowerWidgetState extends State<FlowerWidget> {
             ),
           ),
           const SizedBox(height: 10,),
-          Text(name, style: TextStyle(fontSize: 12, color: color)),
+          Text(name, style: TextStyle(
+            fontSize: 12, 
+            color: color, 
+            shadows: [
+              Shadow(
+                offset: Offset(2.0, 2.0),
+                blurRadius: 8.0,
+                color: Colors.grey.withOpacity(0.7),
+              ),
+            ],
+          )),
         ],
       ),
     );

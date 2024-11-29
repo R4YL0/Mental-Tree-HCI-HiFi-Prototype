@@ -29,7 +29,7 @@ class _TutorialWidgetState extends State<TutorialWidget> {
           "What you can see here is our home screen: We'll guide you through the different options you have here.";
     } else if (_state == 2) {
       newDialogText =
-          "First you can set your mental state here by clicking on the class and choosing the corresponding emoji: ";
+          "First you can set your mental state here by clicking on the flower and choosing the corresponding emoji: ";
     } else if (_state == 3) {
       final prefs = await SharedPreferences.getInstance();
       final testVersion = prefs.getString(constTestVersion) ?? "A";
@@ -37,7 +37,7 @@ class _TutorialWidgetState extends State<TutorialWidget> {
         newDialogText =
             "The tree shows all the tasks that still need to be done.";
       } else {
-        newDialogText = "The tree showss all the done tasks.";
+        newDialogText = "The tree shows all the done tasks.";
       }
       newDialogText =
           '$newDialogText\nThe bigger a blossom is, the more tasks belong to a user in this category.';

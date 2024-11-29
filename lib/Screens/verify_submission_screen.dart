@@ -347,8 +347,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10.0),
                             child: SizedBox(
-                              width: 200, // Provide a fixed width
-                              height: 300, // Provide a fixed height
+                              width: 140*1.25, // Provide a fixed width
+                              height: 200*1.25, // Provide a fixed height
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
                                   final double cardHeightBig = constraints.maxHeight; // Adjusted size

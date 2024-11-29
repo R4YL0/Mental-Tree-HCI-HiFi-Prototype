@@ -158,46 +158,57 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Calculate the dynamic height for the Cards based on the available height
+              // Calculate the maximum dimensions for the card while keeping aspect ratio
               final double cardHeightBig = constraints.maxHeight * 0.8; // Use 80% of the available height
+              final double cardWidthBig = cardHeightBig * (140 / 200); // Maintain 140:200 aspect ratio
 
-              return CardSwiper(
-                controller: _cardController,
-                cardsCount: _remainingTasks.length,
-                isLoop: false,
-                duration: const Duration(milliseconds: 300),
-                numberOfCardsDisplayed: cardsToShow,
-                cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-                  return Cards(
-                    thisTask: Future.value(_remainingTasks[0]),
-                    sState: SmallState.info,
-                    bState: BigState.info,
-                    size: Size.big,
-                    heightBig: cardHeightBig, // Dynamically calculated height
-                  );
-                },
-                onSwipe: (previousIndex, currentIndex, direction) async {
-                  final task = _remainingTasks[0];
+              return Center(
+                child: SizedBox(
+                  // Center the CardSwiper horizontally
+                  width: cardWidthBig, // Exact card width
+                  height: cardHeightBig, // Exact card height
+                  child: CardSwiper(
+                    controller: _cardController,
+                    cardsCount: _remainingTasks.length,
+                    isLoop: false,
+                    duration: const Duration(milliseconds: 300),
+                    numberOfCardsDisplayed: cardsToShow,
+                    cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+                      return AspectRatio(
+                        aspectRatio: 140 / 200, // Enforce the desired aspect ratio
+                        child: Cards(
+                          thisTask: Future.value(_remainingTasks[0]),
+                          sState: SmallState.info,
+                          bState: BigState.info,
+                          size: Size.big,
+                          heightBig: cardHeightBig, // Dynamically calculated height
+                        ),
+                      );
+                    },
+                    onSwipe: (previousIndex, currentIndex, direction) async {
+                      final task = _remainingTasks[0];
 
-                  if (direction == CardSwiperDirection.left) {
-                    _likeTask(task);
-                  } else if (direction == CardSwiperDirection.right) {
-                    _dislikeTask(task);
-                  }
+                      if (direction == CardSwiperDirection.left) {
+                        _likeTask(task);
+                      } else if (direction == CardSwiperDirection.right) {
+                        _dislikeTask(task);
+                      }
 
-                  return true;
-                },
-                onEnd: () {
-                  widget.tabController.animateTo(1);
-                },
-                allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                      return true;
+                    },
+                    onEnd: () {
+                      widget.tabController.animateTo(1);
+                    },
+                    allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
+                    padding: EdgeInsets.zero, // No extra padding to ensure card size fits
+                  ),
+                ),
               );
             },
           ),
         ),
         Padding(
-          padding: EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 100),
+          padding: const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 100),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [

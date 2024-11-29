@@ -103,11 +103,11 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                           ),
                           TextButton(
                             onPressed: () async {
-                              Navigator.pop(context);
                               await DBHandler().removeSubmittedUser(currUser.userId);
                               currUser.taskStates = {};
-
                               await _initializeData();
+                              Navigator.pop(context);
+                              setState(() {});
                             },
                             child: const Text(
                               "Continue",
@@ -156,40 +156,48 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
           style: TextStyle(fontSize: 16, color: Colors.grey),
         ),
         Expanded(
-          child: CardSwiper(
-            controller: _cardController,
-            cardsCount: _remainingTasks.length,
-            isLoop: false,
-            duration: const Duration(milliseconds: 500),
-            numberOfCardsDisplayed: cardsToShow,
-            cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-              return Cards(
-                thisTask: Future.value(_remainingTasks[0]),
-                sState: SmallState.info,
-                bState: BigState.info,
-                size: Size.big,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate the dynamic height for the Cards based on the available height
+              final double cardHeightBig = constraints.maxHeight * 0.8; // Use 80% of the available height
+
+              return CardSwiper(
+                controller: _cardController,
+                cardsCount: _remainingTasks.length,
+                isLoop: false,
+                duration: const Duration(milliseconds: 300),
+                numberOfCardsDisplayed: cardsToShow,
+                cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+                  return Cards(
+                    thisTask: Future.value(_remainingTasks[0]),
+                    sState: SmallState.info,
+                    bState: BigState.info,
+                    size: Size.big,
+                    heightBig: cardHeightBig, // Dynamically calculated height
+                  );
+                },
+                onSwipe: (previousIndex, currentIndex, direction) async {
+                  final task = _remainingTasks[0];
+
+                  if (direction == CardSwiperDirection.left) {
+                    _likeTask(task);
+                  } else if (direction == CardSwiperDirection.right) {
+                    _dislikeTask(task);
+                  }
+
+                  return true;
+                },
+                onEnd: () {
+                  widget.tabController.animateTo(1);
+                },
+                allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
               );
             },
-            onSwipe: (previousIndex, currentIndex, direction) async {
-              final task = _remainingTasks[0];
-
-              if (direction == CardSwiperDirection.left) {
-                _likeTask(task);
-              } else if (direction == CardSwiperDirection.right) {
-                _dislikeTask(task);
-              }
-
-              return true;
-            },
-            onEnd: () {
-              widget.tabController.animateTo(1);
-            },
-            allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          padding: EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 100),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [

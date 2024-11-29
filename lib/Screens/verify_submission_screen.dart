@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mental_load/Screens/assigned_tasks_screen.dart';
-import 'package:mental_load/Screens/waiting_for_others_screen.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
@@ -32,45 +30,61 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   }
 
   void _showTaskOverlay(BuildContext context, Task task) {
-    TaskState? currentState = currUser.taskStates[task.taskId];
+  TaskState? currentState = currUser.taskStates[task.taskId];
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext context) {
+      return StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            padding: EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+            ),
+            child: ConstrainedBox(
+              // Constrain the height of the modal to a percentage of the screen height
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8, // 80% of screen height
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 8.0,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Cards(
-                      thisTask: Future.value(task),
-                      sState: SmallState.info,
-                      bState: BigState.info,
-                      size: Size.big,
+                  Expanded(
+                    // Ensure the Card widget takes up remaining space
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8.0,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final double cardHeightBig = constraints.maxHeight * 0.8;
+                          return AspectRatio(
+                            aspectRatio: 16 / 9, // Replace `aspectRatio` with a fixed value
+                            child: Cards(
+                              thisTask: Future.value(task),
+                              sState: SmallState.info,
+                              bState: BigState.info,
+                              size: Size.big,
+                              heightBig: cardHeightBig.clamp(100, 600), // Ensure height is within a valid range
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                   SizedBox(height: 20),
-
                   Row(
                     children: [
                       // "Liked" button
@@ -87,7 +101,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                             });
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: currentState == TaskState.Like ? Colors.green : Colors.grey[300],
+                            backgroundColor: currentState == TaskState.Like
+                                ? Colors.green
+                                : Colors.grey[300],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
                             ),
@@ -95,7 +111,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                           child: Text(
                             "Liked",
                             style: TextStyle(
-                              color: currentState == TaskState.Like ? Colors.white : Colors.black,
+                              color: currentState == TaskState.Like
+                                  ? Colors.white
+                                  : Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -116,7 +134,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                             });
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: currentState == TaskState.Dislike ? Colors.red : Colors.grey[300],
+                            backgroundColor: currentState == TaskState.Dislike
+                                ? Colors.red
+                                : Colors.grey[300],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
                             ),
@@ -124,7 +144,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                           child: Text(
                             "Disliked",
                             style: TextStyle(
-                              color: currentState == TaskState.Dislike ? Colors.white : Colors.black,
+                              color: currentState == TaskState.Dislike
+                                  ? Colors.white
+                                  : Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -145,7 +167,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                             });
                           },
                           style: TextButton.styleFrom(
-                            backgroundColor: currentState == null ? Colors.blue : Colors.grey[300],
+                            backgroundColor: currentState == null
+                                ? Colors.blue
+                                : Colors.grey[300],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
                             ),
@@ -153,7 +177,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                           child: Text(
                             "Undecided",
                             style: TextStyle(
-                              color: currentState == null ? Colors.white : Colors.black,
+                              color: currentState == null
+                                  ? Colors.white
+                                  : Colors.black,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
@@ -180,7 +206,11 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     icon: Icon(Icons.save, color: Colors.white),
                     label: Text(
                       "Save",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF008080),
@@ -195,12 +225,14 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
 
   Future<void> _fetchSubmissionStatus() async {
     List<int> submittedUsers = await _dbHandler.getSubmittedUsers();
@@ -314,11 +346,21 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                           onTap: () => _showTaskOverlay(context, task),
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10.0),
-                            child: Cards(
-                              thisTask: Future.value(task),
-                              sState: SmallState.info,
-                              bState: BigState.info,
-                              size: Size.small,
+                            child: SizedBox(
+                              width: 200, // Provide a fixed width
+                              height: 300, // Provide a fixed height
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final double cardHeightBig = constraints.maxHeight; // Adjusted size
+                                  return Cards(
+                                    thisTask: Future.value(task),
+                                    sState: SmallState.info,
+                                    bState: BigState.info,
+                                    size: Size.small,
+                                    heightBig: cardHeightBig,
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),

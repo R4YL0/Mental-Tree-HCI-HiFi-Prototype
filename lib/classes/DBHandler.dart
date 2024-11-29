@@ -50,17 +50,15 @@ class DBHandler {
     }
   }
 
-  // Methods for submitted users
-
-  /// Save a user as having submitted their preferences.
+  
   Future<void> saveSubmittedUser(int userId) async {
-    // Retrieve the current list of submitted users.
+    
     List<dynamic> submittedUsers = _storage.getItem(submittedUsersKey) ?? [];
     if (!submittedUsers.contains(userId)) {
-      // Add the userId if not already present.
+      
       submittedUsers.add(userId);
     }
-    // Save the updated list back to storage.
+    
     await _storage.setItem(submittedUsersKey, submittedUsers);
   }
 
@@ -72,7 +70,7 @@ class DBHandler {
 
  Future<List<int>> getSubmittedUsers() async {
   final List<dynamic> submittedUsers = _storage.getItem('submitted_users') ?? [];
-  return List<int>.from(submittedUsers); // Ensure it returns a list of integers
+  return List<int>.from(submittedUsers);
 }
 
 

@@ -43,12 +43,15 @@ class _UserAddEditScreenState extends State<UserAddEditScreen> {
             name: _nameController.text, flowerColor: _currentColor);
 
         if (context.mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => HomeScreen(),
+            ),);
+          /*Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
               builder: (context) => HomeScreen(),
             ),
             (Route<dynamic> route) => false,
-          );
+          );*/
 
           showDialog(
               context: context,

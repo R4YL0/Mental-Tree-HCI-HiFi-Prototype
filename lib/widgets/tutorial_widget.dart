@@ -50,6 +50,10 @@ class _TutorialWidgetState extends State<TutorialWidget> {
 
     if (_state == 5) {
       if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) Navigator.of(context).pop();
+      if (context.mounted) Navigator.of(context).pop();
     } else {
       setState(() {
         _dialogText = newDialogText;

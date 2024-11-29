@@ -89,7 +89,7 @@ class _Cards extends State<Cards> {
               height: cardHeight,
               child: Stack(
                 children: <Widget>[
-                  names(snapshot.requireData.name, Size.small),
+                  names(snapshot.requireData.name, Size.small, snapshot),
                   Align(
                     alignment: Alignment(0.75, -0.88),
                     child: Text(
@@ -291,31 +291,8 @@ class _Cards extends State<Cards> {
   Widget general(AsyncSnapshot<Task> s) {
     if (widget.bState == BigState.info) {
       return Stack(children: <Widget>[
-        names(s.requireData.name, Size.big /*, snapshot.requireData.imgDst*/),
-        //Category
-        Align(
-          alignment: Alignment(0.65, -0.88),
-          child: Text(
-            s.requireData.category.name,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: widget.heightBig / 550,
-              shadows: <Shadow>[
-                Shadow(
-                  offset: Offset(1, 1),
-                  blurRadius: 2.2,
-                  color: Color.fromARGB(188, 175, 175, 175),
-                ),
-                Shadow(
-                  offset: Offset(0, 0),
-                  blurRadius: 5,
-                  color: Color.fromARGB(105, 175, 175, 175),
-                ),
-              ],
-            ),
-            textScaler: TextScaler.linear(1.4),
-          ),
-        ),
+        names(s.requireData.name, Size.big, s),
+        categoryMenu(s),
         Align(
           alignment: Alignment(-0.88, 0.07),
           child: Text(
@@ -433,32 +410,7 @@ class _Cards extends State<Cards> {
     } else if (widget.bState == BigState.edit) {
       return Stack(
         children: <Widget>[
-          //Change TaskName
-          Align(
-              alignment: Alignment(-0.8, -0.9),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: 50 * widget.heightBig / 550, maxWidth: 190 * widget.heightBig / 550),
-                child: /*Row(children: <Widget>[*/
-                    EditableText(
-                  scrollPhysics: NeverScrollableScrollPhysics(),
-                  scrollPadding: EdgeInsets.all(0),
-                  controller: TextEditingController(text: s.requireData.name),
-                  focusNode: FocusNode(),
-                  cursorColor: Colors.black,
-                  backgroundCursorColor: Colors.black,
-                  maxLines: 2,
-                  minLines: 2,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: (value) => setState(() {
-                    Task change = s.requireData;
-                    change.name = value;
-                  }),
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-                  textScaler: TextScaler.linear(1.4),
-                ),
-                //Icon(Icons.edit, color: Colors.grey, size: 15,),
-                /*]),*/
-              )),
+          names(s.requireData.name, Size.big, s),
           categoryMenu(s),
           Align(
             alignment: Alignment(-0.88, 0.07),
@@ -631,31 +583,8 @@ class _Cards extends State<Cards> {
       );
     } else {
       return Stack(children: <Widget>[
-        names(s.requireData.name, Size.big /*, snapshot.requireData.imgDst*/),
-        //Category
-        Align(
-          alignment: Alignment(0.65, -0.88),
-          child: Text(
-            s.requireData.category.name,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: widget.heightBig / 550,
-              shadows: <Shadow>[
-                Shadow(
-                  offset: Offset(1, 1),
-                  blurRadius: 2.2,
-                  color: Color.fromARGB(188, 175, 175, 175),
-                ),
-                Shadow(
-                  offset: Offset(0, 0),
-                  blurRadius: 5,
-                  color: Color.fromARGB(105, 175, 175, 175),
-                ),
-              ],
-            ),
-            textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-          ),
-        ),
+        names(s.requireData.name, Size.big, s),
+        categoryMenu(s),
         Align(
           alignment: Alignment(-0.88, 0.07),
           child: Text(
@@ -742,6 +671,8 @@ class _Cards extends State<Cards> {
       }
     }
     List<Widget> output = [
+      names(s.requireData.name, Size.big, s),
+      categoryMenu(s),
       Align(
         alignment: Alignment(-0.88, 0.07),
         child: Text(
@@ -835,6 +766,8 @@ class _Cards extends State<Cards> {
   Widget notes(AsyncSnapshot<Task> s) {
     if (widget.bState == BigState.info) {
       return Stack(children: <Widget>[
+        names(s.requireData.name, Size.big, s),
+        categoryMenu(s),
         Align(
           alignment: Alignment(-0.88, 0.07),
           child: Text(
@@ -874,6 +807,8 @@ class _Cards extends State<Cards> {
       ]);
     } else if (widget.bState == BigState.edit) {
       return Stack(children: <Widget>[
+        names(s.requireData.name, Size.big, s),
+        categoryMenu(s),
         Align(
           alignment: Alignment(-0.88, 0.07),
           child: Text(
@@ -924,69 +859,47 @@ class _Cards extends State<Cards> {
   }
 
   //Helper Functions: names, chooseImage, findSubtask, nextSubtask, text4Subtask, categoryMenu, frequency, dueDates, _twoButtons
-  Widget names(String name, Size s) {
-    if (s == Size.small) {
-      if (name.length > 10 && name.substring(10, 11) != ' ') {
-        return Stack(children: <Widget>[
-          Align(
-            alignment: Alignment(-0.90, -0.9),
-            child: Text(
-              "${name.substring(0, 10)}-",
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(0.8 * widget.heightBig / 550),
-            ),
-          ),
-          Align(
-            alignment: Alignment(-0.7, -0.75),
-            child: Text(
-              name.substring(10),
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(0.5 * widget.heightBig / 550),
-            ),
-          ),
-        ]);
-      } else if (name.length > 10) {
-        return Stack(children: <Widget>[
-          Align(
-            alignment: Alignment(-0.90, -0.9),
-            child: Text(
-              name.substring(0, 10),
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(0.8 * widget.heightBig / 550),
-            ),
-          ),
-          Align(
-            alignment: Alignment(-0.7, -0.75),
-            child: Text(
-              name.substring(10),
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(0.5 * widget.heightBig / 550),
-            ),
-          ),
-        ]);
-      } else {
-        return Align(
-          alignment: Alignment(-0.90, -0.9),
-          child: Text(
-            name,
-            style: TextStyle(fontWeight: FontWeight.bold),
-            textScaler: TextScaler.linear(0.8 * widget.heightBig / 550),
-          ),
+  Widget names(String name, Size s, AsyncSnapshot<Task> t) {
+    if(widget.bState == BigState.edit) {
+      return Align(alignment: Alignment(-0.8, -0.9) , child:
+          ConstrainedBox(constraints: BoxConstraints(maxHeight: 50*widget.heightBig/550, maxWidth: 190*widget.heightBig/550), child: /*Row(children: <Widget>[*/
+            EditableText(scrollPhysics: NeverScrollableScrollPhysics(), scrollPadding: EdgeInsets.all(0),
+              controller: TextEditingController(text: t.requireData.name), focusNode: FocusNode(), cursorColor: Colors.black, backgroundCursorColor: Colors.black,
+              maxLines: 2, minLines: 2, textInputAction: TextInputAction.done,
+              onSubmitted: (value) => setState(() {Task change = t.requireData; change.name = value;}),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black), textScaler: TextScaler.linear(1.4),),
+            //Icon(Icons.edit, color: Colors.grey, size: 15,),
+          /*]),*/)
+        );
+    }
+    if(s == Size.small) {
+      if(name.length>10 && name.substring(10,11) != ' ') {
+        return Stack(children: <Widget> [
+            Align(alignment: Alignment(-0.90, -0.9) , child:
+              Text("${name.substring(0,10)}-", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.8*widget.heightBig/550),),),
+            Align(alignment: Alignment(-0.7, -0.75) , child:
+              Text(name.substring(10), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.5*widget.heightBig/550),),)
+            ,]
         );
       }
+      else if(name.length>10) {
+        return Stack(children: <Widget> [
+            Align(alignment: Alignment(-0.90, -0.9) , child:
+              Text(name.substring(0,10), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.8*widget.heightBig/550),),),
+            Align(alignment: Alignment(-0.7, -0.75) , child:
+              Text(name.substring(10), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.5*widget.heightBig/550),),)
+            ,]
+        );
+      }
+      else {
+        return Align(alignment: Alignment(-0.90, -0.9) , child:
+          Text(name, style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.8*widget.heightBig/550),),);
+      }
     } else {
-      return Align(
-          alignment: Alignment(-0.8, -0.94),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: 50 * widget.heightBig / 550, maxWidth: 190 * widget.heightBig / 550),
-            child: Text(
-              name,
-              maxLines: 2,
-              textHeightBehavior: TextHeightBehavior(),
-              style: TextStyle(fontWeight: FontWeight.bold, height: 1.2 * widget.heightBig / 550),
-              textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-            ),
-          ));
+      return Align(alignment: Alignment(-0.8, -0.94) , child:
+            ConstrainedBox(constraints: BoxConstraints(maxHeight: 50*widget.heightBig/550, maxWidth: 190*widget.heightBig/550), child:
+              Text(name, maxLines: 2, textHeightBehavior: TextHeightBehavior(), style: TextStyle(fontWeight: FontWeight.bold, height: 1.2*widget.heightBig/550), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),)
+      );
     }
   }
 
@@ -1082,150 +995,56 @@ class _Cards extends State<Cards> {
   }
 
   Widget categoryMenu(AsyncSnapshot<Task> s) {
+    if(widget.bState != BigState.edit) {
+      return Align(alignment: Alignment(0.65, -0.92) , child:
+          Text(s.requireData.category.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
+            Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+            Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ],
+        ), textScaler: TextScaler.linear(1.4),),);
+    } 
     var list = [
-      DropdownMenuItem<Category>(
-        value: Category.Admin,
-        child: Text(
-          Category.Admin.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: <Shadow>[
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2.2,
-                color: Color.fromARGB(188, 175, 175, 175),
-              ),
-              Shadow(
-                offset: Offset(0, 0),
-                blurRadius: 5,
-                color: Color.fromARGB(105, 175, 175, 175),
-              ),
-            ],
-          ),
-          textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-        ),
+      DropdownMenuItem<Category>(value: Category.Admin, child:
+        Text(Category.Admin.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
+          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
       ),
-      DropdownMenuItem<Category>(
-        value: Category.Childcare,
-        child: Text(
-          Category.Childcare.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: <Shadow>[
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2.2,
-                color: Color.fromARGB(188, 175, 175, 175),
-              ),
-              Shadow(
-                offset: Offset(0, 0),
-                blurRadius: 5,
-                color: Color.fromARGB(105, 175, 175, 175),
-              ),
-            ],
-          ),
-          textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-        ),
+      DropdownMenuItem<Category>(value: Category.Childcare, child:
+        Text(Category.Childcare.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
+          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
       ),
-      DropdownMenuItem<Category>(
-        value: Category.Cleaning,
-        child: Text(
-          Category.Cleaning.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: <Shadow>[
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2.2,
-                color: Color.fromARGB(188, 175, 175, 175),
-              ),
-              Shadow(
-                offset: Offset(0, 0),
-                blurRadius: 5,
-                color: Color.fromARGB(105, 175, 175, 175),
-              ),
-            ],
-          ),
-          textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-        ),
+      DropdownMenuItem<Category>(value: Category.Cleaning, child:
+        Text(Category.Cleaning.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
+          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
       ),
-      DropdownMenuItem<Category>(
-        value: Category.Cooking,
-        child: Text(
-          Category.Cooking.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: <Shadow>[
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2.2,
-                color: Color.fromARGB(188, 175, 175, 175),
-              ),
-              Shadow(
-                offset: Offset(0, 0),
-                blurRadius: 5,
-                color: Color.fromARGB(105, 175, 175, 175),
-              ),
-            ],
-          ),
-          textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-        ),
+      DropdownMenuItem<Category>(value: Category.Cooking, child:
+        Text(Category.Cooking.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
+          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
       ),
-      DropdownMenuItem<Category>(
-        value: Category.Laundry,
-        child: Text(
-          Category.Laundry.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: <Shadow>[
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2.2,
-                color: Color.fromARGB(188, 175, 175, 175),
-              ),
-              Shadow(
-                offset: Offset(0, 0),
-                blurRadius: 5,
-                color: Color.fromARGB(105, 175, 175, 175),
-              ),
-            ],
-          ),
-          textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-        ),
+      DropdownMenuItem<Category>(value: Category.Laundry, child:
+        Text(Category.Laundry.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
+          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
       ),
-      DropdownMenuItem<Category>(
-        value: Category.Outdoor,
-        child: Text(
-          Category.Outdoor.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: <Shadow>[
-              Shadow(
-                offset: Offset(1, 1),
-                blurRadius: 2.2,
-                color: Color.fromARGB(188, 175, 175, 175),
-              ),
-              Shadow(
-                offset: Offset(0, 0),
-                blurRadius: 5,
-                color: Color.fromARGB(105, 175, 175, 175),
-              ),
-            ],
-          ),
-          textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
-        ),
+      DropdownMenuItem<Category>(value: Category.Outdoor, child:
+        Text(Category.Outdoor.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
+          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
       ),
     ];
-    return Align(
-      alignment: Alignment(0.95, -0.9),
-      child: DropdownButton<Category>(
-        value: s.requireData.category,
-        alignment: Alignment.centerRight,
-        items: list,
-        onChanged: (chosen) => setState(() {
-          s.requireData.category = chosen;
-        }),
-      ),
+    return Align(alignment: Alignment(0.9, -0.95) , child:
+      DropdownButton<Category>(value: s.requireData.category, alignment: Alignment.centerRight, items: list, onChanged: (chosen) => setState(() {
+        s.requireData.category = chosen;
+      }),),
     );
   }
 

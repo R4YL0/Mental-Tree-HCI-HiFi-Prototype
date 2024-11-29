@@ -17,6 +17,7 @@ class SwipableCardScreen extends StatefulWidget {
 
 class _SwipableCardScreenState extends State<SwipableCardScreen> {
   List<Task> _remainingTasks = [];
+  List<Task> _cardsAtStart = [];
   late CardSwiperController _cardController;
   bool _isLoading = true;
 
@@ -32,10 +33,13 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
       _isLoading = true;
     });
 
-    List<Task> tasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-    setState(() {
-      _remainingTasks = tasks;
+         _remainingTasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
+      _cardsAtStart = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
       _isLoading = false;
+    setState(() {
+
+
+      
     });
   }
 
@@ -174,14 +178,20 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                     duration: const Duration(milliseconds: 300),
                     numberOfCardsDisplayed: cardsToShow,
                     cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-                      return AspectRatio(
-                        aspectRatio: 140 / 200, // Enforce the desired aspect ratio
-                        child: Cards(
-                          thisTask: Future.value(_remainingTasks[0]),
-                          sState: SmallState.info,
-                          bState: BigState.info,
-                          size: Size.big,
-                          heightBig: cardHeightBig, // Dynamically calculated height
+                      return SizedBox(
+                        width: cardHeightBig, // Provide a fixed width
+                        height: cardWidthBig, // Provide a fixed height
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final double cardHeightBig = constraints.maxHeight; // Adjusted size
+                            return Cards(
+                              thisTask: Future.value(_cardsAtStart[index]),
+                              sState: SmallState.info,
+                              bState: BigState.swipe,
+                              size: Size.big,
+                              heightBig: cardHeightBig,
+                            );
+                          },
                         ),
                       );
                     },

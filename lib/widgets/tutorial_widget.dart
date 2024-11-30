@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mental_load/Screens/settings_screen.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/widgets/flower_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,10 +50,6 @@ class _TutorialWidgetState extends State<TutorialWidget> {
     }
 
     if (_state == 5) {
-      if (context.mounted) Navigator.of(context).pop();
-      if (context.mounted) Navigator.of(context).pop();
-      if (context.mounted) Navigator.of(context).pop();
-      if (context.mounted) Navigator.of(context).pop();
       if (context.mounted) Navigator.of(context).pop();
     } else {
       setState(() {

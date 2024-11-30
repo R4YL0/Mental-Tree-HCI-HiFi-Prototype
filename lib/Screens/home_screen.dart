@@ -95,28 +95,30 @@ class _HomeScreenState extends State<HomeScreen> {
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
     Map<String, Map<int, _Blossom>> data = {"Cleaning": {}, "Laundry": {}, "Cooking": {}, "Outdoor": {}, "Childcare": {}, "Admin": {}};
     for(AssignedTask tmp in completedTasks){
-      if(data.containsKey(tmp.task.category.name)){
-        if(data[tmp.task.category.name]!.containsKey(tmp.user.userId)){
-          data[tmp.task.category.name]![tmp.user.userId]!.count = data[tmp.task.category.name]![tmp.user.userId]!.count + 1;
-          
-          //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${data[tmp.task.category.name]![tmp.user.userId]!.pos.x}, y-${data[tmp.task.category.name]![tmp.user.userId]!.pos.y}, count: ${data[tmp.task.category.name]![tmp.user.userId]!.count}");
-        }else{
-          /* load blossom svg */
-          Color tmpColor = await DBHandler().getUserByUserId(tmp.user.userId).then((user) {return user?.flowerColor ?? Colors.red;});
-          String svgContent = await rootBundle.loadString('lib/assets/blossom.svg');
-          svgContent = svgContent.replaceAll('stroke="blossomColor"','fill="#${tmpColor.value.toRadixString(16).substring(2)}"');
-          blossomStrings[tmp.user.userId] = svgContent;
-          /* load position */
-          int maxRadius = ((screenWidth-140)/2).toInt();
-          int r = Random().nextInt(maxRadius)+60; //random number between 0 and maxRadius
-          double angle = (Random().nextInt(51)+5)+(angles[tmp.task.category.name] ?? 0).toDouble(); //50 degree random angle
-          angle = (math.pi/180)*angle; //convert degrees to radians
-          //double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
-          double x = r * cos(angle);
-          double y = r * sin(angle);
-          /* */
-          data[tmp.task.category.name]![tmp.user.userId] = _Blossom(_Position((screenWidth/2+x).toInt(), (screenWidth/2+screenPaddingTop+20-y).toInt()), 1, svgContent);
-          //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${(screenWidth/2+x).toInt()}, y-${(screenWidth/2+screenPaddingTop+50-y).toInt()}, count: ${1}");
+      if(tmp.finishDate != null && tmp.finishDate!.difference(DateTime.now()).inDays < 30){
+        if(data.containsKey(tmp.task.category.name)){
+          if(data[tmp.task.category.name]!.containsKey(tmp.user.userId)){
+            data[tmp.task.category.name]![tmp.user.userId]!.count = data[tmp.task.category.name]![tmp.user.userId]!.count + 1;
+            
+            //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${data[tmp.task.category.name]![tmp.user.userId]!.pos.x}, y-${data[tmp.task.category.name]![tmp.user.userId]!.pos.y}, count: ${data[tmp.task.category.name]![tmp.user.userId]!.count}");
+          }else{
+            /* load blossom svg */
+            Color tmpColor = await DBHandler().getUserByUserId(tmp.user.userId).then((user) {return user?.flowerColor ?? Colors.red;});
+            String svgContent = await rootBundle.loadString('lib/assets/blossom.svg');
+            svgContent = svgContent.replaceAll('stroke="blossomColor"','fill="#${tmpColor.value.toRadixString(16).substring(2)}"');
+            blossomStrings[tmp.user.userId] = svgContent;
+            /* load position */
+            int maxRadius = ((screenWidth-140)/2).toInt();
+            int r = Random().nextInt(maxRadius)+60; //random number between 0 and maxRadius
+            double angle = (Random().nextInt(51)+5)+(angles[tmp.task.category.name] ?? 0).toDouble(); //50 degree random angle
+            angle = (math.pi/180)*angle; //convert degrees to radians
+            //double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
+            double x = r * cos(angle);
+            double y = r * sin(angle);
+            /* */
+            data[tmp.task.category.name]![tmp.user.userId] = _Blossom(_Position((screenWidth/2+x).toInt(), (screenWidth/2+screenPaddingTop+20-y).toInt()), 1, svgContent);
+            //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${(screenWidth/2+x).toInt()}, y-${(screenWidth/2+screenPaddingTop+50-y).toInt()}, count: ${1}");
+          }
         }
       }
     }

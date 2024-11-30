@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -15,27 +16,25 @@ class DiagramsScreen extends StatelessWidget {
     return Scaffold(
       body: Padding(
         padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top, right: 10, left: 10),
-        child: const Column(
-          children: [
-            Text("Completed Tasks", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            SizedBox(height: 10,),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    DiagramBox(title: "Distribution"),
-                    SizedBox(height: 10,),
-                    DiagramBox(title: "Last 20 days"),
-                    SizedBox(height: 10,),
-                    DiagramBox(title: "By Category"),
-                    SizedBox(height: 10,),
-                    DiagramBox(title: "History"),
-                    SizedBox(height: 10,),
-                  ],
-                ),
-              ),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Text("Mood State", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10,),
+              DiagramBox(title: "Mood"),
+              SizedBox(height: 10,),
+              Text("Completed Tasks", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10,),
+              DiagramBox(title: "Distribution"),
+              SizedBox(height: 10,),
+              DiagramBox(title: "Last 20 days"),
+              SizedBox(height: 10,),
+              DiagramBox(title: "By Category"),
+              SizedBox(height: 10,),
+              DiagramBox(title: "History"),
+              SizedBox(height: 10,),
+            ],
+          ),
         ),
       ),
     );
@@ -65,6 +64,8 @@ class DiagramBox extends StatelessWidget {
               const CompletedTasks()
             else if(title == "By Category")
               const CategoryBarChart()
+            else if(title == "Mood")
+              const MoodChart()
           ],
         ),
       ),
@@ -173,7 +174,7 @@ class _TaskHistoryState extends State<TaskHistory> {
   List<AssignedTask> completedTasks = [];
   bool showAllEntries = false;
 
-@override
+  @override
   void initState() {
     super.initState();
     myInit();
@@ -533,6 +534,104 @@ class Info extends StatelessWidget {
       children: [
         Icon(Icons.lightbulb_outline, size: 16,),
         Text("You can click on a name to deactivate its data!", style: TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+}
+
+class MoodChart extends StatefulWidget {
+  const MoodChart({super.key});
+
+  @override
+  State<MoodChart> createState() => _MoodChartState();
+}
+
+class _MoodChartState extends State<MoodChart> {
+  Map<String, Map<int, Mood>> data = {}; //username -> days ago -> mood
+
+  @override
+  void initState() {
+    super.initState();
+    _myInit();
+  }
+
+  _myInit() async {
+    List<User> users = await DBHandler().getUsers();
+    for(User u in users){
+      List<Mood> m = await DBHandler().getMoodsByUserId(u.userId);
+      List<Mood> res = [];
+      for(int i=0;i<m.length;i++){
+        if(i+1 == m.length || m[i].date != m[i+1].date){
+          res.add(m[i]);
+        }
+      }
+      Map<int, Mood> mapRes = {};
+      for(int i=0;i<res.length;i++){
+        int dayDiff = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).difference(DateTime(res[i].date.year, res[i].date.month, res[i].date.day))).inDays;
+        mapRes[dayDiff] = res[i];
+      }
+      
+      data[u.name] = mapRes;
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 20,
+          child: Row(
+            children: [
+              const SizedBox(width: 100,),
+              Text("today..", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),),
+              const Spacer(),
+              Text("..20 days ago", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            SizedBox(
+              width: 100,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for(String name in data.keys)
+                    Text(name),
+                ],
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for(var moodMap in data.values)
+                      Row(
+                        children: [
+                          for (int i=moodMap.values.length-1;i>= 0;i--)
+                            Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: moodMap.values.elementAt(i).mood == Moods.bad ? Colors.red : moodMap.values.elementAt(i).mood == Moods.mid ? Colors.yellow : Colors.green,
+                                  borderRadius: BorderRadius.circular(3),
+                                ),
+                              ),
+                            ),
+                        ],
+                      )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }

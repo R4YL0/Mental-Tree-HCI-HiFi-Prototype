@@ -4,16 +4,17 @@ import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/main.dart';
+import 'package:mental_load/widgets/cards_bottom_sheet.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
 
-class TasksOverviewScreen extends StatefulWidget {
-  const TasksOverviewScreen({Key? key}) : super(key: key);
+class AssignedTasksOverview extends StatefulWidget {
+  const AssignedTasksOverview({Key? key}) : super(key: key);
 
   @override
-  _TasksOverviewScreenState createState() => _TasksOverviewScreenState();
+  _AssignedTasksOverviewState createState() => _AssignedTasksOverviewState();
 }
 
-class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTickerProviderStateMixin {
+class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late Future<List<AssignedTask>> _myAssignedTasksFuture;
   late Future<List<User>> _usersFuture;
@@ -54,229 +55,92 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
   }
 
   void _showYourTaskAction(BuildContext context, AssignedTask assignedTask) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.85, // 85% of screen height
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Task Card with Correct Aspect Ratio
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8.0,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final double cardHeightBig = constraints.maxHeight * 0.8;
-                            return AspectRatio(
-                              aspectRatio: 16 / 9, // Replace `aspectRatio` with a fixed value
-                              child: Cards(
-                                thisTask: Future.value(assignedTask.task), // Corrected Future.value
-                                sState: SmallState.info,
-                                bState: BigState.info,
-                                size: Size.big,
-                                heightBig: cardHeightBig.clamp(100, 600), // Ensure height is within a valid range
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    // Close Button
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        "Close",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white, // White button
-                        foregroundColor: Colors.black,
-                        side: BorderSide(color: Colors.grey, width: 2), // Grey border
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+    showTaskBottomSheet(context: context, task: assignedTask, size: Size.big);
   }
 
   void _showOthersTaskAction(BuildContext context, AssignedTask assignedTask) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.85, // 85% of screen height
+    showTaskBottomSheet(
+        context: context,
+        task: assignedTask,
+        size: Size.big,
+        additionalWidgets: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Help Button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _showHelpConfirmationDialog(context, assignedTask);
+                },
+                icon: Icon(Icons.volunteer_activism, color: Colors.white),
+                label: FittedBox(
+                  child: Text(
+                    "Help",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Task Card with Correct Aspect Ratio
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8.0,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final double cardHeightBig = constraints.maxHeight * 0.8;
-                            return AspectRatio(
-                              aspectRatio: 16 / 9, // Replace `aspectRatio` with a fixed value
-                              child: Cards(
-                                thisTask: Future.value(assignedTask.task), // Corrected Future.value
-                                sState: SmallState.info,
-                                bState: BigState.info,
-                                size: Size.big,
-                                heightBig: cardHeightBig.clamp(100, 600), // Ensure height is within a valid range
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    // Action Buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        // Offer Help Button
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context); // Close the overlay
-                            _showConfirmationDialog(context, assignedTask);
-                          },
-                          icon: Icon(Icons.volunteer_activism, color: Colors.white), // White icon
-                          label: Text(
-                            "Offer Help",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // White text
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.teal, // Teal background
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        // Trade Button
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context); // Close the overlay
-                            _showTradeDialog(context, assignedTask);
-                          },
-                          icon: Icon(Icons.swap_horiz, color: Colors.white), // White icon
-                          label: Text(
-                            "Trade",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // White text
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.indigo, // Indigo background
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        // Remind Button
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.pop(context); // Close the overlay
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text("Reminder sent to ${assignedTask.user.name}!")),
-                            );
-                          },
-                          icon: Icon(Icons.notifications, color: Colors.white), // White icon
-                          label: Text(
-                            "Remind",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), // White text
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.redAccent, // RedAccent background
-                            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-                    // Close Button
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        "Close",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white, // White button
-                        foregroundColor: Colors.black,
-                        side: BorderSide(color: Colors.grey, width: 2), // Grey border
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                      ),
-                    ),
-                  ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
-            );
-          },
-        );
-      },
-    );
+            ),
+            SizedBox(width: 8),
+
+            // Trade Button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  _showTradeDialog(context, assignedTask);
+                },
+                icon: Icon(Icons.swap_horiz, color: Colors.white),
+                label: FittedBox(
+                  child: Text(
+                    "Trade",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.indigo,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 8),
+
+            // Remind Button
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Reminder sent to ${assignedTask.user.name}!")),
+                  );
+                },
+                icon: Icon(Icons.notifications, color: Colors.white),
+                label: FittedBox(
+                  child: Text(
+                    "Remind",
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ));
   }
 
   void _showTradeDialog(BuildContext context, AssignedTask targetTask) {
@@ -287,34 +151,32 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        AssignedTask? selectedTask; // Tracks the selected card
+        AssignedTask? selectedTask;
         return Dialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20.0),
+            borderRadius: BorderRadius.circular(8),
           ),
           elevation: 8,
           backgroundColor: Colors.white,
-          insetPadding: EdgeInsets.symmetric(horizontal: 16), // Reduced side padding
+          insetPadding: EdgeInsets.all(16),
           child: Container(
             constraints: BoxConstraints(
-              maxWidth: screenWidth * 0.9, // Ensure compact width
-              maxHeight: screenHeight * 0.7, // Height limited to 70% of the screen
+              maxHeight: screenHeight * 0.75,
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(12.0),
               child: StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Dialog Title
                       Text(
                         "Propose a Trade",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       Divider(thickness: 1.5, color: Colors.grey[300]),
@@ -322,10 +184,10 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
 
                       // Trade Overview
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround, // Equal spacing
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          // Left Card (Target Card)
+                          // Left Card = Receive
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -335,52 +197,56 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87, // High contrast text color
+                                  color: Colors.black87,
                                 ),
                               ),
                               SizedBox(height: 8),
                               Container(
-                                width: 140, // Fixed width for consistent aspect ratio
-                                height: 200, // Fixed height for consistent aspect ratio
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12), // Rounded corners
-                                  gradient: LinearGradient(
-                                    colors: [Colors.green[100]!, Colors.green[300]!], // Intuitive "Receive" color
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: Theme.of(context).colorScheme.primary,
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black12,
                                       blurRadius: 8,
-                                      offset: Offset(2, 4), // Subtle shadow for depth
+                                      offset: Offset(2, 4),
                                     ),
                                   ],
                                 ),
-                                child: Cards(
-                                  thisTask: Future.value(targetTask.task),
-                                  sState: SmallState.info,
-                                  bState: BigState.info,
-                                  size: Size.small,
-                                  heightBig: 200, // Adjusted heightBig
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final double width = MediaQuery.of(context).size.width * 0.35;
+                                    final double height = width * (200 / 140);
+                                    return Container(
+                                      width: width,
+                                      height: height,
+                                      child: Cards(
+                                        thisTask: Future.value(targetTask.task),
+                                        sState: SmallState.info,
+                                        bState: BigState.info,
+                                        size: Size.small,
+                                        heightBig: height,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ),
+                              )
                             ],
                           ),
 
                           // Trade Arrow
                           Column(
                             children: [
-                              SizedBox(height: 16), // Add space to align with cards
+                              SizedBox(height: 24),
                               Icon(
                                 Icons.swap_horiz,
                                 size: 36,
-                                color: Colors.indigo,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ],
                           ),
 
-                          // Right Card (Selected Card)
+                          // Right Card = Selected Card
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -390,134 +256,136 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87, // High contrast text color
+                                  color: Colors.black87,
                                 ),
                               ),
                               SizedBox(height: 8),
                               Container(
-                                width: 140, // Fixed width for consistent aspect ratio
-                                height: 200, // Fixed height for consistent aspect ratio
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12), // Rounded corners
-                                  gradient: LinearGradient(
-                                    colors: [Colors.orange[100]!, Colors.orange[300]!], // Intuitive "Offer" color
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
+                                  borderRadius: BorderRadius.circular(15),
+                                  color: Theme.of(context).colorScheme.primary,
                                   boxShadow: [
                                     BoxShadow(
                                       color: Colors.black12,
                                       blurRadius: 8,
-                                      offset: Offset(2, 4), // Subtle shadow for depth
+                                      offset: Offset(2, 4),
                                     ),
                                   ],
                                 ),
-                                child: selectedTask != null
-                                    ? Cards(
-                                        thisTask: Future.value(selectedTask!.task),
-                                        sState: SmallState.info,
-                                        bState: BigState.info,
-                                        size: Size.small,
-                                        heightBig: 200, // Adjusted heightBig
-                                      )
-                                    : Center(
-                                        child: Text(
-                                          "No card selected",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.black54, // Better contrast for readability
-                                            fontWeight: FontWeight.w600, // Slightly bold for emphasis
-                                          ),
-                                        ),
-                                      ),
+                                child: LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final double width = MediaQuery.of(context).size.width * 0.35;
+                                    final double height = width * (200 / 140);
+
+                                    return Container(
+                                      width: width,
+                                      height: height,
+                                      child: selectedTask != null
+                                          ? Cards(
+                                              thisTask: Future.value(selectedTask!.task),
+                                              sState: SmallState.info,
+                                              bState: BigState.info,
+                                              size: Size.small,
+                                              heightBig: height,
+                                            )
+                                          : Center(
+                                              child: Text(
+                                                "No card selected",
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                    );
+                                  },
+                                ),
                               ),
                             ],
                           ),
                         ],
                       ),
 
-                      SizedBox(height: 12),
+                      SizedBox(height: 24),
 
                       // Card Selection Scroll View
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Select one of your cards to offer:",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Expanded(
-                                    child: FutureBuilder<List<AssignedTask>>(
-                                      future: _myAssignedTasksFuture,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState == ConnectionState.waiting) {
-                                          return Center(child: CircularProgressIndicator());
-                                        } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                                          return Center(
-                                            child: Text(
-                                              "No cards to trade.",
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.redAccent,
-                                              ),
-                                            ),
-                                          );
-                                        } else {
-                                          final tasks = snapshot.data!;
-                                          return SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            child: Row(
-                                              children: tasks.map((task) {
-                                                return GestureDetector(
-                                                  onTap: () {
-                                                    setState(() {
-                                                      if (selectedTask == task) {
-                                                        selectedTask = null; // Deselect the card
-                                                      } else {
-                                                        selectedTask = task; // Select the card
-                                                      }
-                                                    });
-                                                  },
-                                                  child: Container(
-                                                    width: 140, // Fixed width for aspect ratio
-                                                    height: 200, // Fixed height for aspect ratio
-                                                    margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                    decoration: BoxDecoration(
-                                                      border: Border.all(
-                                                        color: selectedTask == task ? Colors.teal : Colors.transparent,
-                                                        width: 2,
-                                                      ),
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                    child: Cards(
-                                                      thisTask: Future.value(task.task),
-                                                      sState: SmallState.info,
-                                                      bState: BigState.info,
-                                                      size: Size.small,
-                                                      heightBig: 200,
-                                                    ),
-                                                  ),
-                                                );
-                                              }).toList(),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ],
+                            Text(
+                              "Select one of your cards to offer:",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
                               ),
+                            ),
+                            SizedBox(height: 8),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final double width = MediaQuery.of(context).size.width * 0.35;
+                                final double height = width * (200 / 140);
+
+                                return SizedBox(
+                                  height: height,
+                                  child: FutureBuilder<List<AssignedTask>>(
+                                    future: _myAssignedTasksFuture,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return Center(child: CircularProgressIndicator());
+                                      } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                                        return Center(
+                                          child: Text(
+                                            "No cards to trade.",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.redAccent,
+                                            ),
+                                          ),
+                                        );
+                                      } else {
+                                        final tasks = snapshot.data!;
+                                        return SingleChildScrollView(
+                                          scrollDirection: Axis.horizontal,
+                                          child: Row(
+                                            children: tasks.map((task) {
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  setState(() {
+                                                    selectedTask = selectedTask == task ? null : task;
+                                                  });
+                                                },
+                                                child: Container(
+                                                  width: width,
+                                                  height: height,
+                                                  margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      color: selectedTask == task ? Colors.teal : Colors.transparent,
+                                                      width: 4,
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: Cards(
+                                                    thisTask: Future.value(task.task),
+                                                    sState: SmallState.info,
+                                                    bState: BigState.info,
+                                                    size: Size.small,
+                                                    heightBig: height,
+                                                  ),
+                                                ),
+                                              );
+                                            }).toList(),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -528,25 +396,35 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          Flexible(
-                            child: ElevatedButton.icon(
-                              onPressed: () => Navigator.pop(context),
-                              icon: Icon(Icons.cancel, color: Colors.white),
-                              label: Text("Cancel"),
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: Colors.redAccent,
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                textStyle: TextStyle(fontSize: 12),
+                          SizedBox(
+                            width: 120,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: Theme.of(context).colorScheme.secondary),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.secondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                          SizedBox(width: 10),
-                          Flexible(
-                            child: ElevatedButton.icon(
+                          SizedBox(width: 12),
+                          SizedBox(
+                            width: 120,
+                            child: ElevatedButton(
                               onPressed: selectedTask != null
                                   ? () {
-                                      // Confirm trade logic here
+                                      Navigator.pop(context);
                                       Navigator.pop(context);
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
@@ -554,13 +432,17 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                                         ),
                                       );
                                     }
-                                  : null, // Disable when no card is selected
-                              icon: Icon(Icons.check_circle, color: Colors.white),
-                              label: Text("Confirm"),
+                                  : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: selectedTask != null ? Colors.teal : Colors.grey, // Grey if disabled
-                                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                textStyle: TextStyle(fontSize: 12),
+                                backgroundColor: selectedTask != null ? Theme.of(context).primaryColor : Colors.grey,
+                                padding: EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                "Confirm",
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
@@ -577,50 +459,158 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
     );
   }
 
-  void _showConfirmationDialog(BuildContext context, AssignedTask assignedTask) {
+  void _showHelpConfirmationDialog(BuildContext context, AssignedTask assignedTask) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Confirm Action"),
-          content: Text(
-            "Are you sure you want to finish the task '${assignedTask.task.name}' "
-            "from ${assignedTask.user.name} that is due on ${assignedTask.dueDate.toLocal().toString().split(' ')[0]}?",
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("Cancel"),
+          titlePadding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Confirm Action",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
-
-                try {
-                  await assignedTask.setUser(currUser);
-                  setState(() {
-                    _fetchMyAssignedTasks();
-                    if (_selectedUserId != null) {
-                      _fetchSelectedUserAssignedTasks(_selectedUserId!);
-                    }
-                  });
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Task '${assignedTask.task.name}' is now your responsibility."),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "You are about to take responsibility for the following task:",
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Task: ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "'${assignedTask.task.name}'",
+                      style: TextStyle(color: Colors.black87),
                     ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Failed to update task: ${e.toString()}"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Assigned To: ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "${assignedTask.user.name}",
+                      style: TextStyle(color: Colors.black87),
                     ),
-                  );
-                }
-              },
-              child: Text("Confirm"),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Due Date: ",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "${assignedTask.dueDate.toLocal().toString().split(' ')[0]}",
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          contentPadding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+          actionsPadding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Theme.of(context).colorScheme.secondary),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: Text(
+                      "Cancel",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+
+                      try {
+                        await assignedTask.setUser(currUser);
+                        setState(() {
+                          _fetchMyAssignedTasks();
+                          if (_selectedUserId != null) {
+                            _fetchSelectedUserAssignedTasks(_selectedUserId!);
+                          }
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Task '${assignedTask.task.name}' is now your responsibility.",
+                            ),
+                          ),
+                        );
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Failed to update task: ${e.toString()}",
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Confirm",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         );
@@ -636,17 +626,17 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
           children: [
             IconButton(
               icon: const Icon(Icons.sort),
-              onPressed: _rotateSortOption, // Rotate through sort options
+              onPressed: _rotateSortOption,
             ),
             Text("Sort by $_sortOption"),
           ],
         ),
         DropdownButton<String>(
-          value: _selectedCategory == null ? "No Filter" : _selectedCategory!.name, // Set default value if no category is selected
+          value: _selectedCategory == null ? "No Filter" : _selectedCategory!.name,
           hint: const Text("Filter by Category"),
           items: [
             const DropdownMenuItem<String>(
-              value: "No Filter", // Special value to represent no filter
+              value: "No Filter",
               child: Text("No Filter"),
             ),
             ...Category.values.map((category) {
@@ -659,7 +649,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
           onChanged: (value) {
             setState(() {
               if (value == "No Filter") {
-                _selectedCategory = null; // Reset the filter
+                _selectedCategory = null;
               } else {
                 _selectedCategory = Category.values.firstWhere((category) => category.name == value);
               }
@@ -748,7 +738,6 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                   // My Tasks Tab
                   Column(
                     children: [
-                      // Sort and Filter Options
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -756,7 +745,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.sort),
-                                onPressed: _rotateSortOption, // Rotate through sort options
+                                onPressed: _rotateSortOption,
                               ),
                               Text("Sort by $_sortOption"),
                             ],
@@ -779,7 +768,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                             onChanged: (value) {
                               setState(() {
                                 if (value == "No Filter") {
-                                  _selectedCategory = null; // Reset the filter
+                                  _selectedCategory = null;
                                 } else {
                                   _selectedCategory = Category.values.firstWhere((category) => category.name == value);
                                 }
@@ -806,11 +795,16 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
 
                               return LayoutBuilder(
                                 builder: (context, constraints) {
-                                  final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4); // Min 2, Max 4 columns
-                                  final aspectRatio = 140 / 200; // Maintain the card's aspect ratio
+                                  final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
+                                  final aspectRatio = 140 / 200;
+
+                                  // Calculate the width of each card
+                                  final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+
+                                  // Calculate the height of each card based on the aspect ratio
+                                  final cardHeight = cardWidth / aspectRatio;
 
                                   return GridView.builder(
-                                    padding: const EdgeInsets.all(8.0),
                                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: crossAxisCount,
                                       crossAxisSpacing: 16.0,
@@ -827,7 +821,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                                           sState: SmallState.info,
                                           bState: BigState.info,
                                           size: Size.small,
-                                          heightBig: 200, // This height works with the aspect ratio
+                                          heightBig: cardHeight,
                                         ),
                                       );
                                     },
@@ -840,6 +834,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                       ),
                     ],
                   ),
+
                   // Others' Tasks Tab
                   Column(
                     children: [
@@ -885,7 +880,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.sort),
-                                onPressed: _rotateSortOption, // Rotate through sort options
+                                onPressed: _rotateSortOption,
                               ),
                               Text("Sort by $_sortOption"),
                             ],
@@ -908,7 +903,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                             onChanged: (value) {
                               setState(() {
                                 if (value == "No Filter") {
-                                  _selectedCategory = null; // Reset the filter
+                                  _selectedCategory = null;
                                 } else {
                                   _selectedCategory = Category.values.firstWhere((category) => category.name == value);
                                 }
@@ -936,8 +931,14 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                                     final tasks = _applySortingAndFiltering(snapshot.data!);
                                     return LayoutBuilder(
                                       builder: (context, constraints) {
-                                        final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4); // Min 2, Max 4 columns
-                                        final aspectRatio = 140 / 200; // Maintain card aspect ratio
+                                        final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
+                                        final aspectRatio = 140 / 200;
+
+                                        // Calculate the width of each card
+                                        final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+
+                                        // Calculate the height of each card based on the aspect ratio
+                                        final cardHeight = cardWidth / aspectRatio;
 
                                         return GridView.builder(
                                           padding: const EdgeInsets.all(8.0),
@@ -957,7 +958,7 @@ class _TasksOverviewScreenState extends State<TasksOverviewScreen> with SingleTi
                                                 sState: SmallState.info,
                                                 bState: BigState.info,
                                                 size: Size.small,
-                                                heightBig: 200, // This height works with the aspect ratio
+                                                heightBig: cardHeight,
                                               ),
                                             );
                                           },

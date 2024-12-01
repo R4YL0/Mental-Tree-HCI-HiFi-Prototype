@@ -41,7 +41,7 @@ class _Cards extends State<Cards> {
   List<bool> toBeDeleted = [];
 
   //Buttons needed for SmallCards
-  Widget buttons() {
+  Widget buttons(AsyncSnapshot<Task> s) {
     if (widget.sState == SmallState.edit) {
       return editButtons();
     } else if (widget.sState == SmallState.todo) {
@@ -49,7 +49,7 @@ class _Cards extends State<Cards> {
     } else if (widget.sState == SmallState.done) {
       return doneButton();
     } else {
-      return infoButton();
+      return infoButton(s);
     }
   }
 
@@ -167,7 +167,7 @@ class _Cards extends State<Cards> {
                       textScaleFactor: 0.7,
                     ),
                   ),
-                  buttons(),
+                  buttons(snapshot),
                 ],
               ),
             ),
@@ -230,25 +230,23 @@ class _Cards extends State<Cards> {
   }
 
   //Buttons for SmallCards: infoButtons, doneButtons, editButtons, toDoButtons
-  Widget infoButton() {
+  Widget infoButton(AsyncSnapshot<Task> s) {
     return Stack(
       children: <Widget>[
         Align(
-          alignment: Alignment(0.0, 1),
-          child: MaterialButton(
-            color: AppColors.secondary,
-            textColor: AppColors.secondaryText,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            height: 35,
-            minWidth: 130,
-            onPressed: () => setState(() {
-              widget.bState = BigState.info;
-              widget.size = Size.big;
-            }),
-            child: Text(
-              "Info",
-              textScaler: TextScaler.linear(0.7),
-            ),
+          alignment: Alignment(-0.9, 0.65),
+          child: Text(
+            "Due",
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textScaleFactor: 0.7,
+          ),
+        ),
+        Align(
+          alignment: Alignment(0, 0.8),
+          child: Text(
+            dueDate(s.requireData.frequency, s),
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textScaler: TextScaler.linear(2.2 * widget.heightBig / 550),
           ),
         ),
       ],
@@ -261,7 +259,7 @@ class _Cards extends State<Cards> {
         Align(
           alignment: Alignment(0.0, 1),
           child: MaterialButton(
-            color: AppColors.success,
+            color: AppColors.attention,
             textColor: Colors.black,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             height: 35,
@@ -270,7 +268,7 @@ class _Cards extends State<Cards> {
               widget.sState = SmallState.todo;
             }),
             child: Text(
-              "Completed",
+              "Undo",
               textScaler: TextScaler.linear(0.7),
             ),
           ),
@@ -480,29 +478,6 @@ class _Cards extends State<Cards> {
             child: frequency(s),
           ),
           Align(
-            alignment: Alignment(0.35, 0.12),
-            child: Text(
-              "Set Private",
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(1.15 * widget.heightBig / 550),
-            ),
-          ),
-          Align(
-              alignment: Alignment(0.8, 0.12),
-              child: SizedBox(
-                width: 45 * widget.heightBig / 550,
-                height: 35 * widget.heightBig / 550,
-                child: FittedBox(
-                  fit: BoxFit.fill,
-                  child: Switch(
-                    value: s.requireData.isPrivate,
-                    onChanged: (value) => setState(() {
-                      s.requireData.isPrivate = value;
-                    }),
-                  ),
-                ),
-              )),
-          Align(
               alignment: Alignment(-0.7, 1),
               child: TextButton.icon(
                 onPressed: () => setState(() {
@@ -535,41 +510,27 @@ class _Cards extends State<Cards> {
             ),
           ),
           Align(
-  alignment: Alignment(1, -1),
-  child: Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      IconButton(
-        onPressed: () => setState(() {
-          widget.bState = BigState.info;
-          section = Section.general;
-        }),
-        icon: Icon(
-          Icons.check,
-          color: Colors.green,
-          size: 24,
-        ),
-        tooltip: "Save Changes",
-      ),
-      SizedBox(width: 4),
-      IconButton(
-        onPressed: () => setState(() {
-          widget.bState = BigState.info;
-          section = Section.general;
-        }),
-        icon: Icon(
-          Icons.close,
-          color: Colors.red,
-          size: 24,
-        ),
-        tooltip: "Cancel Editing",
-      ),
-    ],
-  ),
-),
-
+            alignment: Alignment(1, -1),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () => setState(() {
+                    widget.bState = BigState.info;
+                    section = Section.general;
+                  }),
+                  icon: Icon(
+                    Icons.check,
+                    color: Colors.green,
+                    size: 24,
+                  ),
+                  tooltip: "Confirm Editing",
+                ),
+              ],
+            ),
+          ),
           Align(
-              alignment: Alignment(0.9, -0.1),
+              alignment: Alignment(0.8, -0.1),
               child: IconButton(
                   onPressed: () {
                     chooseImage(s);
@@ -755,7 +716,58 @@ class _Cards extends State<Cards> {
               child: Icon(Icons.delete),
             )),
         Align(alignment: Alignment(0, 0.5), child: text4Subtask(s)),
+        Align(
+            alignment: Alignment(1, -1),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () => setState(() {
+                    widget.bState = BigState.info;
+                    section = Section.general;
+                  }),
+                  icon: Icon(
+                    Icons.check,
+                    color: Colors.green,
+                    size: 24,
+                  ),
+                  tooltip: "Confirm Editing",
+                ),
+              ],
+            ),
+          ),
+          Align(
+              alignment: Alignment(0.8, -0.1),
+              child: IconButton(
+                  onPressed: () {
+                    chooseImage(s);
+                  },
+                  icon: Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
+                  ))),
       ]);
+    } else {
+      output.add(
+      //Edit Button
+      Align(
+        alignment: Alignment(1, -1),
+        child: IconButton(
+          onPressed: () => setState(() {
+            widget.bState = BigState.edit;
+            section = Section.general; }),
+          icon: Icon(
+            Icons.edit,
+            color: AppColors.primary,
+              size: 28, 
+          )
+          ,
+          tooltip: "Edit Task",
+        ),
+      ),
+
+      );
     }
 
     return Stack(
@@ -804,6 +816,22 @@ class _Cards extends State<Cards> {
                 textScaler: TextScaler.linear(widget.heightBig / 550),
               ),
             )),
+        //Edit Button
+        Align(
+          alignment: Alignment(1, -1),
+          child: IconButton(
+            onPressed: () => setState(() {
+              widget.bState = BigState.edit;
+              section = Section.general; }),
+            icon: Icon(
+              Icons.edit,
+              color: AppColors.primary,
+               size: 28, 
+            )
+            ,
+            tooltip: "Edit Task",
+          ),
+        ),
       ]);
     } else if (widget.bState == BigState.edit) {
       return Stack(children: <Widget>[
@@ -852,6 +880,37 @@ class _Cards extends State<Cards> {
                 textScaler: TextScaler.linear(widget.heightBig / 550),
               ),
             )),
+        Align(
+            alignment: Alignment(1, -1),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  onPressed: () => setState(() {
+                    widget.bState = BigState.info;
+                    section = Section.general;
+                  }),
+                  icon: Icon(
+                    Icons.check,
+                    color: Colors.green,
+                    size: 24,
+                  ),
+                  tooltip: "Confirm Editing",
+                ),
+              ],
+            ),
+          ),
+          Align(
+              alignment: Alignment(0.8, -0.1),
+              child: IconButton(
+                  onPressed: () {
+                    chooseImage(s);
+                  },
+                  icon: Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
+                  ))),
       ]);
     } else {
       return general(s);
@@ -861,13 +920,13 @@ class _Cards extends State<Cards> {
   //Helper Functions: names, chooseImage, findSubtask, nextSubtask, text4Subtask, categoryMenu, frequency, dueDates, _twoButtons
   Widget names(String name, Size s, AsyncSnapshot<Task> t) {
     if(widget.bState == BigState.edit) {
-      return Align(alignment: Alignment(-0.8, -0.9) , child:
+      return Align(alignment: Alignment(-0.75, -0.94) , child:
           ConstrainedBox(constraints: BoxConstraints(maxHeight: 50*widget.heightBig/550, maxWidth: 190*widget.heightBig/550), child: /*Row(children: <Widget>[*/
             EditableText(scrollPhysics: NeverScrollableScrollPhysics(), scrollPadding: EdgeInsets.all(0),
               controller: TextEditingController(text: t.requireData.name), focusNode: FocusNode(), cursorColor: Colors.black, backgroundCursorColor: Colors.black,
               maxLines: 2, minLines: 2, textInputAction: TextInputAction.done,
               onSubmitted: (value) => setState(() {Task change = t.requireData; change.name = value;}),
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black), textScaler: TextScaler.linear(1.4),),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
             //Icon(Icons.edit, color: Colors.grey, size: 15,),
           /*]),*/)
         );
@@ -905,7 +964,10 @@ class _Cards extends State<Cards> {
 
   void chooseImage(AsyncSnapshot<Task> s) async {
     final ImagePicker picker = ImagePicker();
-    XFile image = await picker.pickImage(source: ImageSource.gallery) as XFile;
+    XFile? image = await picker.pickImage(source: ImageSource.gallery) as XFile;
+    if(image == null) {
+      return;
+    }
     setState(() {
       s.requireData.img = File(image.path).readAsBytesSync();
     });
@@ -980,14 +1042,22 @@ class _Cards extends State<Cards> {
       return FutureBuilder<Subtask>(
           future: newSub,
           builder: (context, snapshot) {
-            return TextField(
+            return Stack(children:[
+            ColoredBox(
+                color: Color.fromARGB(255, 242, 242, 242),
+                child: SizedBox(
+                  width: 400 * widget.heightBig/550,
+                  height: 50* widget.heightBig/550,
+                ),
+            ),
+            TextField(
               onSubmitted: (String value) => setState(() {
                 textBoxOpen = false;
                 snapshot.requireData.name = value;
                 s.requireData.subtasks.add(snapshot.requireData);
               }),
               autofocus: true,
-            );
+            )]);
           });
     } else {
       return SizedBox.shrink();
@@ -1008,40 +1078,40 @@ class _Cards extends State<Cards> {
         Text(Category.Admin.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
           Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
           Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
       ),
       DropdownMenuItem<Category>(value: Category.Childcare, child:
         Text(Category.Childcare.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
           Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
           Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
       ),
       DropdownMenuItem<Category>(value: Category.Cleaning, child:
         Text(Category.Cleaning.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
           Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
           Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
       ),
       DropdownMenuItem<Category>(value: Category.Cooking, child:
         Text(Category.Cooking.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
           Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
           Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
       ),
       DropdownMenuItem<Category>(value: Category.Laundry, child:
         Text(Category.Laundry.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
           Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
           Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
       ),
       DropdownMenuItem<Category>(value: Category.Outdoor, child:
         Text(Category.Outdoor.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
           Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
           Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
       ),
     ];
-    return Align(alignment: Alignment(0.9, -0.95) , child:
+    return Align(alignment: Alignment(0.7, -0.97) , child:
       DropdownButton<Category>(value: s.requireData.category, alignment: Alignment.centerRight, items: list, onChanged: (chosen) => setState(() {
         s.requireData.category = chosen;
       }),),
@@ -1066,12 +1136,31 @@ class _Cards extends State<Cards> {
         children: freqOptions,
         onPressed: (value) => setState(() {
           s.requireData.frequency = Frequency.values.elementAt(value);
+          if(value == Frequency.oneTime) { datePicker();}
         }),
         borderRadius: BorderRadius.all(Radius.circular(40)),
         constraints: BoxConstraints(minWidth: 75 * widget.heightBig / 550, minHeight: 35 * widget.heightBig / 550),
       ),
     );
   }
+
+  void datePicker() async {
+    //TODO
+    DateTime picked;
+    //final Future<DateTime?> pickedDate = showDatePicker(context: context, firstDate: DateTime.now(), lastDate: DateTime(2025), onDatePickerModeChange: (value) => {picked = value;},);
+
+  }
+
+  /*void chooseImage(AsyncSnapshot<Task> s) async {
+    final ImagePicker picker = ImagePicker();
+    XFile? image = await picker.pickImage(source: ImageSource.gallery) as XFile;
+    if(image == null) {
+      return;
+    }
+    setState(() {
+      s.requireData.img = File(image.path).readAsBytesSync();
+    });
+  }*/
 
   String dueDate(Frequency f, AsyncSnapshot<Task> t) {
     DateTime? start = t.requireData.startDate;

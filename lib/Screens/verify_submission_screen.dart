@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mental_load/Screens/cards_screen.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
+import 'package:mental_load/classes/TaskDistributor.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/main.dart';
 import 'package:mental_load/widgets/cards_bottom_sheet.dart';
@@ -176,97 +177,104 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   }
 
   Future<void> _submitSelection() async {
-    final dbHandler = DBHandler();
-    final currentUserId = await dbHandler.getCurUserId();
+  final dbHandler = DBHandler();
+  final currentUserId = await dbHandler.getCurUserId();
 
-    await dbHandler.saveSubmittedUser(currentUserId);
+  await dbHandler.saveSubmittedUser(currentUserId);
 
-    setState(() {
-      _submitted = true;
-    });
+  setState(() {
+    _submitted = true;
+  });
 
-    final allUsers = await dbHandler.getUsers();
-    final submittedUsers = await dbHandler.getSubmittedUsers();
+  final allUsers = await dbHandler.getUsers();
+  final submittedUsers = await dbHandler.getSubmittedUsers();
 
-    if (allUsers.length == submittedUsers.length) {
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (BuildContext context) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              elevation: 8,
-              backgroundColor: Colors.white,
-              insetPadding: const EdgeInsets.all(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      "Preferences Submitted",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+  if (allUsers.length == submittedUsers.length) {
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            elevation: 8,
+            backgroundColor: Colors.white,
+            insetPadding: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Preferences Submitted",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(height: 16),
-                    Divider(thickness: 1.5, color: Colors.grey[300]),
-                    const SizedBox(height: 16),
-                    Text(
-                      "Great news! All users have submitted their preferences. The app has now distributed tasks based on everyone's choices.",
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[700],
-                        height: 1.5,
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  Divider(thickness: 1.5, color: Colors.grey[300]),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Great news! All users have submitted their preferences. The app has now distributed tasks based on everyone's choices.",
+                    textAlign: TextAlign.left,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[700],
+                      height: 1.5,
                     ),
-                    const SizedBox(height: 24),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: SizedBox(
-                        width: 160,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Theme.of(context).colorScheme.primary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                  ),
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SizedBox(
+                      width: 160,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            "Show My Tasks",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                        child: const Text(
+                          "Show My Tasks",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            );
-          },
-        );
-      }
-       widget.onUpdate();
-    } else {
-      widget.tabController.animateTo(3);
+            ),
+          );
+        },
+      );
     }
+
+    final taskDistributor = TaskDistributor(); 
+
+    await taskDistributor.createAssignedTaskDistribution();
+    print("TASKS DISTRIBUTED");
+
+    widget.onUpdate();
+  } else {
+    widget.tabController.animateTo(3);
   }
+}
+
 
   void _editSubmission() async {
     await _dbHandler.removeSubmittedUser(await DBHandler().getCurUserId());

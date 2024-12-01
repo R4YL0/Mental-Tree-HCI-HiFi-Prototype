@@ -15,6 +15,15 @@ class User {
   Color get flowerColor => _flowerColor;
   Map<int, TaskState> get taskStates => _taskStates;
 
+  TaskState getTaskState(int taskId) {
+    if (taskStates.containsKey(taskId)) {
+      return taskStates[taskId]!;
+    } else {
+      return TaskState.Undecided;
+    }
+  }
+  
+
   set name(String value) {
     _name = value;
     DBHandler().saveUser(this);

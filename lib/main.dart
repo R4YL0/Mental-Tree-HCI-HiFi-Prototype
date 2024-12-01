@@ -209,6 +209,41 @@ void main() async {
   await DBHandler().saveTask(task9);
   await DBHandler().saveTask(task10);*/
 
+  /* UNCOMPLETED TASKS */
+  AssignedTask utask1 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask2 = await AssignedTask.create(
+      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask3 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask4 = await AssignedTask.create(
+      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask5 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask6 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask7 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask8 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask9 = await AssignedTask.create(
+      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask10 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask11 = await AssignedTask.create(
+      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask12 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask13 = await AssignedTask.create(
+      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask14 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask15 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+
+  /* UNCOMPLETED TASKS */
+
+/* COMPLETED TASKS */
   AssignedTask atask1 = await AssignedTask.create(
       user: theo,
       task: task1,

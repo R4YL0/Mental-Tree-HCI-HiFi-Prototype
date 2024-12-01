@@ -4,6 +4,7 @@ import 'Subtask.dart';
 import 'DBHandler.dart';
 
 enum Frequency { daily, weekly, monthly, yearly, oneTime }
+
 enum Category { Cleaning, Laundry, Cooking, Outdoor, Childcare, Admin }
 
 class Task {
@@ -117,9 +118,9 @@ class Task {
   static Future<Task?> findById(int taskId) async {
     final tasks = await DBHandler().getTasks();
     return tasks.cast<Task?>().firstWhere(
-      (task) => task?._taskId == taskId,
-      orElse: () => null,
-    );
+          (task) => task?._taskId == taskId,
+          orElse: () => null,
+        );
   }
 
   Future<void> _updateImg(Uint8List img) async {
@@ -175,3 +176,17 @@ class Task {
         '}';
   }
 }
+
+Future<Task> createDefaultTask() async {
+    return Task.create(
+      name: "Add name",
+      category: Category.Admin,
+      frequency: Frequency.oneTime,
+      notes: "Add notes or description",
+      isPrivate: false,
+      difficulty: 1,
+      priority: 1,
+      startDate: DateTime.now(),
+      dueDate: DateTime.now().add(const Duration(days: 7)),
+    );
+  }

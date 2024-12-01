@@ -20,6 +20,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
   List<Task> _cardsAtStart = [];
   late CardSwiperController _cardController;
   bool _isLoading = true;
+  List<int> _submittedUsers = [];
 
   @override
   void initState() {
@@ -32,28 +33,20 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
     setState(() {
       _isLoading = true;
     });
-
-         _remainingTasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-      _cardsAtStart = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-      _isLoading = false;
-    setState(() {
-
-
-      
-    });
+    _submittedUsers = await DBHandler().getSubmittedUsers();
+    _remainingTasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
+    _cardsAtStart = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
+    _isLoading = false;
+    setState(() {});
   }
 
   void _likeTask(Task task) {
-    //setState(() {
     _remainingTasks.remove(task);
-    //});
     currUser.updateTaskState(task.taskId, TaskState.Like);
   }
 
   void _dislikeTask(Task task) {
-    //setState(() {
     _remainingTasks.remove(task);
-    //});
     currUser.updateTaskState(task.taskId, TaskState.Dislike);
   }
 
@@ -65,95 +58,92 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
       );
     }
 
-    if (_remainingTasks.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.check_circle_outline,
-              size: 80,
-              color: Colors.blueGrey,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "You're all caught up!",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  List<int> submittedUsers = await DBHandler().getSubmittedUsers();
-
-                  print("Submitted Users: $submittedUsers");
-                  print("Current User ID: ${currUser.userId}");
-
-                  if (submittedUsers.contains(currUser.userId)) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text("Restart Swiping"),
-                        content: const Text(
-                          "You have already submitted your preferences. Continuing will remove your submission from the database and refresh your tasks. Do you want to proceed?",
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text("Cancel"),
+    if (_remainingTasks.isEmpty || _submittedUsers.contains(currUser.userId)) {
+        return Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.check_circle_outline,
+                size: 80,
+                color: Colors.blueGrey,
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                "You're all caught up!",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                onPressed: () async {
+                  try {
+                    if (_submittedUsers.contains(currUser.userId)) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text("Restart Swiping"),
+                          content: const Text(
+                            "You have already submitted your preferences. Restarting will remove your submission and reset your preferences. Do you want to continue?",
                           ),
-                          TextButton(
-                            onPressed: () async {
-                              await DBHandler().removeSubmittedUser(currUser.userId);
-                              currUser.taskStates = {};
-                              await _initializeData();
-                              Navigator.pop(context);
-                              setState(() {});
-                            },
-                            child: const Text(
-                              "Continue",
-                              style: TextStyle(color: Colors.red),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Cancel"),
                             ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    currUser.taskStates = {};
-                    await _initializeData();
-                    setState(() {});
+                            TextButton(
+                              onPressed: () async {
+                                await DBHandler().removeSubmittedUser(currUser.userId);
+                                currUser.taskStates = {};
+                                await _initializeData();
+                                Navigator.pop(context);
+                                setState(() {});
+                              },
+                              child: const Text(
+                                "Continue",
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    } else {
+                      currUser.taskStates = {};
+                      await _initializeData();
+                      setState(() {});
+                    }
+                  } catch (e) {
+                    print("Error fetching submitted users: $e");
                   }
-                } catch (e) {
-                  print("Error fetching submitted users: $e");
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueGrey,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30.0),
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                ),
+                child: const Text(
+                  "Restart Swiping",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              child: const Text(
-                "Restart Swiping",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+            ],
+          ),
+        );
+      }
+ 
 
     int cardsToShow = _remainingTasks.length < 3 ? _remainingTasks.length : 3;
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         const Text(
           "Swipe left to Like, Swipe right to Dislike",
@@ -162,63 +152,48 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
         Expanded(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Calculate the maximum dimensions for the card while keeping aspect ratio
-              final double cardHeightBig = constraints.maxHeight * 0.8; // Use 80% of the available height
-              final double cardWidthBig = cardHeightBig * (140 / 200); // Maintain 140:200 aspect ratio
+              final double cardHeightBig = constraints.maxHeight - 50;
+              final double cardWidthBig = cardHeightBig * (140 / 200);
 
-              return Center(
-                child: SizedBox(
-                  // Center the CardSwiper horizontally
-                  width: cardWidthBig, // Exact card width
-                  height: cardHeightBig, // Exact card height
-                  child: CardSwiper(
-                    controller: _cardController,
-                    cardsCount: _remainingTasks.length,
-                    isLoop: false,
-                    duration: const Duration(milliseconds: 300),
-                    numberOfCardsDisplayed: cardsToShow,
-                    cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-                      return SizedBox(
-                        width: cardHeightBig, // Provide a fixed width
-                        height: cardWidthBig, // Provide a fixed height
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final double cardHeightBig = constraints.maxHeight; // Adjusted size
-                            return Cards(
-                              thisTask: Future.value(_cardsAtStart[index]),
-                              sState: SmallState.info,
-                              bState: BigState.swipe,
-                              size: Size.big,
-                              heightBig: cardHeightBig,
-                            );
-                          },
-                        ),
-                      );
-                    },
-                    onSwipe: (previousIndex, currentIndex, direction) async {
-                      final task = _remainingTasks[0];
-
-                      if (direction == CardSwiperDirection.left) {
-                        _likeTask(task);
-                      } else if (direction == CardSwiperDirection.right) {
-                        _dislikeTask(task);
-                      }
-
-                      return true;
-                    },
-                    onEnd: () {
-                      widget.tabController.animateTo(1);
-                    },
-                    allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
-                    padding: EdgeInsets.zero, // No extra padding to ensure card size fits
-                  ),
+              return SizedBox(
+                width: cardWidthBig,
+                height: cardHeightBig,
+                child: CardSwiper(
+                  controller: _cardController,
+                  cardsCount: _remainingTasks.length,
+                  isLoop: false,
+                  duration: const Duration(milliseconds: 300),
+                  numberOfCardsDisplayed: cardsToShow,
+                  cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+                    return Cards(
+                      thisTask: Future.value(_cardsAtStart[index]),
+                      sState: SmallState.info,
+                      bState: BigState.swipe,
+                      size: Size.big,
+                      heightBig: cardHeightBig,
+                    );
+                  },
+                  onSwipe: (previousIndex, currentIndex, direction) async {
+                    final task = _remainingTasks[0];
+                    if (direction == CardSwiperDirection.left) {
+                      _likeTask(task);
+                    } else if (direction == CardSwiperDirection.right) {
+                      _dislikeTask(task);
+                    }
+                    return true;
+                  },
+                  onEnd: () {
+                    widget.tabController.animateTo(2);
+                  },
+                  allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
+                  padding: EdgeInsets.only(bottom: 50),
                 ),
               );
             },
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 100),
+          padding: const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [

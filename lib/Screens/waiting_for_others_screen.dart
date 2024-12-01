@@ -22,13 +22,15 @@ class _WaitingForOthersScreenState extends State<WaitingForOthersScreen> {
   }
 
   Future<List<User>> _getSubmittedUsers() async {
+    final List<int> submittedUsers = await DBHandler().getSubmittedUsers();
     final List<User> allUsers = await DBHandler().getUsers();
-    return allUsers.where((user) => user.taskStates.isNotEmpty).toList();
+    return allUsers.where((user) => submittedUsers.contains(user.userId)).toList();
   }
 
   Future<List<User>> _getNotSubmittedUsers() async {
+    final List<int> submittedUsers = await DBHandler().getSubmittedUsers();
     final List<User> allUsers = await DBHandler().getUsers();
-    return allUsers.where((user) => user.taskStates.isEmpty).toList();
+    return allUsers.where((user) => !submittedUsers.contains(user.userId)).toList();
   }
 
   @override
@@ -63,7 +65,7 @@ class _WaitingForOthersScreenState extends State<WaitingForOthersScreen> {
 
                 // Section for users who submitted preferences
                 _buildSectionHeader(
-                  title: "Users Submitted Preferences",
+                  title: "Submitted Users",
                   icon: Icons.check_circle,
                   color: Colors.green,
                 ),
@@ -74,7 +76,7 @@ class _WaitingForOthersScreenState extends State<WaitingForOthersScreen> {
 
                 // Section for users who have not submitted preferences
                 _buildSectionHeader(
-                  title: "Users Yet to Submit Preferences",
+                  title: "Pending Users",
                   icon: Icons.hourglass_empty,
                   color: Colors.orange,
                 ),

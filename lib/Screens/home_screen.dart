@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -20,8 +19,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Mood> userMoods = [];
-  List<User> users = [];
+  List<User> _users = [];
   Map<String, Map<int, _Blossom>> blossomData = {
     //category -> userId -> blossom infos
     "Cleaning": {},
@@ -71,28 +69,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _myInit() async {
-    _getUserMoods();
-    _initializeData();
-  }
-
-  void _getUserMoods() async {
-    List<Mood> allUserMoods = [];
     List<User> allUsers = await DBHandler().getUsers();
 
-    for (User currentUser in allUsers) {
-      Mood? latestMoodObjNull =
-          await DBHandler().getLatestMoodByUserId(currentUser.userId);
-      if (latestMoodObjNull is Mood) {
-        allUserMoods.add(latestMoodObjNull);
-      }
-    }
-    setState(() {
-      userMoods = allUserMoods;
-      users = allUsers;
-    });
-  }
-
-  void _initializeData() async {
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
     Map<String, Map<int, _Blossom>> data = {
       "Cleaning": {},
@@ -146,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     setState(() {
       blossomData = data;
+      _users = allUsers;
       /*cleaningEntries = blossomData["Cleaning"]!.entries.toList();
       laundryEntries = blossomData["Laundry"]!.entries.toList();
       cookingEntries = blossomData["Cooking"]!.entries.toList();
@@ -189,9 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Stack(
                 children: [
                   Column(children: [
-                    Names(users: users, blossomStrings: blossomStrings),
+                    Names(users: _users, blossomStrings: blossomStrings),
                     const TreeHomeScreen(),
-                    FlowersHomeScreen(moods: userMoods),
+                    FlowersHomeScreen(users: _users),
                   ]),
                   for (int i = 0;
                       i < blossomData["Cleaning"]!.entries.toList().length;
@@ -505,8 +484,9 @@ class TreeHomeScreen extends StatelessWidget {
 }
 
 class FlowersHomeScreen extends StatefulWidget {
-  final List<Mood> moods;
-  const FlowersHomeScreen({super.key, required this.moods});
+  final List<User> users;
+
+  const FlowersHomeScreen({super.key, required this.users});
 
   @override
   State<FlowersHomeScreen> createState() => _FlowersHomeScreenState();
@@ -518,42 +498,71 @@ class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
     super.initState();
   }
 
+  Future<List<Mood>> _getUserMoods() async {
+    print("test getUserMoods()");
+    List<Mood> allUserMoods = [];
+
+    for (User currentUser in widget.users) {
+      Mood? latestMoodObjNull =
+          await DBHandler().getLatestMoodByUserId(currentUser.userId);
+      if (latestMoodObjNull is Mood) {
+        allUserMoods.add(latestMoodObjNull);
+      }
+    }
+    return allUserMoods;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          color: const Color(0xFFAAD07C),
-          height: max(
-              MediaQuery.sizeOf(context).height -
-                  560 -
-                  MediaQuery.of(context).padding.top,
-              ((widget.moods.length) /
-                          ((MediaQuery.sizeOf(context).width / 120).toInt()))
-                      .toInt() *
-                  120.0),
-          width: MediaQuery.sizeOf(context).width,
-        ),
-        Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              for (Mood currentMood in widget.moods)
-                FlowerWidget(
-                  mood: currentMood,
-                  onMoodChanged: (Moods newMood) async {
-                    Mood moodToSave = await Mood.create(
-                        userId: currentMood.userId,
-                        date: DateTime.now(),
-                        mood: newMood);
-                    DBHandler().saveMood(moodToSave);
-                  },
+    return FutureBuilder<List<Mood>>(
+        future: _getUserMoods(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
+
+          if (snapshot.hasError) {
+            return Text(snapshot.error.toString());
+          } else {
+            List<Mood> moods = snapshot.data ?? [];
+
+            return Stack(
+              children: [
+                Container(
+                  color: const Color(0xFFAAD07C),
+                  height: max(
+                      MediaQuery.sizeOf(context).height -
+                          560 -
+                          MediaQuery.of(context).padding.top,
+                      ((moods.length) /
+                                  ((MediaQuery.sizeOf(context).width / 120)
+                                      .toInt()))
+                              .toInt() *
+                          120.0),
+                  width: MediaQuery.sizeOf(context).width,
                 ),
-            ],
-          ),
-        ),
-      ],
-    );
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (Mood currentMood in moods)
+                        FlowerWidget(
+                          mood: currentMood,
+                          onMoodChanged: (Moods newMood) async {
+                            Mood moodToSave = await Mood.create(
+                                userId: currentMood.userId,
+                                date: DateTime.now(),
+                                mood: newMood);
+                            DBHandler().saveMood(moodToSave);
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+        });
   }
 }
 

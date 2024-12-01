@@ -31,6 +31,7 @@ class _GroupScreenState extends State<GroupScreen> {
   void _ownInitState() async {
     prefs = await SharedPreferences.getInstance();
     int? curUserId = prefs.getInt(constCurrentUserId);
+
     if (curUserId != null) {
       setState(() {
         _selectedUser = curUserId;
@@ -48,17 +49,24 @@ class _GroupScreenState extends State<GroupScreen> {
     }
   }
 
-  _onChangedUser(int changedUserId) async {
-    /*
-    final bool result = await Navigator.push(context,
-        MaterialPageRoute(builder: (context) => UserAddEditScreen(user: changedUserId)));*/
+  void _onChangedUser(int changedUserId) async {
     await prefs.setInt(constCurrentUserId, changedUserId);
-    //if (result) {
+
     setState(() {
       _userChanged = true;
       _selectedUser = changedUserId;
     });
     //}
+  }
+
+  void _onPressedEdit(User user) async {
+    final bool result = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => UserAddEditScreen(user: user)));
+    if (result) {
+      setState(() {
+        _userChanged = true;
+      });
+    }
   }
 
   @override
@@ -109,6 +117,9 @@ class _GroupScreenState extends State<GroupScreen> {
                                   _onChangedUser(changedUserId);
                                 }
                               },
+                              secondary: IconButton(
+                                  onPressed: () => _onPressedEdit(user),
+                                  icon: const Icon(Icons.edit)),
                             );
                           },
                           separatorBuilder: (context, index) => const SizedBox(

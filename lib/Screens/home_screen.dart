@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:math';
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -9,7 +8,9 @@ import 'package:mental_load/Screens/settings_screen.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Mood.dart';
+import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/widgets/blossom_dialog_widget.dart';
 import 'package:mental_load/widgets/flower_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,16 +21,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Mood> userMoods = [];
-  List<User> users = [];
-  Map<String, Map<int, _Blossom>> blossomData = {
+  List<User> _users = [];
+  Map<Category, Map<int, _Blossom>> blossomData = {
     //category -> userId -> blossom infos
-    "Cleaning": {},
-    "Laundry": {},
-    "Cooking": {},
-    "Childcare": {},
-    "Outdoor": {},
-    "Admin": {},
+    Category.Cleaning: {},
+    Category.Laundry: {},
+    Category.Cooking: {},
+    Category.Childcare: {},
+    Category.Outdoor: {},
+    Category.Admin: {},
   };
   /* List<MapEntry<int, _Blossom>> cleaningEntries = [];
   List<MapEntry<int, _Blossom>> laundryEntries = [];
@@ -38,21 +38,21 @@ class _HomeScreenState extends State<HomeScreen> {
   List<MapEntry<int, _Blossom>> childcareEntries = [];
   List<MapEntry<int, _Blossom>> adminEntries = [];*/
   /*Map<String, List<_Position>> positions = {
-    "Cleaning": [_Position(60, 400), _Position(80, 450), _Position(130, 460), _Position(160, 420), _Position(200, 370), _Position(120, 370)],
-    "Laundry": [_Position(120, 320), _Position(190, 320), _Position(220, 280), _Position(160, 240), _Position(50, 280), _Position(60, 330)],
-    "Cooking": [_Position(40, 120), _Position(70, 180), _Position(90, 140), _Position(140, 190), _Position(160, 140), _Position(90, 80)],
-    "Childcare": [_Position(-35, 205), _Position(-30, 130), _Position(-60, 90), _Position(-160, 100), _Position(-130, 170), _Position(-100, 130)],
-    "Outdoor": [_Position(-120, 200), _Position(-120, 270), _Position(-40, 280), _Position(-60, 230), _Position(-200, 240), _Position(-50, 330)],
-    "Admin": [_Position(-130, 340), _Position(-50, 460), _Position(-60, 400), _Position(-180, 360), _Position(-170, 420), _Position(-120, 430)]
+    Category.Cleaning: [_Position(60, 400), _Position(80, 450), _Position(130, 460), _Position(160, 420), _Position(200, 370), _Position(120, 370)],
+    Category.Laundry: [_Position(120, 320), _Position(190, 320), _Position(220, 280), _Position(160, 240), _Position(50, 280), _Position(60, 330)],
+    Category.Cooking: [_Position(40, 120), _Position(70, 180), _Position(90, 140), _Position(140, 190), _Position(160, 140), _Position(90, 80)],
+    Category.Childcare: [_Position(-35, 205), _Position(-30, 130), _Position(-60, 90), _Position(-160, 100), _Position(-130, 170), _Position(-100, 130)],
+    Category.Outdoor: [_Position(-120, 200), _Position(-120, 270), _Position(-40, 280), _Position(-60, 230), _Position(-200, 240), _Position(-50, 330)],
+    Category.Admin: [_Position(-130, 340), _Position(-50, 460), _Position(-60, 400), _Position(-180, 360), _Position(-170, 420), _Position(-120, 430)]
   };*/
   Map<int, String> blossomStrings = {}; //userId -> blossom string
-  Map<String, int> angles = {
-    "Cleaning": 210,
-    "Laundry": 150,
-    "Cooking": 90,
-    "Childcare": 30,
-    "Outdoor": 330,
-    "Admin": 270,
+  Map<Category, int> angles = {
+    Category.Cleaning: 210,
+    Category.Laundry: 150,
+    Category.Cooking: 90,
+    Category.Childcare: 30,
+    Category.Outdoor: 330,
+    Category.Admin: 270,
   };
   double screenWidth = 0;
   double screenPaddingTop = 0;
@@ -71,70 +71,49 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _myInit() async {
-    _getUserMoods();
-    _initializeData();
-  }
-
-  void _getUserMoods() async {
-    List<Mood> allUserMoods = [];
     List<User> allUsers = await DBHandler().getUsers();
 
-    for (User currentUser in allUsers) {
-      Mood? latestMoodObjNull =
-          await DBHandler().getLatestMoodByUserId(currentUser.userId);
-      if (latestMoodObjNull is Mood) {
-        allUserMoods.add(latestMoodObjNull);
-      }
-    }
-    setState(() {
-      userMoods = allUserMoods;
-      users = allUsers;
-    });
-  }
-
-  void _initializeData() async {
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
-    Map<String, Map<int, _Blossom>> data = {
-      "Cleaning": {},
-      "Laundry": {},
-      "Cooking": {},
-      "Outdoor": {},
-      "Childcare": {},
-      "Admin": {}
+    Map<Category, Map<int, _Blossom>> data = {
+      Category.Cleaning: {},
+      Category.Laundry: {},
+      Category.Cooking: {},
+      Category.Outdoor: {},
+      Category.Childcare: {},
+      Category.Admin: {}
     };
+
+    Map<int, String> newBlossomStrings = blossomStrings;
     for (AssignedTask tmp in completedTasks) {
       if (tmp.finishDate != null &&
           tmp.finishDate!.difference(DateTime.now()).inDays < 30) {
-        if (data.containsKey(tmp.task.category.name)) {
-          if (data[tmp.task.category.name]!.containsKey(tmp.user.userId)) {
-            data[tmp.task.category.name]![tmp.user.userId]!.count =
-                data[tmp.task.category.name]![tmp.user.userId]!.count + 1;
+        if (data.containsKey(tmp.task.category)) {
+          if (data[tmp.task.category]!.containsKey(tmp.user.userId)) {
+            data[tmp.task.category]![tmp.user.userId]!.count =
+                data[tmp.task.category]![tmp.user.userId]!.count + 1;
 
             //print("${tmp.task.category.name} - ${tmp.user.userId}: x-${data[tmp.task.category.name]![tmp.user.userId]!.pos.x}, y-${data[tmp.task.category.name]![tmp.user.userId]!.pos.y}, count: ${data[tmp.task.category.name]![tmp.user.userId]!.count}");
           } else {
             /* load blossom svg */
-            Color tmpColor =
-                await DBHandler().getUserByUserId(tmp.user.userId).then((user) {
-              return user?.flowerColor ?? Colors.red;
-            });
+            Color tmpColor = tmp.user.flowerColor;
             String svgContent =
                 await rootBundle.loadString('lib/assets/blossom.svg');
             svgContent = svgContent.replaceAll('stroke="blossomColor"',
                 'fill="#${tmpColor.value.toRadixString(16).substring(2)}"');
-            blossomStrings[tmp.user.userId] = svgContent;
+            newBlossomStrings[tmp.user.userId] = svgContent;
             /* load position */
             int maxRadius = ((screenWidth - 140) / 2).toInt();
             int r = Random().nextInt(maxRadius) +
                 60; //random number between 0 and maxRadius
             double angle = (Random().nextInt(51) + 5) +
-                (angles[tmp.task.category.name] ?? 0)
+                (angles[tmp.task.category] ?? 0)
                     .toDouble(); //50 degree random angle
             angle = (math.pi / 180) * angle; //convert degrees to radians
             //double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
             double x = r * cos(angle);
             double y = r * sin(angle);
             /* */
-            data[tmp.task.category.name]![tmp.user.userId] = _Blossom(
+            data[tmp.task.category]![tmp.user.userId] = _Blossom(
                 _Position((screenWidth / 2 + x).toInt(),
                     (screenWidth / 2 + screenPaddingTop + 20 - y).toInt()),
                 1,
@@ -146,12 +125,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     setState(() {
       blossomData = data;
-      /*cleaningEntries = blossomData["Cleaning"]!.entries.toList();
-      laundryEntries = blossomData["Laundry"]!.entries.toList();
-      cookingEntries = blossomData["Cooking"]!.entries.toList();
-      outdoorEntries = blossomData["Outdoor"]!.entries.toList();
-      childcareEntries = blossomData["Childcare"]!.entries.toList();
-      adminEntries = blossomData["Admin"]!.entries.toList();*/
+      _users = allUsers;
+      blossomStrings = newBlossomStrings;
+      /*cleaningEntries = blossomData[Category.Cleaning]!.entries.toList();
+      laundryEntries = blossomData[Category.Laundry]!.entries.toList();
+      cookingEntries = blossomData[Category.Cooking]!.entries.toList();
+      outdoorEntries = blossomData[Category.Outdoor]!.entries.toList();
+      childcareEntries = blossomData[Category.Childcare]!.entries.toList();
+      adminEntries = blossomData[Category.Admin]!.entries.toList();*/
     });
   }
 
@@ -166,6 +147,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     setState(() {});
   }*/
+
+  void _onTapBlossom(Category category) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return BlossomDialogWidget(category: category);
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -189,227 +178,50 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Stack(
                 children: [
                   Column(children: [
-                    Names(users: users, blossomStrings: blossomStrings),
+                    Names(users: _users, blossomStrings: blossomStrings),
                     const TreeHomeScreen(),
-                    FlowersHomeScreen(moods: userMoods),
+                    FlowersHomeScreen(users: _users),
                   ]),
-                  for (int i = 0;
-                      i < blossomData["Cleaning"]!.entries.toList().length;
-                      i++)
-                    Positioned(
-                        left: blossomData["Cleaning"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .x
-                                .toDouble() -
-                            20,
-                        top: blossomData["Cleaning"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .y
-                                .toDouble() -
-                            20,
-                        child: Transform.scale(
+                  for (Category tmpCategory in Category.values)
+                    for (int i = 0;
+                        i < blossomData[tmpCategory]!.entries.toList().length;
+                        i++)
+                      Positioned(
+                          left: blossomData[tmpCategory]!
+                                  .entries
+                                  .toList()[i]
+                                  .value
+                                  .pos
+                                  .x
+                                  .toDouble() -
+                              20,
+                          top: blossomData[tmpCategory]!
+                                  .entries
+                                  .toList()[i]
+                                  .value
+                                  .pos
+                                  .y
+                                  .toDouble() -
+                              20,
+                          child: Transform.scale(
                             scale: min(
                                 0.2 +
-                                    blossomData["Cleaning"]!
+                                    blossomData[tmpCategory]!
                                             .entries
                                             .toList()[i]
                                             .value
                                             .count *
                                         0.05,
                                 1.2),
-                            child: SvgPicture.string(blossomData["Cleaning"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .svg))),
-                  for (int i = 0;
-                      i < blossomData["Laundry"]!.entries.toList().length;
-                      i++)
-                    Positioned(
-                        left: blossomData["Laundry"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .x
-                                .toDouble() -
-                            20,
-                        top: blossomData["Laundry"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .y
-                                .toDouble() -
-                            20,
-                        child: Transform.scale(
-                            scale: min(
-                                0.2 +
-                                    blossomData["Laundry"]!
-                                            .entries
-                                            .toList()[i]
-                                            .value
-                                            .count *
-                                        0.05,
-                                1.2),
-                            child: SvgPicture.string(blossomData["Laundry"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .svg))),
-                  for (int i = 0;
-                      i < blossomData["Cooking"]!.entries.toList().length;
-                      i++)
-                    Positioned(
-                        left: blossomData["Cooking"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .x
-                                .toDouble() -
-                            20,
-                        top: blossomData["Cooking"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .y
-                                .toDouble() -
-                            20,
-                        child: Transform.scale(
-                            scale: min(
-                                0.2 +
-                                    blossomData["Cooking"]!
-                                            .entries
-                                            .toList()[i]
-                                            .value
-                                            .count *
-                                        0.05,
-                                1.2),
-                            child: SvgPicture.string(blossomData["Cooking"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .svg))),
-                  for (int i = 0;
-                      i < blossomData["Childcare"]!.entries.toList().length;
-                      i++)
-                    Positioned(
-                        left: blossomData["Childcare"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .x
-                                .toDouble() -
-                            20,
-                        top: blossomData["Childcare"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .y
-                                .toDouble() -
-                            20,
-                        child: Transform.scale(
-                            scale: min(
-                                0.2 +
-                                    blossomData["Childcare"]!
-                                            .entries
-                                            .toList()[i]
-                                            .value
-                                            .count *
-                                        0.05,
-                                1.2),
-                            child: SvgPicture.string(blossomData["Childcare"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .svg))),
-                  for (int i = 0;
-                      i < blossomData["Outdoor"]!.entries.toList().length;
-                      i++)
-                    Positioned(
-                        left: blossomData["Outdoor"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .x
-                                .toDouble() -
-                            20,
-                        top: blossomData["Outdoor"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .y
-                                .toDouble() -
-                            20,
-                        child: Transform.scale(
-                            scale: min(
-                                0.2 +
-                                    blossomData["Outdoor"]!
-                                            .entries
-                                            .toList()[i]
-                                            .value
-                                            .count *
-                                        0.05,
-                                1.2),
-                            child: SvgPicture.string(blossomData["Outdoor"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .svg))),
-                  for (int i = 0;
-                      i < blossomData["Admin"]!.entries.toList().length;
-                      i++)
-                    Positioned(
-                        left: blossomData["Admin"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .x
-                                .toDouble() -
-                            20,
-                        top: blossomData["Admin"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .pos
-                                .y
-                                .toDouble() -
-                            20,
-                        child: Transform.scale(
-                            scale: min(
-                                0.2 +
-                                    blossomData["Admin"]!
-                                            .entries
-                                            .toList()[i]
-                                            .value
-                                            .count *
-                                        0.05,
-                                1.2),
-                            child: SvgPicture.string(blossomData["Admin"]!
-                                .entries
-                                .toList()[i]
-                                .value
-                                .svg))),
-
-                  //grid for blossom positioning:
-                  /*SizedBox(
-                    width: MediaQuery.sizeOf(context).width,
-                    height: MediaQuery.sizeOf(context).height,
-                    child: Points(),
-                  ),*/
+                            child: GestureDetector(
+                              onTap: () => _onTapBlossom(tmpCategory),
+                              child: SvgPicture.string(blossomData[tmpCategory]!
+                                  .entries
+                                  .toList()[i]
+                                  .value
+                                  .svg),
+                            ),
+                          )),
                 ],
               ),
             ),
@@ -505,8 +317,9 @@ class TreeHomeScreen extends StatelessWidget {
 }
 
 class FlowersHomeScreen extends StatefulWidget {
-  final List<Mood> moods;
-  const FlowersHomeScreen({super.key, required this.moods});
+  final List<User> users;
+
+  const FlowersHomeScreen({super.key, required this.users});
 
   @override
   State<FlowersHomeScreen> createState() => _FlowersHomeScreenState();
@@ -518,42 +331,70 @@ class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
     super.initState();
   }
 
+  Future<List<Mood>> _getUserMoods() async {
+    List<Mood> allUserMoods = [];
+
+    for (User currentUser in widget.users) {
+      Mood? latestMoodObjNull =
+          await DBHandler().getLatestMoodByUserId(currentUser.userId);
+      if (latestMoodObjNull is Mood) {
+        allUserMoods.add(latestMoodObjNull);
+      }
+    }
+    return allUserMoods;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          color: const Color(0xFFAAD07C),
-          height: max(
-              MediaQuery.sizeOf(context).height -
-                  560 -
-                  MediaQuery.of(context).padding.top,
-              ((widget.moods.length) /
-                          ((MediaQuery.sizeOf(context).width / 120).toInt()))
-                      .toInt() *
-                  120.0),
-          width: MediaQuery.sizeOf(context).width,
-        ),
-        Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              for (Mood currentMood in widget.moods)
-                FlowerWidget(
-                  mood: currentMood,
-                  onMoodChanged: (Moods newMood) async {
-                    Mood moodToSave = await Mood.create(
-                        userId: currentMood.userId,
-                        date: DateTime.now(),
-                        mood: newMood);
-                    DBHandler().saveMood(moodToSave);
-                  },
+    return FutureBuilder<List<Mood>>(
+        future: _getUserMoods(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const CircularProgressIndicator();
+          }
+
+          if (snapshot.hasError) {
+            return Text(snapshot.error.toString());
+          } else {
+            List<Mood> moods = snapshot.data ?? [];
+
+            return Stack(
+              children: [
+                Container(
+                  color: const Color(0xFFAAD07C),
+                  height: max(
+                      MediaQuery.sizeOf(context).height -
+                          560 -
+                          MediaQuery.of(context).padding.top,
+                      ((moods.length) /
+                                  ((MediaQuery.sizeOf(context).width / 120)
+                                      .toInt()))
+                              .toInt() *
+                          120.0),
+                  width: MediaQuery.sizeOf(context).width,
                 ),
-            ],
-          ),
-        ),
-      ],
-    );
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (Mood currentMood in moods)
+                        FlowerWidget(
+                          mood: currentMood,
+                          onMoodChanged: (Moods newMood) async {
+                            Mood moodToSave = await Mood.create(
+                                userId: currentMood.userId,
+                                date: DateTime.now(),
+                                mood: newMood);
+                            DBHandler().saveMood(moodToSave);
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+        });
   }
 }
 
@@ -564,36 +405,30 @@ class Names extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 30,
-      width: double.infinity,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (User tmpUser in users)
-              Row(
-                children: [
-                  Transform.scale(
-                    alignment: Alignment.centerRight,
-                    scale: 0.5,
-                    child: blossomStrings[tmpUser.userId] == null
-                        ? const SizedBox()
-                        : SvgPicture.string(blossomStrings[tmpUser.userId]!),
-                  ),
-                  const SizedBox(
-                    width: 5,
-                  ),
-                  Text(
-                    tmpUser.name,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ),
+    return Wrap(
+      children: [
+        for (User tmpUser in users)
+          if (blossomStrings[tmpUser.userId] == null)
+            SizedBox()
+          else
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Transform.scale(
+                  alignment: Alignment.centerRight,
+                  scale: 0.5,
+                  child: SvgPicture.string(blossomStrings[tmpUser.userId]!),
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                Text(
+                  tmpUser.name,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
+            ),
+      ],
     );
   }
 }

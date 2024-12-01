@@ -4,6 +4,8 @@ import 'package:mental_load/Screens/swipable_card_screen.dart';
 import 'package:mental_load/Screens/tasks_overview_screen.dart';
 import 'package:mental_load/Screens/verify_submission_screen.dart';
 import 'package:mental_load/Screens/waiting_for_others_screen.dart';
+import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/User.dart';
 
 class CardsScreen extends StatefulWidget {
   const CardsScreen({Key? key}) : super(key: key);
@@ -14,22 +16,24 @@ class CardsScreen extends StatefulWidget {
 
 class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _allUsersSubmitted = false; // Track submission status
+  String _currentTitle = "Tasks Overview";
 
-  // Titles for each tab
   final List<String> _titles = [
     "Tasks Overview",
     "Swipe Preferences",
     "Preferences Overview",
     "Group Overview",
-    "", // Assigned tasks title not visible
   ];
-
-  String _currentTitle = "Tasks Overview"; // Default title
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _titles.length, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showAssignedTasksIfSubmitted();
+    });
 
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
@@ -40,10 +44,19 @@ class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStat
     });
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> showAssignedTasksIfSubmitted() async {
+    final allUsers = await DBHandler().getUsers();
+    final submittedUsers = await DBHandler().getSubmittedUsers();
+
+    setState(() {
+      _allUsersSubmitted = allUsers.length == submittedUsers.length;
+    });
+  }
+
+  void updateScreen() {
+    setState(() {
+      showAssignedTasksIfSubmitted();
+    });
   }
 
   @override
@@ -55,48 +68,50 @@ class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStat
           right: 10,
           left: 10,
         ),
-        child: Column(
-          children: [
-            // Only show the top bar for tabs other than "Assigned Tasks"
-            if (_tabController.index != 4)
-              Column(
+        child: _allUsersSubmitted
+            ? AssignedTasksOverview()
+            : Column(
                 children: [
-                  Text(
-                    _currentTitle,
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  if (_tabController.index != 4)
+                    Column(
+                      children: [
+                        Text(
+                          _currentTitle,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        TabBar(
+                          controller: _tabController,
+                          tabs: const [
+                            Tab(icon: Icon(Icons.task), text: "Overview"),
+                            Tab(icon: Icon(Icons.swipe), text: "Swipe"),
+                            Tab(icon: Icon(Icons.assignment), text: "Preferences"),
+                            Tab(icon: Icon(Icons.people), text: "Group"),
+                          ],
+                          indicatorColor: Colors.blue,
+                          labelColor: Colors.blue,
+                          unselectedLabelColor: Colors.grey,
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        TaskOverviewScreen(),
+                        SwipableCardScreen(tabController: _tabController),
+                        TaskSubmissionScreen(
+                          tabController: _tabController,
+                          onUpdate: updateScreen, // Pass the callback here
+                        ),
+                        const WaitingForOthersScreen(),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  TabBar(
-                    controller: _tabController,
-                    tabs: const [
-                      Tab(icon: Icon(Icons.task), text: "Overview"),
-                      Tab(icon: Icon(Icons.swipe), text: "Swipe"),
-                      Tab(icon: Icon(Icons.assignment), text: "Preferences"),
-                      Tab(icon: Icon(Icons.people), text: "Group"),
-                      //Tab(icon: Icon(Icons.task_alt), text: "Tasks"),
-                    ],
-                    indicatorColor: Colors.blue,
-                    labelColor: Colors.blue,
-                    unselectedLabelColor: Colors.grey,
-                  ),
-                  const SizedBox(height: 10),
                 ],
               ),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  TaskOverviewScreen(), // Tasks Overview screen as the first tab
-                  SwipableCardScreen(tabController: _tabController),
-                  TaskSubmissionScreen(tabController: _tabController),
-                  const WaitingForOthersScreen(),
-                  const AssignedTasksOverview(), // Assigned tasks with no top bar
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

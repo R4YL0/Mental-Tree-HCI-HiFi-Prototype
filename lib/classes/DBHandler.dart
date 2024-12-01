@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:mental_load/classes/Mood.dart';
+import 'package:mental_load/constants/strings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'Task.dart';
 import 'Subtask.dart';
 import 'User.dart';
@@ -33,7 +35,11 @@ class DBHandler {
   final LocalStorage _assignedTaskStorage = LocalStorage('assigned_tasks');
   final LocalStorage _moodStorage = LocalStorage('moods');
 
+  late final SharedPreferences prefs;
+
   Future<void> initDb() async {
+    prefs = await SharedPreferences.getInstance();
+
     await Future.wait([
       _storage.ready,
       _taskStorage.ready,
@@ -50,29 +56,45 @@ class DBHandler {
     }
   }
 
-  
-  Future<void> saveSubmittedUser(int userId) async {
-    
-    List<dynamic> submittedUsers = _storage.getItem(submittedUsersKey) ?? [];
-    if (!submittedUsers.contains(userId)) {
-      
-      submittedUsers.add(userId);
+  Future<int> getCurUserId() async {
+    return prefs.getInt(constCurrentUserId) ?? (await getUsers()).first.userId;
+  }
+
+  Future<User> getCurUser() async {
+    int userId = await getCurUserId();
+    User? user = await getUserByUserId(userId);
+
+    if (user == null) {
+      throw Exception("No user found for the provided userId: $userId");
     }
-    
+
+    return user;
+  }
+
+  Future<void> saveSubmittedUser(int userId) async {
+  List<int> submittedUsers = await getSubmittedUsers();
+
+  if (!submittedUsers.contains(userId)) {
+    submittedUsers.add(userId);
     await _storage.setItem(submittedUsersKey, submittedUsers);
   }
-
-  Future<void> removeSubmittedUser(int userId) async {
-    List<int> submittedUsers = await getSubmittedUsers();
-    submittedUsers.remove(userId);
-    await _storage.setItem('submitted_users', submittedUsers);
-  }
-
- Future<List<int>> getSubmittedUsers() async {
-  final List<dynamic> submittedUsers = _storage.getItem('submitted_users') ?? [];
-  return List<int>.from(submittedUsers);
 }
 
+
+  Future<void> removeSubmittedUser(int userId) async {
+  List<int> submittedUsers = await getSubmittedUsers();
+
+  if (submittedUsers.contains(userId)) {
+    submittedUsers.remove(userId);
+    await _storage.setItem(submittedUsersKey, submittedUsers);
+  }
+}
+
+
+  Future<List<int>> getSubmittedUsers() async {
+    final List<dynamic> submittedUsers = _storage.getItem(submittedUsersKey) ?? [];
+    return List<int>.from(submittedUsers);
+  }
 
   // Next id handlers
   Future<int> _getLastId(String key) async {
@@ -129,7 +151,6 @@ class DBHandler {
     return List<Map<String, dynamic>>.from(assignedTasksJson).map<AssignedTask>((json) => AssignedTask.fromJson(json)).toList();
   }
 
-
   Future<List<AssignedTask>> getAssignedTasksByTaskId() async {
     final assignedTasksJson = _assignedTaskStorage.getItem('assigned_tasks') ?? [];
     return List<Map<String, dynamic>>.from(assignedTasksJson).map<AssignedTask>((json) => AssignedTask.fromJson(json)).toList();
@@ -140,7 +161,7 @@ class DBHandler {
     return List<Map<String, dynamic>>.from(usersJson).map<User>((json) => User.fromJson(json)).toList();
   }
 
-   Future<Task> getTaskByTaskId(int taskId) async {
+  Future<Task> getTaskByTaskId(int taskId) async {
     final List<Task> tasks = await getTasks();
     for (Task t in tasks) {
       if (t.taskId == taskId) {
@@ -151,7 +172,6 @@ class DBHandler {
     print("ERRRRRRORRRRR: no task with taskId: $taskId");
     return tasks[0];
   }
-
 
   Future<User?> getUserByUserId(int userId) async {
     final List<User> users = await getUsers();
@@ -176,7 +196,7 @@ class DBHandler {
   Future<Mood?> getLatestMoodByUserId(int userId) async {
     final moods = await getMoodsByUserId(userId);
     if (moods.isNotEmpty) {
-      moods.sort((a, b) => b.date.compareTo(a.date)); // Sort by date descending
+      moods.sort((a, b) => b.date.compareTo(a.date)); 
       return moods.first;
     }
     return null;

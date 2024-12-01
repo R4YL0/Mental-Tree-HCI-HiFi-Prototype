@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mental_load/Screens/cards_screen.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
@@ -8,11 +9,16 @@ import 'package:mental_load/widgets/cards_widget.dart';
 
 class TaskSubmissionScreen extends StatefulWidget {
   final TabController tabController;
+  final VoidCallback onUpdate;
 
-  const TaskSubmissionScreen({Key? key, required this.tabController}) : super(key: key);
+  const TaskSubmissionScreen({
+    required this.tabController,
+    required this.onUpdate,
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _TaskSubmissionScreenState createState() => _TaskSubmissionScreenState();
+  State<TaskSubmissionScreen> createState() => _TaskSubmissionScreenState();
 }
 
 class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
@@ -31,7 +37,11 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   }
 
   void _showTaskOverlay(BuildContext context, Task task) {
-    TaskState? currentState = currUser.taskStates[task.taskId];
+    _showTaskBottomSheet(context, task);
+  }
+
+  void _showTaskBottomSheet(BuildContext context, Task task) async {
+    TaskState? currentState = (await DBHandler().getCurUser()).taskStates[task.taskId];
 
     showTaskBottomSheet(
       context: context,
@@ -44,21 +54,24 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
               // "Liked" button
               Expanded(
                 child: TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     setModalState(() {
-                      currUser.taskStates[task.taskId] = TaskState.Like;
                       currentState = TaskState.Like;
                     });
 
-                    currUser.updateTaskState(task.taskId, TaskState.Like).then((_) {
-                      _fetchTasks().then((_) {
-                        setState(() {});
-                      });
-                    });
+                    try {
+                      final currentUser = await DBHandler().getCurUser();
+                      currentUser.taskStates[task.taskId] = TaskState.Like;
+                      await currentUser.updateTaskState(task.taskId, TaskState.Like);
+                      await _fetchTasks();
+                      setState(() {});
+                    } catch (e) {
+                      print("Error updating task state to 'Liked': $e");
+                    }
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: currentState == TaskState.Like ? Colors.green : Colors.grey[300],
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
@@ -75,21 +88,24 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
               // "Disliked" button
               Expanded(
                 child: TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     setModalState(() {
-                      currUser.taskStates[task.taskId] = TaskState.Dislike;
                       currentState = TaskState.Dislike;
                     });
 
-                    currUser.updateTaskState(task.taskId, TaskState.Dislike).then((_) {
-                      _fetchTasks().then((_) {
-                        setState(() {});
-                      });
-                    });
+                    try {
+                      final currentUser = await DBHandler().getCurUser();
+                      currentUser.taskStates[task.taskId] = TaskState.Dislike;
+                      await currentUser.updateTaskState(task.taskId, TaskState.Dislike);
+                      await _fetchTasks();
+                      setState(() {});
+                    } catch (e) {
+                      print("Error updating task state to 'Disliked': $e");
+                    }
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: currentState == TaskState.Dislike ? Colors.red : Colors.grey[300],
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
@@ -106,21 +122,24 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
               // "Undecided" button
               Expanded(
                 child: TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     setModalState(() {
-                      currUser.taskStates.remove(task.taskId);
                       currentState = null;
                     });
 
-                    currUser.updateTaskState(task.taskId, null).then((_) {
-                      _fetchTasks().then((_) {
-                        setState(() {});
-                      });
-                    });
+                    try {
+                      final currentUser = await DBHandler().getCurUser();
+                      currentUser.taskStates.remove(task.taskId);
+                      await currentUser.updateTaskState(task.taskId, null);
+                      await _fetchTasks();
+                      setState(() {});
+                    } catch (e) {
+                      print("Error updating task state to 'Undecided': $e");
+                    }
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: currentState == null ? Colors.blue : Colors.grey[300],
-                    shape: RoundedRectangleBorder(
+                    shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
@@ -143,35 +162,119 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
 
   Future<void> _fetchSubmissionStatus() async {
     List<int> submittedUsers = await _dbHandler.getSubmittedUsers();
+    int curUserId = await DBHandler().getCurUserId();
     setState(() {
-      _submitted = submittedUsers.contains(currUser.userId);
+      _submitted = submittedUsers.contains(curUserId);
     });
   }
 
   Future<void> _fetchTasks() async {
-    _likedTasksFuture = _dbHandler.getLikedTasksByUserId(currUser.userId);
-    _dislikedTasksFuture = _dbHandler.getDislikedTasksByUserId(currUser.userId);
-    _undecidedTasksFuture = _dbHandler.getUndecidedTasksByUserID(currUser.userId);
+    int curUserId = await DBHandler().getCurUserId();
+    _likedTasksFuture = _dbHandler.getLikedTasksByUserId(curUserId);
+    _dislikedTasksFuture = _dbHandler.getDislikedTasksByUserId(curUserId);
+    _undecidedTasksFuture = _dbHandler.getUndecidedTasksByUserID(curUserId);
   }
 
   Future<void> _submitSelection() async {
-    await _dbHandler.saveSubmittedUser(currUser.userId);
+    final dbHandler = DBHandler();
+    final currentUserId = await dbHandler.getCurUserId();
+
+    await dbHandler.saveSubmittedUser(currentUserId);
 
     setState(() {
       _submitted = true;
     });
 
-    widget.tabController.animateTo(2);
+    final allUsers = await dbHandler.getUsers();
+    final submittedUsers = await dbHandler.getSubmittedUsers();
+
+    if (allUsers.length == submittedUsers.length) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 8,
+              backgroundColor: Colors.white,
+              insetPadding: const EdgeInsets.all(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      "Preferences Submitted",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Divider(thickness: 1.5, color: Colors.grey[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      "Great news! All users have submitted their preferences. The app has now distributed tasks based on everyone's choices.",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 160,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: const Text(
+                            "Show My Tasks",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }
+       widget.onUpdate();
+    } else {
+      widget.tabController.animateTo(3);
+    }
   }
 
   void _editSubmission() async {
-    await _dbHandler.removeSubmittedUser(currUser.userId);
+    await _dbHandler.removeSubmittedUser(await DBHandler().getCurUserId());
 
     setState(() {
       _submitted = false;
     });
   }
-
 
   Widget showAlreadySubmitted() {
     return Container(

@@ -149,7 +149,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
       context: context,
       task: task,
       size: Size.big,
-      bState: BigState.edit,
+      bState: BigState.info,
       onClose: () {
         Navigator.pop(context);
         setState(() {
@@ -200,7 +200,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
       additionalWidgets: ElevatedButton.icon(
         onPressed: () async {
           await DBHandler().saveTask(task);
-          DBHandler().removeSubmittedUser(currUser.userId);
+          DBHandler().removeSubmittedUser((await DBHandler().getCurUserId()));
           Navigator.pop(context);
           setState(() {
             _fetchTasks(); // Refresh the task list

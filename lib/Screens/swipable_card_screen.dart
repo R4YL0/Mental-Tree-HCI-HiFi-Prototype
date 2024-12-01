@@ -3,8 +3,10 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/main.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SwipableCardScreen extends StatefulWidget {
   final TabController tabController;
@@ -34,31 +36,64 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
       _isLoading = true;
     });
     _submittedUsers = await DBHandler().getSubmittedUsers();
-    _remainingTasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-    _cardsAtStart = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
+    _remainingTasks = await DBHandler().getUndecidedTasksByUserID(await DBHandler().getCurUserId());
+    _cardsAtStart = await DBHandler().getUndecidedTasksByUserID(await DBHandler().getCurUserId());
     _isLoading = false;
     setState(() {});
   }
 
-  void _likeTask(Task task) {
+  void _likeTask(Task task) async {
     _remainingTasks.remove(task);
-    currUser.updateTaskState(task.taskId, TaskState.Like);
+
+    (await DBHandler().getCurUser()).updateTaskState(task.taskId, TaskState.Like);
   }
 
-  void _dislikeTask(Task task) {
+  void _dislikeTask(Task task) async {
     _remainingTasks.remove(task);
-    currUser.updateTaskState(task.taskId, TaskState.Dislike);
+    (await DBHandler().getCurUser()).updateTaskState(task.taskId, TaskState.Dislike);
   }
 
   @override
-  Widget build(BuildContext context) {
+Widget build(BuildContext context) {
+  if (_isLoading) {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  return FutureBuilder<int>(
+    future: DBHandler().getCurUserId(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      } else if (snapshot.hasError) {
+        return Center(
+          child: Text("Error: ${snapshot.error}"),
+        );
+      } else if (!snapshot.hasData) {
+        return const Center(
+          child: Text("Unable to fetch current user ID."),
+        );
+      }
+
+      int curUserId = snapshot.data!;
+      // Continue building the UI with `curUserId` available
+      return _buildMainContent(curUserId);
+    },
+  );
+}
+
+_buildMainContent(int curUserId) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
       );
     }
 
-    if (_remainingTasks.isEmpty || _submittedUsers.contains(currUser.userId)) {
+
+if (_remainingTasks.isEmpty || _submittedUsers.contains(curUserId)) {
         return Container(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -78,7 +113,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
               ElevatedButton(
                 onPressed: () async {
                   try {
-                    if (_submittedUsers.contains(currUser.userId)) {
+                    if (_submittedUsers.contains(curUserId)) {
                       showDialog(
                         context: context,
                         builder: (context) => AlertDialog(
@@ -95,8 +130,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                             ),
                             TextButton(
                               onPressed: () async {
-                                await DBHandler().removeSubmittedUser(currUser.userId);
-                                currUser.taskStates = {};
+                                await DBHandler().removeSubmittedUser(curUserId);
+                                (await DBHandler().getCurUser()).taskStates = {};
                                 await _initializeData();
                                 Navigator.pop(context);
                                 setState(() {});
@@ -110,7 +145,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                         ),
                       );
                     } else {
-                      currUser.taskStates = {};
+                      (await DBHandler().getCurUser()).taskStates = {};
                       await _initializeData();
                       setState(() {});
                     }

@@ -3,9 +3,11 @@ import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/main.dart';
 import 'package:mental_load/widgets/cards_bottom_sheet.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AssignedTasksOverview extends StatefulWidget {
   const AssignedTasksOverview({Key? key}) : super(key: key);
@@ -20,31 +22,41 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
   late Future<List<User>> _usersFuture;
   int? _selectedUserId;
   late Future<List<AssignedTask>> _selectedUserAssignedTasksFuture;
-  AssignedTask? selectedTask; // Tracks the selected card
+  AssignedTask? selectedTask;
+  bool _showCompletedTasks = true;
 
-  String _sortOption = "Date"; // Default sorting option
-  final List<String> _sortOptions = ["Date", "Priority", "Difficulty"];
-  int _currentSortIndex = 0; // Default sort option is "Date"
-  Category? _selectedCategory; // Default no category filter
+  String _sortOption = "Date";
+  final List<String> _sortOptions = ["Date", "Name", "Priority", "Difficulty"];
+  int _currentSortIndex = 0;
+  Category? _selectedCategory;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _fetchMyAssignedTasks();
-    _fetchUsers();
+    _initializeData();
   }
 
-  void _fetchMyAssignedTasks() {
-    _myAssignedTasksFuture = AssignedTask.getTasksForUser(currUser.userId);
+  Future<void> _initializeData() async {
+    setState(() {
+      _myAssignedTasksFuture = _fetchMyAssignedTasks();
+      _usersFuture = _fetchUsers();
+    });
+  }
+
+  Future<List<AssignedTask>> _fetchMyAssignedTasks() async {
+    final userId = await DBHandler().getCurUserId();
+    return AssignedTask.getTasksForUser(userId);
+  }
+
+  Future<List<User>> _fetchUsers() async {
+    return DBHandler().getUsers();
   }
 
   void _fetchSelectedUserAssignedTasks(int userId) {
-    _selectedUserAssignedTasksFuture = AssignedTask.getTasksForUser(userId);
-  }
-
-  void _fetchUsers() async {
-    _usersFuture = DBHandler().getUsers();
+    setState(() {
+      _selectedUserAssignedTasksFuture = AssignedTask.getTasksForUser(userId);
+    });
   }
 
   void _rotateSortOption() {
@@ -572,7 +584,7 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
                       Navigator.pop(context);
 
                       try {
-                        await assignedTask.setUser(currUser);
+                        await assignedTask.setUser(await DBHandler().getCurUser());
                         setState(() {
                           _fetchMyAssignedTasks();
                           if (_selectedUserId != null) {
@@ -688,14 +700,13 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
         return task.task.category == _selectedCategory!;
       }).toList();
     }
-
-    print(_selectedCategory);
-
     // Apply Sorting
     tasks.sort((a, b) {
       switch (_sortOption) {
         case "Date":
           return a.dueDate.compareTo(b.dueDate);
+        case "Name":
+          return a.task.name.compareTo(b.task.name);
         case "Priority":
           return a.task.priority.compareTo(b.task.priority);
         case "Difficulty":
@@ -736,103 +747,130 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
                 controller: _tabController,
                 children: [
                   // My Tasks Tab
-                  Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.sort),
-                                onPressed: _rotateSortOption,
-                              ),
-                              Text("Sort by $_sortOption"),
-                            ],
-                          ),
-                          DropdownButton<String>(
-                            value: _selectedCategory == null ? "No Filter" : _selectedCategory!.name,
-                            hint: const Text("Filter by Category"),
-                            items: [
-                              const DropdownMenuItem<String>(
-                                value: "No Filter",
-                                child: Text("No Filter"),
-                              ),
-                              ...Category.values.map((category) {
-                                return DropdownMenuItem<String>(
-                                  value: category.name,
-                                  child: Text(category.name),
-                                );
-                              }).toList(),
-                            ],
-                            onChanged: (value) {
-                              setState(() {
-                                if (value == "No Filter") {
-                                  _selectedCategory = null;
-                                } else {
-                                  _selectedCategory = Category.values.firstWhere((category) => category.name == value);
-                                }
-                              });
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Tasks GridView
-                      Expanded(
-                        child: FutureBuilder<List<AssignedTask>>(
-                          future: _myAssignedTasksFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasError) {
-                              return const Center(child: Text("Error loading tasks."));
-                            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                              return const Center(child: Text("No tasks assigned to you."));
-                            } else {
-                              final tasks = _applySortingAndFiltering(snapshot.data!);
-
-                              return LayoutBuilder(
-                                builder: (context, constraints) {
-                                  final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
-                                  final aspectRatio = 140 / 200;
-
-                                  // Calculate the width of each card
-                                  final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
-
-                                  // Calculate the height of each card based on the aspect ratio
-                                  final cardHeight = cardWidth / aspectRatio;
-
-                                  return GridView.builder(
-                                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: crossAxisCount,
-                                      crossAxisSpacing: 16.0,
-                                      mainAxisSpacing: 16.0,
-                                      childAspectRatio: aspectRatio,
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        // My Tasks Tab
+                        Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.sort),
+                                      onPressed: _rotateSortOption,
                                     ),
-                                    itemCount: tasks.length,
-                                    itemBuilder: (context, index) {
-                                      final task = tasks[index];
-                                      return GestureDetector(
-                                        onTap: () => _showYourTaskAction(context, task),
-                                        child: Cards(
-                                          thisTask: Future.value(task.task),
-                                          sState: SmallState.info,
-                                          bState: BigState.info,
-                                          size: Size.small,
-                                          heightBig: cardHeight,
-                                        ),
+                                    Text("Sort by $_sortOption"),
+                                  ],
+                                ),
+                                DropdownButton<String>(
+                                  value: _selectedCategory == null ? "No Filter" : _selectedCategory!.name,
+                                  hint: const Text("Filter by Category"),
+                                  items: [
+                                    const DropdownMenuItem<String>(
+                                      value: "No Filter",
+                                      child: Text("No Filter"),
+                                    ),
+                                    ...Category.values.map((category) {
+                                      return DropdownMenuItem<String>(
+                                        value: category.name,
+                                        child: Text(category.name),
                                       );
-                                    },
-                                  );
+                                    }).toList(),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() {
+                                      if (value == "No Filter") {
+                                        _selectedCategory = null;
+                                      } else {
+                                        _selectedCategory = Category.values.firstWhere((category) => category.name == value);
+                                      }
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("Show Completed Tasks"),
+                                Switch(
+                                  value: _showCompletedTasks,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _showCompletedTasks = value;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                           
+
+                            // Tasks GridView
+                            Expanded(
+                              child: FutureBuilder<List<AssignedTask>>(
+                                future: _myAssignedTasksFuture,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return const Center(child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return const Center(child: Text("Error loading tasks."));
+                                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                    return const Center(child: Text("No tasks assigned to you."));
+                                  } else {
+                                    // Apply filtering
+                                    final tasks = _applySortingAndFiltering(snapshot.data!);
+                                    final filteredTasks = tasks.where((task) {
+                                      return _showCompletedTasks || task.finishDate == null;
+                                    }).toList();
+
+                                    return LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
+                                        final aspectRatio = 140 / 200;
+
+                                        final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+                                        final cardHeight = cardWidth / aspectRatio;
+
+                                        return GridView.builder(
+                                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: crossAxisCount,
+                                            crossAxisSpacing: 16.0,
+                                            mainAxisSpacing: 16.0,
+                                            childAspectRatio: aspectRatio,
+                                          ),
+                                          itemCount: filteredTasks.length,
+                                          itemBuilder: (context, index) {
+                                            final task = filteredTasks[index];
+                                            final SmallState sState = task.finishDate != null ? SmallState.done : SmallState.todo;
+
+                                            return GestureDetector(
+                                              onTap: () => _showYourTaskAction(context, task),
+                                              child: Cards(
+                                                thisTask: Future.value(task.task),
+                                                sState: sState,
+                                                bState: BigState.info,
+                                                size: Size.small,
+                                                heightBig: cardHeight,
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      },
+                                    );
+                                  }
                                 },
-                              );
-                            }
-                          },
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+
+                        // Others' Tasks Tab (unchanged)
+                      ],
+                    ),
                   ),
 
                   // Others' Tasks Tab
@@ -850,26 +888,41 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
                             return const Text("No users found.");
                           } else {
                             final users = snapshot.data!;
-                            return DropdownButton<int>(
-                              value: _selectedUserId,
-                              hint: const Text("Select a User"),
-                              isExpanded: true,
-                              items: users.where((user) => user.userId != currUser.userId).map((user) {
-                                return DropdownMenuItem<int>(
-                                  value: user.userId,
-                                  child: Text(user.name),
+                            return FutureBuilder<int>(
+                              future: DBHandler().getCurUserId(),
+                              builder: (context, userIdSnapshot) {
+                                if (userIdSnapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                } else if (userIdSnapshot.hasError) {
+                                  return const Text("Error loading current user ID.");
+                                } else if (!userIdSnapshot.hasData) {
+                                  return const Text("No current user ID found.");
+                                }
+
+                                final curUserId = userIdSnapshot.data!;
+                                return DropdownButton<int>(
+                                  value: _selectedUserId,
+                                  hint: const Text("Select a User"),
+                                  isExpanded: true,
+                                  items: users.where((user) => user.userId != curUserId).map((user) {
+                                    return DropdownMenuItem<int>(
+                                      value: user.userId,
+                                      child: Text(user.name),
+                                    );
+                                  }).toList(),
+                                  onChanged: (userId) {
+                                    setState(() {
+                                      _selectedUserId = userId;
+                                      _fetchSelectedUserAssignedTasks(userId!);
+                                    });
+                                  },
                                 );
-                              }).toList(),
-                              onChanged: (userId) {
-                                setState(() {
-                                  _selectedUserId = userId;
-                                  _fetchSelectedUserAssignedTasks(userId!);
-                                });
                               },
                             );
                           }
                         },
                       ),
+
                       const SizedBox(height: 10),
 
                       // Sort and Filter Options

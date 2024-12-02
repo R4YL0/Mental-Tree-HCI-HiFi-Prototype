@@ -379,7 +379,7 @@ void main() async {
   final now = DateTime.now();
   final taskHistory = <AssignedTask>[];
 
-  for (int i = 0; i < 70; i++) {
+  for (int i = 0; i < 100; i++) {
     final task = tasks[random.nextInt(tasks.length)];
     final daysAgo = random.nextInt(20) + 1; // Random day within the last 20 days
     final dueDate = now.subtract(Duration(days: daysAgo));

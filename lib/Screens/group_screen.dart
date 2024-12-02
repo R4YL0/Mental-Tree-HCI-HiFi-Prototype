@@ -19,7 +19,7 @@ class GroupScreen extends StatefulWidget {
 
 class _GroupScreenState extends State<GroupScreen> {
   bool _userChanged = false;
-  late int _selectedUser;
+  late int _selectedUserId;
   late final SharedPreferences prefs;
 
   @override
@@ -34,7 +34,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
     if (curUserId != null) {
       setState(() {
-        _selectedUser = curUserId;
+        _selectedUserId = curUserId;
       });
     }
   }
@@ -54,7 +54,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
     setState(() {
       _userChanged = true;
-      _selectedUser = changedUserId;
+      _selectedUserId = changedUserId;
     });
     //}
   }
@@ -103,7 +103,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
                             return RadioListTile<int>(
                               value: user.userId,
-                              groupValue: _selectedUser,
+                              groupValue: _selectedUserId,
                               shape: RoundedRectangleBorder(
                                 side: BorderSide(
                                     color: AppColors.primary.withOpacity(0.2),

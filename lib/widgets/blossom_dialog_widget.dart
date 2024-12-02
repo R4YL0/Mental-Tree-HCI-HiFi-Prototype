@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mental_load/Screens/assigned_tasks_screen.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
@@ -174,6 +175,23 @@ class CategoryListWidget extends StatefulWidget {
 }
 
 class _CategoryListWidgetState extends State<CategoryListWidget> {
+  late User currUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _myInit();
+  }
+
+  void _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+    int? curUserId = prefs.getInt(constCurrentUserId);
+    if (curUserId != null) {
+      User? newCurrUser = await DBHandler().getUserByUserId(curUserId);
+      if (newCurrUser != null) setState(() => currUser = newCurrUser);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<Category, List<AssignedTask>>>(
@@ -206,8 +224,9 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     onTap: () {
-                      print(
-                          "open dialog with task here! (please help with it, thanks :) )");
+                      showOthersTaskAction(context, curTask, currUser, () {
+                        setState(() {});
+                      });
                     },
                   );
                 },

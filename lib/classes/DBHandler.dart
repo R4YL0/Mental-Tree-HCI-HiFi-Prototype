@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:localstorage/localstorage.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/constants/strings.dart';
+import 'package:mental_load/functions/sharedPreferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Task.dart';
 import 'Subtask.dart';
@@ -26,7 +27,8 @@ class DBHandler {
   static const String subtaskKey = 'last_subtask_id';
   static const String assignedTaskKey = 'last_assigned_task_id';
   static const String moodKey = 'last_mood_id';
-  static const String submittedUsersKey = 'submitted_users'; // Key for submitted users
+  static const String submittedUsersKey =
+      'submitted_users'; // Key for submitted users
 
   final LocalStorage _storage = LocalStorage('db_handler');
   final LocalStorage _taskStorage = LocalStorage('tasks');
@@ -49,15 +51,12 @@ class DBHandler {
       _moodStorage.ready,
     ]);
     try {
-      ByteData byteData = await rootBundle.load('lib/assets/images/defaultTaskImg.jpg');
+      ByteData byteData =
+          await rootBundle.load('lib/assets/images/defaultTaskImg.jpg');
       defaultTaskImg = byteData.buffer.asUint8List();
     } catch (e) {
       throw Exception("Error loading default image: $e");
     }
-  }
-
-  Future<int> getCurUserId() async {
-    return prefs.getInt(constCurrentUserId) ?? (await getUsers()).first.userId;
   }
 
   Future<User> getCurUser() async {
@@ -72,27 +71,26 @@ class DBHandler {
   }
 
   Future<void> saveSubmittedUser(int userId) async {
-  List<int> submittedUsers = await getSubmittedUsers();
+    List<int> submittedUsers = await getSubmittedUsers();
 
-  if (!submittedUsers.contains(userId)) {
-    submittedUsers.add(userId);
-    await _storage.setItem(submittedUsersKey, submittedUsers);
+    if (!submittedUsers.contains(userId)) {
+      submittedUsers.add(userId);
+      await _storage.setItem(submittedUsersKey, submittedUsers);
+    }
   }
-}
-
 
   Future<void> removeSubmittedUser(int userId) async {
-  List<int> submittedUsers = await getSubmittedUsers();
+    List<int> submittedUsers = await getSubmittedUsers();
 
-  if (submittedUsers.contains(userId)) {
-    submittedUsers.remove(userId);
-    await _storage.setItem(submittedUsersKey, submittedUsers);
+    if (submittedUsers.contains(userId)) {
+      submittedUsers.remove(userId);
+      await _storage.setItem(submittedUsersKey, submittedUsers);
+    }
   }
-}
-
 
   Future<List<int>> getSubmittedUsers() async {
-    final List<dynamic> submittedUsers = _storage.getItem(submittedUsersKey) ?? [];
+    final List<dynamic> submittedUsers =
+        _storage.getItem(submittedUsersKey) ?? [];
     return List<int>.from(submittedUsers);
   }
 
@@ -138,27 +136,39 @@ class DBHandler {
   // get from db functions
   Future<List<Task>> getTasks() async {
     final tasksJson = _taskStorage.getItem('tasks') ?? [];
-    return List<Map<String, dynamic>>.from(tasksJson).map<Task>((json) => Task.fromJson(json)).toList();
+    return List<Map<String, dynamic>>.from(tasksJson)
+        .map<Task>((json) => Task.fromJson(json))
+        .toList();
   }
 
   Future<List<Subtask>> getSubtasks() async {
     final subtasksJson = _subtaskStorage.getItem('subtasks') ?? [];
-    return List<Map<String, dynamic>>.from(subtasksJson).map<Subtask>((json) => Subtask.fromJson(json)).toList();
+    return List<Map<String, dynamic>>.from(subtasksJson)
+        .map<Subtask>((json) => Subtask.fromJson(json))
+        .toList();
   }
 
   Future<List<AssignedTask>> getAssignedTasks() async {
-    final assignedTasksJson = _assignedTaskStorage.getItem('assigned_tasks') ?? [];
-    return List<Map<String, dynamic>>.from(assignedTasksJson).map<AssignedTask>((json) => AssignedTask.fromJson(json)).toList();
+    final assignedTasksJson =
+        _assignedTaskStorage.getItem('assigned_tasks') ?? [];
+    return List<Map<String, dynamic>>.from(assignedTasksJson)
+        .map<AssignedTask>((json) => AssignedTask.fromJson(json))
+        .toList();
   }
 
   Future<List<AssignedTask>> getAssignedTasksByTaskId() async {
-    final assignedTasksJson = _assignedTaskStorage.getItem('assigned_tasks') ?? [];
-    return List<Map<String, dynamic>>.from(assignedTasksJson).map<AssignedTask>((json) => AssignedTask.fromJson(json)).toList();
+    final assignedTasksJson =
+        _assignedTaskStorage.getItem('assigned_tasks') ?? [];
+    return List<Map<String, dynamic>>.from(assignedTasksJson)
+        .map<AssignedTask>((json) => AssignedTask.fromJson(json))
+        .toList();
   }
 
   Future<List<User>> getUsers() async {
     final usersJson = _userStorage.getItem('users') ?? [];
-    return List<Map<String, dynamic>>.from(usersJson).map<User>((json) => User.fromJson(json)).toList();
+    return List<Map<String, dynamic>>.from(usersJson)
+        .map<User>((json) => User.fromJson(json))
+        .toList();
   }
 
   Future<Task> getTaskByTaskId(int taskId) async {
@@ -185,7 +195,9 @@ class DBHandler {
 
   Future<List<Mood>> getMoods() async {
     final moodsJson = _moodStorage.getItem('moods') ?? [];
-    return List<Map<String, dynamic>>.from(moodsJson).map<Mood>((json) => Mood.fromJson(json)).toList();
+    return List<Map<String, dynamic>>.from(moodsJson)
+        .map<Mood>((json) => Mood.fromJson(json))
+        .toList();
   }
 
   Future<List<Mood>> getMoodsByUserId(int userId) async {
@@ -196,7 +208,7 @@ class DBHandler {
   Future<Mood?> getLatestMoodByUserId(int userId) async {
     final moods = await getMoodsByUserId(userId);
     if (moods.isNotEmpty) {
-      moods.sort((a, b) => b.date.compareTo(a.date)); 
+      moods.sort((a, b) => b.date.compareTo(a.date));
       return moods.first;
     }
     return null;
@@ -255,14 +267,16 @@ class DBHandler {
     }
     tasks.add(newTask);
 
-    await _taskStorage.setItem('tasks', tasks.map((task) => task.toJson()).toList());
+    await _taskStorage.setItem(
+        'tasks', tasks.map((task) => task.toJson()).toList());
   }
 
   Future<void> saveSubtask(Subtask newSubtask) async {
     final subtasks = await getSubtasks();
 
     // Update if already in DB
-    int index = subtasks.indexWhere((subtask) => subtask.subtaskId == newSubtask.subtaskId);
+    int index = subtasks
+        .indexWhere((subtask) => subtask.subtaskId == newSubtask.subtaskId);
     if (index != -1) {
       subtasks.removeAt(index);
     }
@@ -284,14 +298,16 @@ class DBHandler {
     }
     users.add(newUser);
 
-    await _userStorage.setItem('users', users.map((user) => user.toJson()).toList());
+    await _userStorage.setItem(
+        'users', users.map((user) => user.toJson()).toList());
   }
 
   Future<void> saveAssignedTask(AssignedTask newAssignedTask) async {
     final assignedTasks = await getAssignedTasks();
 
     // Update if already in DB
-    int index = assignedTasks.indexWhere((assignedTask) => assignedTask.assignedTaskId == newAssignedTask.assignedTaskId);
+    int index = assignedTasks.indexWhere((assignedTask) =>
+        assignedTask.assignedTaskId == newAssignedTask.assignedTaskId);
     if (index != -1) {
       assignedTasks.removeAt(index);
     }
@@ -313,7 +329,8 @@ class DBHandler {
     }
     moods.add(newMood);
 
-    await _moodStorage.setItem('moods', moods.map((mood) => mood.toJson()).toList());
+    await _moodStorage.setItem(
+        'moods', moods.map((mood) => mood.toJson()).toList());
   }
 
   // Remove from db
@@ -326,7 +343,8 @@ class DBHandler {
       tasks.removeAt(index);
     }
 
-    await _taskStorage.setItem('tasks', tasks.map((task) => task.toJson()).toList());
+    await _taskStorage.setItem(
+        'tasks', tasks.map((task) => task.toJson()).toList());
   }
 
   Future<void> removeSubtask(int id) async {
@@ -351,13 +369,15 @@ class DBHandler {
       users.removeAt(index);
     }
 
-    await _userStorage.setItem('users', users.map((user) => user.toJson()).toList());
+    await _userStorage.setItem(
+        'users', users.map((user) => user.toJson()).toList());
   }
 
   Future<void> removeAssignedTask(int id) async {
     final assignedTasks = await getAssignedTasks();
 
-    int index = assignedTasks.indexWhere((assignedTask) => assignedTask.assignedTaskId == id);
+    int index = assignedTasks
+        .indexWhere((assignedTask) => assignedTask.assignedTaskId == id);
     if (index != -1) {
       assignedTasks.removeAt(index);
     }
@@ -377,6 +397,7 @@ class DBHandler {
       moods.removeAt(index);
     }
 
-    await _moodStorage.setItem('moods', moods.map((mood) => mood.toJson()).toList());
+    await _moodStorage.setItem(
+        'moods', moods.map((mood) => mood.toJson()).toList());
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/Screens/group_screen.dart';
 import 'package:mental_load/Screens/home_screen.dart';
+import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/widgets/tutorial_widget.dart';
@@ -53,18 +54,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _onPressedTutorial() async {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => HomeScreen(),
-    ));
     final prefs = await SharedPreferences.getInstance();
     int? curUserId = prefs.getInt(constCurrentUserId);
     if (curUserId != null) {
       User? curUser = await DBHandler().getUserByUserId(curUserId);
       if (curUser != null) {
-        showDialog(
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => NavigatorScreen(),
+        ));
+        await showDialog(
             context: context,
             builder: (BuildContext context) => TutorialWidget(user: curUser));
       }
+      Navigator.of(context).pop();
     }
   }
 

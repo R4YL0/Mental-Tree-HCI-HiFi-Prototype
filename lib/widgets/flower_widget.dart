@@ -8,8 +8,13 @@ import 'package:mental_load/classes/DBHandler.dart';
 class FlowerWidget extends StatefulWidget {
   final Mood mood;
   final Function(Moods newMood) onMoodChanged;
+  final bool disabled;
 
-  const FlowerWidget({super.key, required this.mood, required this.onMoodChanged});
+  const FlowerWidget(
+      {super.key,
+      required this.mood,
+      required this.onMoodChanged,
+      this.disabled = false});
 
   @override
   State<FlowerWidget> createState() => _FlowerWidgetState();
@@ -47,7 +52,12 @@ class _FlowerWidgetState extends State<FlowerWidget> {
     setState(() {
       color = tmpUser?.flowerColor ?? Colors.red;
     });
-    Color color2 = Color.fromRGBO((color.red * 0.8).toInt(),(color.green * 0.8).toInt(),(color.blue * 0.8).toInt(),1.0,);
+    Color color2 = Color.fromRGBO(
+      (color.red * 0.8).toInt(),
+      (color.green * 0.8).toInt(),
+      (color.blue * 0.8).toInt(),
+      1.0,
+    );
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor"',
         'fill="#${color.value.toRadixString(16).substring(2)}"');
     rawSvgContent = rawSvgContent.replaceAll('fill="flowerColor2"',
@@ -55,7 +65,7 @@ class _FlowerWidgetState extends State<FlowerWidget> {
     return rawSvgContent;
   }
 
-  void _flowerMoodChanged(Moods mood){
+  void _flowerMoodChanged(Moods mood) {
     _mood = mood;
     _loadSvgFromAsset();
   }
@@ -69,43 +79,53 @@ class _FlowerWidgetState extends State<FlowerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) {
-            return MoodDialog(
-              mood: _mood,
-              onChangedMood: (newMood) {
-                widget.onMoodChanged(newMood);
-                _flowerMoodChanged(newMood);
+    return AbsorbPointer(
+      absorbing: widget.disabled,
+      child: GestureDetector(
+        onTap: () {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return MoodDialog(
+                    mood: _mood,
+                    onChangedMood: (newMood) {
+                      widget.onMoodChanged(newMood);
+                      _flowerMoodChanged(newMood);
+                    });
               });
-          });
-      },
-      child: Column(
-        children: [
-          Container(
-            color: const Color(0xFFAAD07C),
-            width: 120,
-            height: 100,
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: svgContent.isEmpty ? const SizedBox() : SvgPicture.string(svgContent),
-            ),
-          ),
-          const SizedBox(height: 10,),
-          Text(name, style: TextStyle(
-            fontSize: 12, 
-            color: color, 
-            shadows: [
-              Shadow(
-                offset: Offset(2.0, 2.0),
-                blurRadius: 8.0,
-                color: Colors.grey.withOpacity(0.7),
+        },
+        child: Column(
+          children: [
+            Container(
+              color: const Color(0xFFAAD07C),
+              width: 120,
+              height: 100,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: svgContent.isEmpty
+                    ? const SizedBox()
+                    : SvgPicture.string(svgContent),
               ),
-            ],
-          )),
-        ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            Text(name,
+                style: TextStyle(
+                  fontSize: widget.disabled ? 12 : 15,
+                  fontWeight:
+                      widget.disabled ? FontWeight.normal : FontWeight.bold,
+                  color: color,
+                  shadows: [
+                    Shadow(
+                      offset: Offset(2.0, 2.0),
+                      blurRadius: 8.0,
+                      color: Colors.grey.withOpacity(0.7),
+                    ),
+                  ],
+                )),
+          ],
+        ),
       ),
     );
   }

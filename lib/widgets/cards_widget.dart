@@ -21,6 +21,7 @@ class Cards extends StatefulWidget {
   var sState = SmallState.edit;
   var bState = BigState.info;
   var size = Size.small;
+  DateTime finalDate = DateTime(2045);
   double heightBig = 550;
   
   Cards({super.key, required this.thisTask, required this.sState, this.size = Size.small, required this.bState, required this.heightBig});
@@ -43,11 +44,11 @@ class _Cards extends State<Cards> {
   //Buttons needed for SmallCards
   Widget buttons(AsyncSnapshot<Task> s) {
     if (widget.sState == SmallState.edit) {
-      return editButtons();
+      return editButtons(s);
     } else if (widget.sState == SmallState.todo) {
-      return toDoButtons();
+      return toDoButtons(s);
     } else if (widget.sState == SmallState.done) {
-      return doneButton();
+      return doneButton(s);
     } else {
       return infoButton(s);
     }
@@ -253,7 +254,7 @@ class _Cards extends State<Cards> {
     );
   }
 
-  Widget doneButton() {
+  Widget doneButton(AsyncSnapshot<Task> s) {
     return Stack(
       children: <Widget>[
         Align(
@@ -266,6 +267,7 @@ class _Cards extends State<Cards> {
             minWidth: 130,
             onPressed: () => setState(() {
               widget.sState = SmallState.todo;
+              widget.finalDate = DateTime(2045);
             }),
             child: Text(
               "Undo",
@@ -277,12 +279,12 @@ class _Cards extends State<Cards> {
     );
   }
 
-  Widget editButtons() {
-    return _twoButtons("Edit", AppColors.primary, false, AppColors.primaryText);
+  Widget editButtons(AsyncSnapshot<Task> s) {
+    return _twoButtons("Edit", AppColors.primary, false, AppColors.primaryText, s);
   }
 
-  Widget toDoButtons() {
-    return _twoButtons("Check off", AppColors.success, true, Colors.black);
+  Widget toDoButtons(AsyncSnapshot<Task> s) {
+    return _twoButtons("Check off", AppColors.success, true, Colors.black, s);
   }
 
   //BigCards Sections: General, SubTasks, Notes
@@ -1198,7 +1200,7 @@ class _Cards extends State<Cards> {
     }
   }
 
-  Widget _twoButtons(String s, Color b, bool sml, Color t) {
+  Widget _twoButtons(String s, Color b, bool sml, Color t, AsyncSnapshot<Task> task) {
     return Stack(
       children: <Widget>[
         Align(
@@ -1212,6 +1214,7 @@ class _Cards extends State<Cards> {
             onPressed: () => setState(() {
               if (sml) {
                 widget.sState = SmallState.done;
+                widget.finalDate = DateTime.now();
               } else {
                 widget.bState = BigState.edit;
                 widget.size = Size.big;

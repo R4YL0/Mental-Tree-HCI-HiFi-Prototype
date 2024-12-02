@@ -865,12 +865,23 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
                                 bState: BigState.info,
                                 size: Size.small,
                                 heightBig: cardHeight,
+                                doneDate: task.finishDate,
                               );
 
                               final finalDateNotifier = myCard.finalDateNotifier;
 
+                              // Async handler function
+                              Future<void> handleFinalDateChange(DateTime? newValue) async {
+                                await task.setFinishDate(newValue);
+                              }
+
+                              // Add listener to handle finalDate changes
                               finalDateNotifier.addListener(() {
-                                task.finishDate = finalDateNotifier.value;
+                                // Get the updated value from the notifier
+                                final updatedValue = finalDateNotifier.value;
+
+                                // Call the async function
+                                handleFinalDateChange(updatedValue);
                               });
 
                               return ValueListenableBuilder<DateTime?>(

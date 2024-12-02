@@ -19,10 +19,14 @@ class AssignedTask {
   set assignedTaskId(int value) => {_assignedTaskId = value, DBHandler().saveAssignedTask(this)};
   set task(Task value) => {_task = value, DBHandler().saveAssignedTask(this)};
   set dueDate(DateTime value) => {_dueDate = value, DBHandler().saveAssignedTask(this)};
-  set finishDate(DateTime? value) => {_finishDate = value, DBHandler().saveAssignedTask(this)};
 
   setUser(User value) async {
     _user = value;
+    await DBHandler().saveAssignedTask(this);
+  }
+
+  setFinishDate(DateTime? finishDate) async {
+    _finishDate = finishDate;
     await DBHandler().saveAssignedTask(this);
   }
 

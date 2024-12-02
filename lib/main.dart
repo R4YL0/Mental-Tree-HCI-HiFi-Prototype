@@ -9,8 +9,6 @@ import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-late User currUser;
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -898,7 +896,6 @@ void main() async {
   */
   ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  currUser = (await DBHandler().getUsers())[0];
   runApp(MyApp());
 }
 

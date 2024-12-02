@@ -3,13 +3,15 @@ import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
-import 'package:mental_load/main.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SwipableCardScreen extends StatefulWidget {
   final TabController tabController;
 
-  const SwipableCardScreen({Key? key, required this.tabController}) : super(key: key);
+  const SwipableCardScreen({Key? key, required this.tabController})
+      : super(key: key);
 
   @override
   State<SwipableCardScreen> createState() => _SwipableCardScreenState();
@@ -20,11 +22,23 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
   List<Task> _cardsAtStart = [];
   late CardSwiperController _cardController;
   bool _isLoading = true;
+  late User currUser;
 
   @override
   void initState() {
     super.initState();
+    _myInit();
     _cardController = CardSwiperController();
+  }
+
+  void _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+    int? curUserId = prefs.getInt(constCurrentUserId);
+    if (curUserId != null) {
+      User? newCurrUser = await DBHandler().getUserByUserId(curUserId);
+      if (newCurrUser != null) setState(() => currUser = newCurrUser);
+    }
+
     _initializeData();
   }
 
@@ -33,14 +47,12 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
       _isLoading = true;
     });
 
-         _remainingTasks = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-      _cardsAtStart = await DBHandler().getUndecidedTasksByUserID(currUser.userId);
-      _isLoading = false;
-    setState(() {
-
-
-      
-    });
+    _remainingTasks =
+        await DBHandler().getUndecidedTasksByUserID(currUser.userId);
+    _cardsAtStart =
+        await DBHandler().getUndecidedTasksByUserID(currUser.userId);
+    _isLoading = false;
+    setState(() {});
   }
 
   void _likeTask(Task task) {
@@ -85,7 +97,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  List<int> submittedUsers = await DBHandler().getSubmittedUsers();
+                  List<int> submittedUsers =
+                      await DBHandler().getSubmittedUsers();
 
                   print("Submitted Users: $submittedUsers");
                   print("Current User ID: ${currUser.userId}");
@@ -107,7 +120,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                           ),
                           TextButton(
                             onPressed: () async {
-                              await DBHandler().removeSubmittedUser(currUser.userId);
+                              await DBHandler()
+                                  .removeSubmittedUser(currUser.userId);
                               currUser.taskStates = {};
                               await _initializeData();
                               Navigator.pop(context);
@@ -132,7 +146,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey,
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30.0),
                 ),
@@ -163,8 +178,10 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               // Calculate the maximum dimensions for the card while keeping aspect ratio
-              final double cardHeightBig = constraints.maxHeight * 0.8; // Use 80% of the available height
-              final double cardWidthBig = cardHeightBig * (140 / 200); // Maintain 140:200 aspect ratio
+              final double cardHeightBig = constraints.maxHeight *
+                  0.8; // Use 80% of the available height
+              final double cardWidthBig =
+                  cardHeightBig * (140 / 200); // Maintain 140:200 aspect ratio
 
               return Center(
                 child: SizedBox(
@@ -177,13 +194,15 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                     isLoop: false,
                     duration: const Duration(milliseconds: 300),
                     numberOfCardsDisplayed: cardsToShow,
-                    cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
+                    cardBuilder:
+                        (context, index, percentThresholdX, percentThresholdY) {
                       return SizedBox(
                         width: cardHeightBig, // Provide a fixed width
                         height: cardWidthBig, // Provide a fixed height
                         child: LayoutBuilder(
                           builder: (context, constraints) {
-                            final double cardHeightBig = constraints.maxHeight; // Adjusted size
+                            final double cardHeightBig =
+                                constraints.maxHeight; // Adjusted size
                             return Cards(
                               thisTask: Future.value(_cardsAtStart[index]),
                               sState: SmallState.info,
@@ -209,8 +228,10 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                     onEnd: () {
                       widget.tabController.animateTo(1);
                     },
-                    allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
-                    padding: EdgeInsets.zero, // No extra padding to ensure card size fits
+                    allowedSwipeDirection:
+                        AllowedSwipeDirection.only(left: true, right: true),
+                    padding: EdgeInsets
+                        .zero, // No extra padding to ensure card size fits
                   ),
                 ),
               );
@@ -218,7 +239,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 100),
+          padding:
+              const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 100),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -233,13 +255,15 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: Row(
                   children: const [
                     Icon(Icons.favorite, color: Colors.white, size: 30),
                     SizedBox(width: 8),
-                    Text("Like", style: TextStyle(fontSize: 18, color: Colors.white)),
+                    Text("Like",
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ],
                 ),
               ),
@@ -254,13 +278,15 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: Row(
                   children: const [
                     Icon(Icons.thumb_down, color: Colors.white, size: 30),
                     SizedBox(width: 8),
-                    Text("Dislike", style: TextStyle(fontSize: 18, color: Colors.white)),
+                    Text("Dislike",
+                        style: TextStyle(fontSize: 18, color: Colors.white)),
                   ],
                 ),
               ),

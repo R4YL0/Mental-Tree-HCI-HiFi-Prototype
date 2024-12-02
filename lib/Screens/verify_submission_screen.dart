@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
-import 'package:mental_load/main.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskSubmissionScreen extends StatefulWidget {
   final TabController tabController;
 
-  const TaskSubmissionScreen({Key? key, required this.tabController}) : super(key: key);
+  const TaskSubmissionScreen({Key? key, required this.tabController})
+      : super(key: key);
 
   @override
   _TaskSubmissionScreenState createState() => _TaskSubmissionScreenState();
@@ -18,6 +20,7 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   late Future<List<Task>> _likedTasksFuture;
   late Future<List<Task>> _dislikedTasksFuture;
   late Future<List<Task>> _undecidedTasksFuture;
+  late User currUser;
 
   final DBHandler _dbHandler = DBHandler();
   bool _submitted = false;
@@ -25,214 +28,239 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   @override
   void initState() {
     super.initState();
+    _myInit();
+  }
+
+  void _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+    int? curUserId = prefs.getInt(constCurrentUserId);
+    if (curUserId != null) {
+      User? newCurrUser = await DBHandler().getUserByUserId(curUserId);
+      if (newCurrUser != null) setState(() => currUser = newCurrUser);
+    }
+
     _fetchSubmissionStatus();
     _fetchTasks();
   }
 
   void _showTaskOverlay(BuildContext context, Task task) {
-  TaskState? currentState = currUser.taskStates[task.taskId];
+    TaskState? currentState = currUser.taskStates[task.taskId];
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (BuildContext context) {
-      return StatefulBuilder(
-        builder: (context, setModalState) {
-          return Container(
-            padding: EdgeInsets.all(16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
-            ),
-            child: ConstrainedBox(
-              // Constrain the height of the modal to a percentage of the screen height
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8, // 80% of screen height
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Expanded(
-                    // Ensure the Card widget takes up remaining space
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 8.0,
-                            offset: Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final double cardHeightBig = constraints.maxHeight * 0.8;
-                          return AspectRatio(
-                            aspectRatio: 16 / 9, // Replace `aspectRatio` with a fixed value
-                            child: Cards(
-                              thisTask: Future.value(task),
-                              sState: SmallState.info,
-                              bState: BigState.info,
-                              size: Size.big,
-                              heightBig: cardHeightBig.clamp(100, 600), // Ensure height is within a valid range
+              child: ConstrainedBox(
+                // Constrain the height of the modal to a percentage of the screen height
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height *
+                      0.8, // 80% of screen height
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      // Ensure the Card widget takes up remaining space
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: Colors.white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 8.0,
+                              offset: Offset(0, 4),
                             ),
-                          );
-                        },
+                          ],
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final double cardHeightBig =
+                                constraints.maxHeight * 0.8;
+                            return AspectRatio(
+                              aspectRatio: 16 /
+                                  9, // Replace `aspectRatio` with a fixed value
+                              child: Cards(
+                                thisTask: Future.value(task),
+                                sState: SmallState.info,
+                                bState: BigState.info,
+                                size: Size.big,
+                                heightBig: cardHeightBig.clamp(100,
+                                    600), // Ensure height is within a valid range
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      // "Liked" button
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            setModalState(() {
-                              currUser.taskStates[task.taskId] = TaskState.Like;
-                              currentState = TaskState.Like;
-                            });
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        // "Liked" button
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                currUser.taskStates[task.taskId] =
+                                    TaskState.Like;
+                                currentState = TaskState.Like;
+                              });
 
-                            currUser.updateTaskState(task.taskId, TaskState.Like).then((_) {
-                              setState(() {});
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: currentState == TaskState.Like
-                                ? Colors.green
-                                : Colors.grey[300],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
+                              currUser
+                                  .updateTaskState(task.taskId, TaskState.Like)
+                                  .then((_) {
+                                setState(() {});
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: currentState == TaskState.Like
+                                  ? Colors.green
+                                  : Colors.grey[300],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            "Liked",
-                            style: TextStyle(
-                              color: currentState == TaskState.Like
-                                  ? Colors.white
-                                  : Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              "Liked",
+                              style: TextStyle(
+                                color: currentState == TaskState.Like
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      // "Disliked" button
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            setModalState(() {
-                              currUser.taskStates[task.taskId] = TaskState.Dislike;
-                              currentState = TaskState.Dislike;
-                            });
+                        // "Disliked" button
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                currUser.taskStates[task.taskId] =
+                                    TaskState.Dislike;
+                                currentState = TaskState.Dislike;
+                              });
 
-                            currUser.updateTaskState(task.taskId, TaskState.Dislike).then((_) {
-                              setState(() {});
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: currentState == TaskState.Dislike
-                                ? Colors.red
-                                : Colors.grey[300],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
+                              currUser
+                                  .updateTaskState(
+                                      task.taskId, TaskState.Dislike)
+                                  .then((_) {
+                                setState(() {});
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: currentState == TaskState.Dislike
+                                  ? Colors.red
+                                  : Colors.grey[300],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero,
+                              ),
                             ),
-                          ),
-                          child: Text(
-                            "Disliked",
-                            style: TextStyle(
-                              color: currentState == TaskState.Dislike
-                                  ? Colors.white
-                                  : Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // "Undecided" button
-                      Expanded(
-                        child: TextButton(
-                          onPressed: () {
-                            setModalState(() {
-                              currUser.taskStates.remove(task.taskId);
-                              currentState = null;
-                            });
-
-                            currUser.updateTaskState(task.taskId, null).then((_) {
-                              _fetchTasks().then((_) => setState(() {}));
-                            });
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: currentState == null
-                                ? Colors.blue
-                                : Colors.grey[300],
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
-                          ),
-                          child: Text(
-                            "Undecided",
-                            style: TextStyle(
-                              color: currentState == null
-                                  ? Colors.white
-                                  : Colors.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                            child: Text(
+                              "Disliked",
+                              style: TextStyle(
+                                color: currentState == TaskState.Dislike
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
+                        // "Undecided" button
+                        Expanded(
+                          child: TextButton(
+                            onPressed: () {
+                              setModalState(() {
+                                currUser.taskStates.remove(task.taskId);
+                                currentState = null;
+                              });
+
+                              currUser
+                                  .updateTaskState(task.taskId, null)
+                                  .then((_) {
+                                _fetchTasks().then((_) => setState(() {}));
+                              });
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor: currentState == null
+                                  ? Colors.blue
+                                  : Colors.grey[300],
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.zero,
+                              ),
+                            ),
+                            child: Text(
+                              "Undecided",
+                              style: TextStyle(
+                                color: currentState == null
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20),
+                    // Save Button
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        if (currentState == null) {
+                          await currUser.updateTaskState(task.taskId, null);
+                        } else {
+                          await currUser.updateTaskState(
+                              task.taskId, currentState);
+                        }
+
+                        await _fetchTasks();
+                        setState(() {});
+
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(Icons.save, color: Colors.white),
+                      label: Text(
+                        "Save",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 20),
-                  // Save Button
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      if (currentState == null) {
-                        await currUser.updateTaskState(task.taskId, null);
-                      } else {
-                        await currUser.updateTaskState(task.taskId, currentState);
-                      }
-
-                      await _fetchTasks();
-                      setState(() {});
-
-                      Navigator.pop(context);
-                    },
-                    icon: Icon(Icons.save, color: Colors.white),
-                    label: Text(
-                      "Save",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF008080),
+                        foregroundColor: Colors.white,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        shadowColor: Colors.black45,
+                        elevation: 8,
                       ),
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF008080),
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      shadowColor: Colors.black45,
-                      elevation: 8,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
-    },
-  );
-}
-
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<void> _fetchSubmissionStatus() async {
     List<int> submittedUsers = await _dbHandler.getSubmittedUsers();
@@ -244,7 +272,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   Future<void> _fetchTasks() async {
     _likedTasksFuture = _dbHandler.getLikedTasksByUserId(currUser.userId);
     _dislikedTasksFuture = _dbHandler.getDislikedTasksByUserId(currUser.userId);
-    _undecidedTasksFuture = _dbHandler.getUndecidedTasksByUserID(currUser.userId);
+    _undecidedTasksFuture =
+        _dbHandler.getUndecidedTasksByUserID(currUser.userId);
   }
 
   Future<void> _submitSelection() async {
@@ -347,11 +376,12 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                           child: Padding(
                             padding: const EdgeInsets.only(right: 10.0),
                             child: SizedBox(
-                              width: 140*1.25, // Provide a fixed width
-                              height: 200*1.25, // Provide a fixed height
+                              width: 140 * 1.25, // Provide a fixed width
+                              height: 200 * 1.25, // Provide a fixed height
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
-                                  final double cardHeightBig = constraints.maxHeight; // Adjusted size
+                                  final double cardHeightBig =
+                                      constraints.maxHeight; // Adjusted size
                                   return Cards(
                                     thisTask: Future.value(task),
                                     sState: SmallState.info,
@@ -417,7 +447,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 30, vertical: 15),
                   ),
                   child: const Text(
                     "Submit Selection",

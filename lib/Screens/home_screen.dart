@@ -236,13 +236,11 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.settings),
           onPressed: () async {
-            final dynamic result = await Navigator.push(
+            await Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => const SettingsScreen()));
-            if (result) {
-              _myInit();
-            }
+            _myInit();
           },
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startTop);

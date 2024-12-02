@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mental_load/Screens/navigator_screen.dart';
-import 'package:mental_load/Screens/settings_screen.dart';
+import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/strings.dart';
@@ -33,24 +32,23 @@ class _TutorialWidgetState extends State<TutorialWidget> {
       newDialogText =
           "First you can set your mental state here by clicking on the flower and choosing the corresponding emoji: ";
     } else if (_state == 3) {
-      final prefs = await SharedPreferences.getInstance();
-      final testVersion = prefs.getString(constTestVersion) ?? "A";
-      if (testVersion == "A") {
-        newDialogText =
-            "The tree shows all the tasks that still need to be done.";
-      } else {
-        newDialogText = "The tree shows all the done tasks.";
-      }
+      newDialogText =
+          "The tree gives an overview of the different categories of the tasks.";
+      newDialogText =
+          "$newDialogText\nThe blossoms on the tree indicate the users that have completed tasks in a specific category.";
       newDialogText =
           '$newDialogText\nThe bigger a blossom is, the more tasks belong to a user in this category.';
     } else if (_state == 4) {
+      newDialogText =
+          "When clicking on a task, a dialog shows more information about the distribution of the completed and uncompleted assigned tasks in this category.";
+    } else if (_state == 5) {
       newDialogText =
           "Last but not least: At the bottom you can navigate to the cards (left) to manage your tasks and to the diagrams (right) to have an overview of your tasks and mental load at all times!\nIsn't that great?\nAnd the button in the middle brings you back here.";
     } else {
       newDialogText = "That's it, have a nice experience!";
     }
 
-    if (_state == 5) {
+    if (_state == 7) {
       if (context.mounted) Navigator.of(context).pop();
     } else {
       setState(() {
@@ -66,11 +64,13 @@ class _TutorialWidgetState extends State<TutorialWidget> {
   }
 
   void _ownInitState() async {
-    final newMood = await Mood.create(
-        userId: widget.user.userId, date: DateTime.now(), mood: Moods.good);
-    setState(() {
-      _mood = newMood;
-    });
+    final lastUserMood =
+        await DBHandler().getLatestMoodByUserId(widget.user.userId);
+    if (lastUserMood != null) {
+      setState(() {
+        _mood = lastUserMood;
+      });
+    }
   }
 
   void _onMoodChanged(Moods newMood) {

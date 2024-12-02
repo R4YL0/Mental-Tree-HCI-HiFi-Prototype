@@ -223,6 +223,7 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
                           color: AppColors.primary.withOpacity(0.2), width: 1),
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    trailing: Icon(Icons.help),
                     onTap: () {
                       showOthersTaskAction(context, curTask, currUser, () {
                         setState(() {});

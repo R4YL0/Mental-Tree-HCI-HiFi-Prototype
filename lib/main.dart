@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/Screens/navigator_screen.dart';
@@ -16,7 +19,6 @@ void main() async {
   await DBHandler().initDb();
 
   ///DELETE ALL DATA///
-
   await DBHandler().getUsers().then((user) async {
     for (User currUser in user) {
       await DBHandler().removeUser(currUser.userId);
@@ -52,6 +54,29 @@ void main() async {
   User anna = await User.create(name: "Anna", flowerColor: Colors.blue);
   User sebi = await User.create(name: "Sebi", flowerColor: Colors.yellow);
 
+
+  ByteData byteData = await rootBundle.load('lib/assets/images/bakeCookies.jpg');
+  Uint8List bakeCookiesImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/cleanLivingRoom.jpg');
+  Uint8List cleanLivingRoomImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/deepCleanBathroom.jpg');
+  Uint8List deepCleanBathroomImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/doLaundry.jpg');
+  Uint8List doLaundryImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/fileTaxes.jpg');
+  Uint8List fileTaxesImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/mealPrep.jpg');
+  Uint8List mealPregImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/mowTheLawn.jpg');
+  Uint8List mowTheLawnImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/pickUpKids.jpg');
+  Uint8List pickUpKidsImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/washBedsheets.jpg');
+  Uint8List washBedsheetsImg = byteData.buffer.asUint8List();
+  byteData = await rootBundle.load('lib/assets/images/weedGarden.jpeg');
+  Uint8List weedGardenImg = byteData.buffer.asUint8List();
+  
+
   Task task1 = await Task.create(
     name: "Clean Living Room",
     frequency: Frequency.weekly,
@@ -65,6 +90,7 @@ void main() async {
       await Subtask.create(name: "Dust the furniture"),
       await Subtask.create(name: "Organize the shelves"),
     ],
+    img: cleanLivingRoomImg,
   );
 
   Task task2 = await Task.create(
@@ -80,6 +106,7 @@ void main() async {
       await Subtask.create(name: "Sort bedsheets by color"),
       await Subtask.create(name: "Wash and dry"),
     ],
+    img: washBedsheetsImg,
   );
 
   Task task3 = await Task.create(
@@ -95,6 +122,7 @@ void main() async {
       await Subtask.create(name: "Prepare protein (chicken, tofu, etc.)"),
       await Subtask.create(name: "Marinate ingredients"),
     ],
+    img: mealPregImg,
   );
 
   Task task4 = await Task.create(
@@ -110,6 +138,7 @@ void main() async {
       await Subtask.create(name: "Trim hedges"),
       await Subtask.create(name: "Rake and collect debris"),
     ],
+    img: weedGardenImg,
   );
 
   Task task5 = await Task.create(
@@ -125,6 +154,7 @@ void main() async {
       await Subtask.create(name: "Check traffic route"),
       await Subtask.create(name: "Pick up and return home safely"),
     ],
+    img: pickUpKidsImg,
   );
 
   Task task6 = await Task.create(
@@ -140,6 +170,7 @@ void main() async {
       await Subtask.create(name: "Organize deductible receipts"),
       await Subtask.create(name: "Submit forms online"),
     ],
+    img: fileTaxesImg,
   );
 
   Task task7 = await Task.create(
@@ -155,6 +186,7 @@ void main() async {
       await Subtask.create(name: "Clean mirrors"),
       await Subtask.create(name: "Disinfect sink and toilet"),
     ],
+    img: deepCleanBathroomImg,
   );
 
   Task task8 = await Task.create(
@@ -170,6 +202,7 @@ void main() async {
       await Subtask.create(name: "Load the washing machine"),
       await Subtask.create(name: "Fold and put away clothes"),
     ],
+    img: doLaundryImg,
   );
 
   Task task9 = await Task.create(
@@ -185,6 +218,7 @@ void main() async {
       await Subtask.create(name: "Mix ingredients"),
       await Subtask.create(name: "Bake in the oven"),
     ],
+    img: bakeCookiesImg,
   );
 
   Task task10 = await Task.create(
@@ -200,18 +234,8 @@ void main() async {
       await Subtask.create(name: "Mow the lawn evenly"),
       await Subtask.create(name: "Dispose of grass clippings"),
     ],
+    img: mowTheLawnImg,
   );
-
-  /*await DBHandler().saveTask(task1);
-  await DBHandler().saveTask(task2);
-  await DBHandler().saveTask(task3);
-  await DBHandler().saveTask(task4);
-  await DBHandler().saveTask(task5);
-  await DBHandler().saveTask(task6);
-  await DBHandler().saveTask(task7);
-  await DBHandler().saveTask(task8);
-  await DBHandler().saveTask(task9);
-  await DBHandler().saveTask(task10);*/
 
   /* UNCOMPLETED TASKS */
   AssignedTask utask1 = await AssignedTask.create(

@@ -76,6 +76,19 @@ flutter:
   assets:
       - lib/assets/
       - lib/assets/images/defaultTaskImg.jpg
+      - lib\assets\images\bakeCookies.jpg
+      - lib\assets\images\cleanLivingRoom.jpg
+      - lib\assets\images\deepCleanBathroom.jpg
+      - lib\assets\images\doLaundry.jpg
+      - lib\assets\images\fileTaxes.jpg
+      - lib\assets\images\mealPrep.jpg
+      - lib\assets\images\mowTheLawn.jpg
+      - lib\assets\images\pickUpKids.jpg
+      - lib\assets\images\washBedsheets.jpg
+      - lib\assets\images\weedGarden.jpeg
+
+
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

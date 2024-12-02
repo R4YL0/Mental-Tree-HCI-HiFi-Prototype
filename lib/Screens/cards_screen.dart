@@ -106,9 +106,12 @@ class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStat
                         SwipableCardScreen(tabController: _tabController),
                         TaskSubmissionScreen(
                           tabController: _tabController,
-                          onUpdate: updateScreen, // Pass the callback here
+                          onUpdate: updateScreen, 
                         ),
-                        const WaitingForOthersScreen(),
+                        WaitingForOthersScreen(
+                           tabController: _tabController,
+                           onUpdate: updateScreen, 
+                        ),
                       ],
                     ),
                   ),

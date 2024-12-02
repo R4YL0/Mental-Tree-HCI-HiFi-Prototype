@@ -11,46 +11,71 @@ import 'AssignedTask.dart';
 
 class TaskDistributor {
   Future<Map<User, List<Task>>> distributeTasksFairly(
-      List<User> users, List<Task> tasks) async {
-    Map<User, List<Task>> userBuckets = {for (var user in users) user: []};
-    Map<User, int> userDifficulty = {for (var user in users) user: 0};
+    List<User> users, List<Task> tasks) async {
+  Map<User, List<Task>> userBuckets = {for (var user in users) user: []};
+  Map<User, int> userDifficulty = {for (var user in users) user: 0};
+  Map<User, int> taskCount = {for (var user in users) user: 0};
 
-    tasks.sort((a, b) => b.difficulty.compareTo(a.difficulty));
+  tasks.sort((a, b) => b.difficulty.compareTo(a.difficulty));
 
-    for (var task in tasks) {
-      User? bestUser;
-      int minDifficulty = 9223372036854775807;
+  for (var task in tasks) {
+    User? bestUser;
+    int minDifficulty = 9223372036854775807;
+    int minTasks = 9223372036854775807;
 
-      for (var user in users) {
-        var state = user.getTaskState(task.taskId);
+    // Prioritize users who 'Like' the task, balance task count and difficulty
+    for (var user in users) {
+      var state = user.getTaskState(task.taskId);
 
-        if (state == TaskState.Dislike) continue;
+      if (state == TaskState.Dislike) continue;
 
-        int userCurrentDifficulty = userDifficulty[user] ?? 0;
+      int userCurrentDifficulty = userDifficulty[user] ?? 0;
+      int userCurrentTasks = taskCount[user] ?? 0;
 
-        if (state == TaskState.Like) {
-          if (bestUser == null || userCurrentDifficulty < minDifficulty) {
-            bestUser = user;
-            minDifficulty = userCurrentDifficulty;
-          }
-        } else if (state == TaskState.Undecided) {
-          if (bestUser == null || userCurrentDifficulty < minDifficulty) {
-            bestUser = user;
-            minDifficulty = userCurrentDifficulty;
-          }
+      if (state == TaskState.Like) {
+        if (bestUser == null ||
+            userCurrentTasks < minTasks ||
+            (userCurrentTasks == minTasks && userCurrentDifficulty < minDifficulty)) {
+          bestUser = user;
+          minDifficulty = userCurrentDifficulty;
+          minTasks = userCurrentTasks;
         }
-      }
-
-      if (bestUser != null) {
-        userBuckets[bestUser]!.add(task);
-        userDifficulty[bestUser] = userDifficulty[bestUser]! + task.difficulty;
       }
     }
 
-    _balanceTasks(userBuckets, userDifficulty);
+    // Handle 'Undecided' if no users 'Like' the task
+    if (bestUser == null) {
+      for (var user in users) {
+        var state = user.getTaskState(task.taskId);
 
-    return userBuckets;
+        if (state == TaskState.Undecided) {
+          int userCurrentDifficulty = userDifficulty[user] ?? 0;
+          int userCurrentTasks = taskCount[user] ?? 0;
+
+          if (bestUser == null ||
+              userCurrentTasks < minTasks ||
+              (userCurrentTasks == minTasks && userCurrentDifficulty < minDifficulty)) {
+            bestUser = user;
+            minDifficulty = userCurrentDifficulty;
+            minTasks = userCurrentTasks;
+          }
+        }
+      }
+    }
+
+    // Assign task to the best user
+    if (bestUser != null) {
+      userBuckets[bestUser]!.add(task);
+      userDifficulty[bestUser] = userDifficulty[bestUser]! + task.difficulty;
+      taskCount[bestUser] = taskCount[bestUser]! + 1;
+    }
   }
+
+  _balanceTasks(userBuckets, userDifficulty);
+
+  return userBuckets;
+}
+
 
   void _balanceTasks(
       Map<User, List<Task>> userBuckets, Map<User, int> userDifficulty) {

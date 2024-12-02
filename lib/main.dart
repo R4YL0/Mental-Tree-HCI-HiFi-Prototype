@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -39,11 +40,36 @@ void main() async {
     }
   });
 
-  await DBHandler().getSubmittedUsers().then((indices) async{
-    for (int index in indices){
+  await DBHandler().getSubmittedUsers().then((indices) async {
+    for (int index in indices) {
       await DBHandler().removeSubmittedUser(index);
     }
   });
+
+  Future<Map<String, Uint8List>> loadImages() async {
+    List<String> imagePaths = [
+      'lib/assets/images/bakeCookies.jpg',
+      'lib/assets/images/cleanLivingRoom.jpg',
+      'lib/assets/images/deepCleanBathroom.jpg',
+      'lib/assets/images/doLaundry.jpg',
+      'lib/assets/images/fileTaxes.jpg',
+      'lib/assets/images/mealPrep.jpg',
+      'lib/assets/images/mowTheLawn.jpg',
+      'lib/assets/images/pickUpKids.jpg',
+      'lib/assets/images/washBedsheets.jpg',
+      'lib/assets/images/weedGarden.jpeg',
+    ];
+
+    List<Uint8List> images = await Future.wait(
+      imagePaths.map((path) async {
+        ByteData byteData = await rootBundle.load(path);
+        return byteData.buffer.asUint8List();
+      }).toList(),
+    );
+
+    return Map.fromIterables(imagePaths, images);
+  }
+
   //await DBHandler().getAssignedTasks().then((assignedTask){print("assignedtask number: ${assignedTask.length}");});
   ///DELETE ALL DATA///
 
@@ -54,28 +80,17 @@ void main() async {
   User anna = await User.create(name: "Anna", flowerColor: Colors.blue);
   User sebi = await User.create(name: "Sebi", flowerColor: Colors.yellow);
 
-
-  ByteData byteData = await rootBundle.load('lib/assets/images/bakeCookies.jpg');
-  Uint8List bakeCookiesImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/cleanLivingRoom.jpg');
-  Uint8List cleanLivingRoomImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/deepCleanBathroom.jpg');
-  Uint8List deepCleanBathroomImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/doLaundry.jpg');
-  Uint8List doLaundryImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/fileTaxes.jpg');
-  Uint8List fileTaxesImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/mealPrep.jpg');
-  Uint8List mealPregImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/mowTheLawn.jpg');
-  Uint8List mowTheLawnImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/pickUpKids.jpg');
-  Uint8List pickUpKidsImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/washBedsheets.jpg');
-  Uint8List washBedsheetsImg = byteData.buffer.asUint8List();
-  byteData = await rootBundle.load('lib/assets/images/weedGarden.jpeg');
-  Uint8List weedGardenImg = byteData.buffer.asUint8List();
-  
+  Map<String, Uint8List> images = await loadImages();
+  Uint8List bakeCookiesImg = images['lib/assets/images/bakeCookies.jpg']!;
+  Uint8List cleanLivingRoomImg = images['lib/assets/images/cleanLivingRoom.jpg']!;
+  Uint8List deepCleanBathroomImg = images['lib/assets/images/deepCleanBathroom.jpg']!;
+  Uint8List doLaundryImg = images['lib/assets/images/doLaundry.jpg']!;
+  Uint8List fileTaxesImg = images['lib/assets/images/fileTaxes.jpg']!;
+  Uint8List mealPrepImg = images['lib/assets/images/mealPrep.jpg']!;
+  Uint8List mowTheLawnImg = images['lib/assets/images/mowTheLawn.jpg']!;
+  Uint8List pickUpKidsImg = images['lib/assets/images/pickUpKids.jpg']!;
+  Uint8List washBedsheetsImg = images['lib/assets/images/washBedsheets.jpg']!;
+  Uint8List weedGardenImg = images['lib/assets/images/weedGarden.jpeg']!;
 
   Task task1 = await Task.create(
     name: "Clean Living Room",
@@ -122,7 +137,7 @@ void main() async {
       await Subtask.create(name: "Prepare protein (chicken, tofu, etc.)"),
       await Subtask.create(name: "Marinate ingredients"),
     ],
-    img: mealPregImg,
+    img: mealPrepImg,
   );
 
   Task task4 = await Task.create(
@@ -238,620 +253,186 @@ void main() async {
   );
 
   /* UNCOMPLETED TASKS */
-  AssignedTask utask1 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask2 = await AssignedTask.create(
-      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask3 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask4 = await AssignedTask.create(
-      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask5 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask6 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask7 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask8 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask9 = await AssignedTask.create(
-      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask10 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask11 = await AssignedTask.create(
-      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask12 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask13 = await AssignedTask.create(
-      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask14 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask15 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  /*AssignedTask utask1 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask2 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask3 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask4 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask5 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask6 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask7 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask8 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask9 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask10 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask11 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask12 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask13 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask14 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask15 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));*/
 
   /* UNCOMPLETED TASKS */
 
 /* COMPLETED TASKS */
-  AssignedTask atask1 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 1));
-  AssignedTask atask2 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 1));
-  AssignedTask atask3 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 2));
-  AssignedTask atask4 = await AssignedTask.create(
-      user: theo,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 3));
-  AssignedTask atask5 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 3));
-  AssignedTask atask6 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask7 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask8 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask9 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask10 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 5));
-  AssignedTask atask11 = await AssignedTask.create(
-      user: theo,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 5));
-  AssignedTask atask12 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 6));
-  AssignedTask atask13 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 6));
-  AssignedTask atask14 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 6));
-  AssignedTask atask15 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 8));
-  AssignedTask atask16 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 8));
-  AssignedTask atask17 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 8));
-  AssignedTask atask18 = await AssignedTask.create(
-      user: theo,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 9));
-  AssignedTask atask19 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 9));
-  AssignedTask atask20 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 9));
-  AssignedTask atask21 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 10));
-  AssignedTask atask22 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 10));
-  AssignedTask atask23 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 11));
-  AssignedTask atask24 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 12));
-  AssignedTask atask25 = await AssignedTask.create(
-      user: theo,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 12));
-  AssignedTask atask26 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 12));
-  AssignedTask atask27 = await AssignedTask.create(
-      user: theo,
-      task: task5,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 14));
-  AssignedTask atask28 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 14));
-  AssignedTask atask29 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 14));
-  AssignedTask atask30 = await AssignedTask.create(
-      user: theo,
-      task: task6,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 15));
-  AssignedTask atask31 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 15));
-  AssignedTask atask32 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 15));
-  AssignedTask atask33 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask atask34 = await AssignedTask.create(
-      user: theo,
-      task: task6,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask atask35 = await AssignedTask.create(
-      user: theo,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 17));
-  AssignedTask atask36 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 17));
-  AssignedTask atask37 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 18));
-  AssignedTask atask38 = await AssignedTask.create(
-      user: theo,
-      task: task6,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 18));
-  AssignedTask atask39 = await AssignedTask.create(
-      user: theo,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 19));
-  AssignedTask atask40 = await AssignedTask.create(
-      user: theo,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 19));
-  AssignedTask atask41 = await AssignedTask.create(
-      user: theo,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 19));
-  AssignedTask atask42 = await AssignedTask.create(
-      user: theo,
-      task: task5,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 20));
-  await DBHandler().saveAssignedTask(atask1);
-  await DBHandler().saveAssignedTask(atask2);
-  await DBHandler().saveAssignedTask(atask3);
-  await DBHandler().saveAssignedTask(atask4);
-  await DBHandler().saveAssignedTask(atask5);
-  await DBHandler().saveAssignedTask(atask6);
-  await DBHandler().saveAssignedTask(atask7);
-  await DBHandler().saveAssignedTask(atask8);
-  await DBHandler().saveAssignedTask(atask9);
-  await DBHandler().saveAssignedTask(atask10);
-  await DBHandler().saveAssignedTask(atask11);
-  await DBHandler().saveAssignedTask(atask12);
-  await DBHandler().saveAssignedTask(atask13);
-  await DBHandler().saveAssignedTask(atask14);
-  await DBHandler().saveAssignedTask(atask15);
-  await DBHandler().saveAssignedTask(atask16);
-  await DBHandler().saveAssignedTask(atask17);
-  await DBHandler().saveAssignedTask(atask18);
-  await DBHandler().saveAssignedTask(atask19);
-  await DBHandler().saveAssignedTask(atask20);
-  await DBHandler().saveAssignedTask(atask21);
-  await DBHandler().saveAssignedTask(atask22);
-  await DBHandler().saveAssignedTask(atask23);
-  await DBHandler().saveAssignedTask(atask24);
-  await DBHandler().saveAssignedTask(atask25);
-  await DBHandler().saveAssignedTask(atask26);
-  await DBHandler().saveAssignedTask(atask27);
-  await DBHandler().saveAssignedTask(atask28);
-  await DBHandler().saveAssignedTask(atask29);
-  await DBHandler().saveAssignedTask(atask30);
-  await DBHandler().saveAssignedTask(atask31);
-  await DBHandler().saveAssignedTask(atask32);
-  await DBHandler().saveAssignedTask(atask33);
-  await DBHandler().saveAssignedTask(atask34);
-  await DBHandler().saveAssignedTask(atask35);
-  await DBHandler().saveAssignedTask(atask36);
-  await DBHandler().saveAssignedTask(atask37);
-  await DBHandler().saveAssignedTask(atask38);
-  await DBHandler().saveAssignedTask(atask39);
-  await DBHandler().saveAssignedTask(atask40);
-  await DBHandler().saveAssignedTask(atask41);
-  await DBHandler().saveAssignedTask(atask42);
-  AssignedTask btask1 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 1));
-  AssignedTask btask2 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 1));
-  AssignedTask btask3 = await AssignedTask.create(
-      user: anna,
-      task: task5,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 1));
-  AssignedTask btask4 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 2));
-  AssignedTask btask5 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask6 = await AssignedTask.create(
-      user: anna,
-      task: task5,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 3));
-  AssignedTask btask7 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 3));
-  AssignedTask btask8 = await AssignedTask.create(
-      user: anna,
-      task: task5,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 3));
-  AssignedTask btask9 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 4));
-  AssignedTask btask10 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 4));
-  AssignedTask btask11 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 5));
-  AssignedTask btask12 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 5));
-  AssignedTask btask13 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 5));
-  AssignedTask btask14 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 6));
-  AssignedTask btask15 = await AssignedTask.create(
-      user: anna,
-      task: task6,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 8));
-  AssignedTask btask16 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 8));
-  AssignedTask btask17 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 8));
-  AssignedTask btask18 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 9));
-  AssignedTask btask19 = await AssignedTask.create(
-      user: anna,
-      task: task6,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 9));
-  AssignedTask btask20 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 10));
-  AssignedTask btask21 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 10));
-  AssignedTask btask22 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 11));
-  AssignedTask btask23 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 11));
-  AssignedTask btask24 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 11));
-  AssignedTask btask25 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 12));
-  AssignedTask btask26 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 12));
-  AssignedTask btask27 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask28 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask29 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask30 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 15));
-  AssignedTask btask31 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask32 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask33 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask34 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask35 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask36 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 17));
-  AssignedTask btask37 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 17));
-  AssignedTask btask38 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 17));
-  AssignedTask btask39 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 19));
-  AssignedTask btask40 = await AssignedTask.create(
-      user: anna,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 19));
-  AssignedTask btask41 = await AssignedTask.create(
-      user: anna,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 20));
-  AssignedTask btask42 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 20));
-  AssignedTask btask43 = await AssignedTask.create(
-      user: anna,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 21));
-  AssignedTask btask44 = await AssignedTask.create(
-      user: anna,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 21));
-  await DBHandler().saveAssignedTask(btask1);
-  await DBHandler().saveAssignedTask(btask2);
-  await DBHandler().saveAssignedTask(btask3);
-  await DBHandler().saveAssignedTask(btask4);
-  await DBHandler().saveAssignedTask(btask5);
-  await DBHandler().saveAssignedTask(btask6);
-  await DBHandler().saveAssignedTask(btask7);
-  await DBHandler().saveAssignedTask(btask8);
-  await DBHandler().saveAssignedTask(btask9);
-  await DBHandler().saveAssignedTask(btask10);
-  await DBHandler().saveAssignedTask(btask11);
-  await DBHandler().saveAssignedTask(btask12);
-  await DBHandler().saveAssignedTask(btask13);
-  await DBHandler().saveAssignedTask(btask14);
-  await DBHandler().saveAssignedTask(btask15);
-  await DBHandler().saveAssignedTask(btask16);
-  await DBHandler().saveAssignedTask(btask17);
-  await DBHandler().saveAssignedTask(btask18);
-  await DBHandler().saveAssignedTask(btask19);
-  await DBHandler().saveAssignedTask(btask20);
-  await DBHandler().saveAssignedTask(btask21);
-  await DBHandler().saveAssignedTask(btask22);
-  await DBHandler().saveAssignedTask(btask23);
-  await DBHandler().saveAssignedTask(btask24);
-  await DBHandler().saveAssignedTask(btask25);
-  await DBHandler().saveAssignedTask(btask26);
-  await DBHandler().saveAssignedTask(btask27);
-  await DBHandler().saveAssignedTask(btask28);
-  await DBHandler().saveAssignedTask(btask29);
-  await DBHandler().saveAssignedTask(btask30);
-  await DBHandler().saveAssignedTask(btask31);
-  await DBHandler().saveAssignedTask(btask32);
-  await DBHandler().saveAssignedTask(btask33);
-  await DBHandler().saveAssignedTask(btask34);
-  await DBHandler().saveAssignedTask(btask35);
-  await DBHandler().saveAssignedTask(btask36);
-  await DBHandler().saveAssignedTask(btask37);
-  await DBHandler().saveAssignedTask(btask38);
-  await DBHandler().saveAssignedTask(btask39);
-  await DBHandler().saveAssignedTask(btask40);
-  await DBHandler().saveAssignedTask(btask41);
-  await DBHandler().saveAssignedTask(btask42);
-  await DBHandler().saveAssignedTask(btask43);
-  await DBHandler().saveAssignedTask(btask44);
-  AssignedTask ctask1 = await AssignedTask.create(
-      user: sebi,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 19));
-  AssignedTask ctask2 = await AssignedTask.create(
-      user: sebi,
-      task: task3,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 21));
-  AssignedTask ctask3 = await AssignedTask.create(
-      user: sebi,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 21));
-  AssignedTask ctask4 = await AssignedTask.create(
-      user: sebi,
-      task: task5,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 16));
-  AssignedTask ctask5 = await AssignedTask.create(
-      user: sebi,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 18));
-  AssignedTask ctask6 = await AssignedTask.create(
-      user: sebi,
-      task: task6,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 23));
-  AssignedTask ctask7 = await AssignedTask.create(
-      user: sebi,
-      task: task2,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 23));
-  AssignedTask ctask8 = await AssignedTask.create(
-      user: sebi,
-      task: task1,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 23));
-  AssignedTask ctask9 = await AssignedTask.create(
-      user: sebi,
-      task: task4,
-      dueDate: DateTime(2024, 12, 1),
-      finishDate: DateTime(2024, 11, 20));
-  await DBHandler().saveAssignedTask(ctask1);
-  await DBHandler().saveAssignedTask(ctask2);
-  await DBHandler().saveAssignedTask(ctask3);
-  await DBHandler().saveAssignedTask(ctask4);
-  await DBHandler().saveAssignedTask(ctask5);
-  await DBHandler().saveAssignedTask(ctask6);
-  await DBHandler().saveAssignedTask(ctask7);
-  await DBHandler().saveAssignedTask(ctask8);
-  await DBHandler().saveAssignedTask(ctask9);
+ /* AssignedTask atask1 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
+  AssignedTask atask2 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
+  AssignedTask atask3 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 2));
+  AssignedTask atask4 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
+  AssignedTask atask5 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
+  AssignedTask atask6 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
+  AssignedTask atask7 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
+  AssignedTask atask8 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
+  AssignedTask atask9 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
+  AssignedTask atask10 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
+  AssignedTask atask11 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
+  AssignedTask atask12 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
+  AssignedTask atask13 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
+  AssignedTask atask14 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
+  AssignedTask atask15 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
+  AssignedTask atask16 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
+  AssignedTask atask17 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
+  AssignedTask atask18 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
+  AssignedTask atask19 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
+  AssignedTask atask20 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
+  AssignedTask atask21 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
+  AssignedTask atask22 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
+  AssignedTask atask23 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
+  AssignedTask atask24 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
+  AssignedTask atask25 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
+  AssignedTask atask26 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
+  AssignedTask atask27 = await AssignedTask.create(user: theo, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 14));
+  AssignedTask atask28 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 14));
+  AssignedTask atask29 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 14));
+  AssignedTask atask30 = await AssignedTask.create(user: theo, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
+  AssignedTask atask31 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
+  AssignedTask atask32 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
+  AssignedTask atask33 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask atask34 = await AssignedTask.create(user: theo, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask atask35 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
+  AssignedTask atask36 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
+  AssignedTask atask37 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 18));
+  AssignedTask atask38 = await AssignedTask.create(user: theo, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 18));
+  AssignedTask atask39 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
+  AssignedTask atask40 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
+  AssignedTask atask41 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
+  AssignedTask atask42 = await AssignedTask.create(user: theo, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));
+  AssignedTask btask1 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
+  AssignedTask btask2 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
+  AssignedTask btask3 = await AssignedTask.create(user: anna, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
+  AssignedTask btask4 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 2));
+  AssignedTask btask5 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
+  AssignedTask btask6 = await AssignedTask.create(user: anna, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
+  AssignedTask btask7 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
+  AssignedTask btask8 = await AssignedTask.create(user: anna, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
+  AssignedTask btask9 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
+  AssignedTask btask10 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
+  AssignedTask btask11 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
+  AssignedTask btask12 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
+  AssignedTask btask13 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
+  AssignedTask btask14 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
+  AssignedTask btask15 = await AssignedTask.create(user: anna, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
+  AssignedTask btask16 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
+  AssignedTask btask17 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
+  AssignedTask btask18 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
+  AssignedTask btask19 = await AssignedTask.create(user: anna, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
+  AssignedTask btask20 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
+  AssignedTask btask21 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
+  AssignedTask btask22 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
+  AssignedTask btask23 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
+  AssignedTask btask24 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
+  AssignedTask btask25 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
+  AssignedTask btask26 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
+  AssignedTask btask27 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
+  AssignedTask btask28 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
+  AssignedTask btask29 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
+  AssignedTask btask30 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
+  AssignedTask btask31 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask btask32 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask btask33 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask btask34 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask btask35 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask btask36 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
+  AssignedTask btask37 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
+  AssignedTask btask38 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
+  AssignedTask btask39 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
+  AssignedTask btask40 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
+  AssignedTask btask41 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));
+  AssignedTask btask42 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));
+  AssignedTask btask43 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
+  AssignedTask btask44 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
+  AssignedTask ctask1 = await AssignedTask.create(user: sebi, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
+  AssignedTask ctask2 = await AssignedTask.create(user: sebi, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
+  AssignedTask ctask3 = await AssignedTask.create(user: sebi, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
+  AssignedTask ctask4 = await AssignedTask.create(user: sebi, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
+  AssignedTask ctask5 = await AssignedTask.create(user: sebi, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 18));
+  AssignedTask ctask6 = await AssignedTask.create(user: sebi, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
+  AssignedTask ctask7 = await AssignedTask.create(user: sebi, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
+  AssignedTask ctask8 = await AssignedTask.create(user: sebi, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
+  AssignedTask ctask9 = await AssignedTask.create(user: sebi, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));*/
+
+  
+
+  final tasks = [
+    task1, task2, task3, task4, task5,
+    task6, task7, task8, task9, task10,
+  ];
+
+  final random = Random();
+  final now = DateTime.now();
+  final taskHistory = <AssignedTask>[];
+
+  for (int i = 0; i < 70; i++) {
+    final task = tasks[random.nextInt(tasks.length)];
+    final daysAgo = random.nextInt(20) + 1; // Random day within the last 20 days
+    final dueDate = now.subtract(Duration(days: daysAgo));
+    final finishDate = dueDate.subtract(Duration(days: random.nextInt(2) + 1)); // Finish before the due date
+
+    User assignedUser;
+
+    // Unfair Distribution Logic
+    if (random.nextInt(10) < 5) { // Theo does most tasks (50%)
+      assignedUser = theo;
+    } else if (random.nextInt(10) < 8) { // Anna does mid-range (30%)
+      assignedUser = anna;
+    } else { // Sebastian does very few (10%)
+      assignedUser = sebi;
+    }
+
+    // Theo handles Cleaning and Laundry disproportionately
+    if (assignedUser == theo &&
+        (task.category == Category.Cleaning || task.category == Category.Laundry)) {
+      assignedUser = theo;
+    }
+
+    final assignedTask = await AssignedTask.create(
+      user: assignedUser,
+      task: task,
+      dueDate: dueDate,
+      finishDate: finishDate,
+    );
+
+    taskHistory.add(assignedTask);
+  }
+
+  print("Task history with 50 tasks created successfully!");
+
+
 
   ///CREATE USERS AND TASKS///
 
   ///CREATE MOODS PER USER///
-  await Mood.create(
-      date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId);
-  await Mood.create(
-      date: DateTime(2024, 11, 1), mood: Moods.good, userId: anna.userId);
-  await Mood.create(
-      date: DateTime(2024, 11, 1), mood: Moods.mid, userId: sebi.userId);
+ /* await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId);
+  await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.good, userId: anna.userId);
+  await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.mid, userId: sebi.userId);*/
+
+  final users = [theo, anna, sebi];
+  final moods = [Moods.bad, Moods.mid, Moods.good];
+
+  for (int i = 0; i < 20; i++) {
+    final date = now.subtract(Duration(days: i));
+    for (final user in users) {
+      final mood = moods[random.nextInt(moods.length)];
+      await Mood.create(date: date, mood: mood, userId: user.userId);
+    }
+  }
 
   // Tasks example
   /*Task myTask = await Task.create( // always use create not constructor! (also for mood, subtasks,...)

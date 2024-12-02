@@ -82,8 +82,10 @@ void main() async {
 
   Map<String, Uint8List> images = await loadImages();
   Uint8List bakeCookiesImg = images['lib/assets/images/bakeCookies.jpg']!;
-  Uint8List cleanLivingRoomImg = images['lib/assets/images/cleanLivingRoom.jpg']!;
-  Uint8List deepCleanBathroomImg = images['lib/assets/images/deepCleanBathroom.jpg']!;
+  Uint8List cleanLivingRoomImg =
+      images['lib/assets/images/cleanLivingRoom.jpg']!;
+  Uint8List deepCleanBathroomImg =
+      images['lib/assets/images/deepCleanBathroom.jpg']!;
   Uint8List doLaundryImg = images['lib/assets/images/doLaundry.jpg']!;
   Uint8List fileTaxesImg = images['lib/assets/images/fileTaxes.jpg']!;
   Uint8List mealPrepImg = images['lib/assets/images/mealPrep.jpg']!;
@@ -253,26 +255,41 @@ void main() async {
   );
 
   /* UNCOMPLETED TASKS */
-  /*AssignedTask utask1 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask2 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask3 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask4 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask5 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask6 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask7 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask8 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask9 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask10 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask11 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask12 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask13 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask14 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask15 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1));*/
+  AssignedTask utask1 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask2 = await AssignedTask.create(
+      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask3 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask4 = await AssignedTask.create(
+      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask5 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask6 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask7 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask8 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask9 = await AssignedTask.create(
+      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask10 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask11 = await AssignedTask.create(
+      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask12 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask13 = await AssignedTask.create(
+      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask14 = await AssignedTask.create(
+      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
+  AssignedTask utask15 = await AssignedTask.create(
+      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
 
   /* UNCOMPLETED TASKS */
 
 /* COMPLETED TASKS */
- /* AssignedTask atask1 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
+  /* AssignedTask atask1 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
   AssignedTask atask2 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
   AssignedTask atask3 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 2));
   AssignedTask atask4 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
@@ -368,11 +385,17 @@ void main() async {
   AssignedTask ctask8 = await AssignedTask.create(user: sebi, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
   AssignedTask ctask9 = await AssignedTask.create(user: sebi, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));*/
 
-  
-
   final tasks = [
-    task1, task2, task3, task4, task5,
-    task6, task7, task8, task9, task10,
+    task1,
+    task2,
+    task3,
+    task4,
+    task5,
+    task6,
+    task7,
+    task8,
+    task9,
+    task10,
   ];
 
   final random = Random();
@@ -381,24 +404,30 @@ void main() async {
 
   for (int i = 0; i < 70; i++) {
     final task = tasks[random.nextInt(tasks.length)];
-    final daysAgo = random.nextInt(20) + 1; // Random day within the last 20 days
+    final daysAgo =
+        random.nextInt(20) + 1; // Random day within the last 20 days
     final dueDate = now.subtract(Duration(days: daysAgo));
-    final finishDate = dueDate.subtract(Duration(days: random.nextInt(2) + 1)); // Finish before the due date
+    final finishDate = dueDate.subtract(
+        Duration(days: random.nextInt(2) + 1)); // Finish before the due date
 
     User assignedUser;
 
     // Unfair Distribution Logic
-    if (random.nextInt(10) < 5) { // Theo does most tasks (50%)
+    if (random.nextInt(10) < 5) {
+      // Theo does most tasks (50%)
       assignedUser = theo;
-    } else if (random.nextInt(10) < 8) { // Anna does mid-range (30%)
+    } else if (random.nextInt(10) < 8) {
+      // Anna does mid-range (30%)
       assignedUser = anna;
-    } else { // Sebastian does very few (10%)
+    } else {
+      // Sebastian does very few (10%)
       assignedUser = sebi;
     }
 
     // Theo handles Cleaning and Laundry disproportionately
     if (assignedUser == theo &&
-        (task.category == Category.Cleaning || task.category == Category.Laundry)) {
+        (task.category == Category.Cleaning ||
+            task.category == Category.Laundry)) {
       assignedUser = theo;
     }
 
@@ -414,12 +443,10 @@ void main() async {
 
   print("Task history with 50 tasks created successfully!");
 
-
-
   ///CREATE USERS AND TASKS///
 
   ///CREATE MOODS PER USER///
- /* await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId);
+  /* await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId);
   await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.good, userId: anna.userId);
   await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.mid, userId: sebi.userId);*/
 

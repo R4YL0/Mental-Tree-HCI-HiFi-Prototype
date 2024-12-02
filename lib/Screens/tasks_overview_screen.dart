@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
+import 'package:mental_load/functions/sharedPreferences.dart';
 import 'package:mental_load/main.dart';
 import 'package:mental_load/widgets/cards_bottom_sheet.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
@@ -76,7 +77,8 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0, vertical: 8.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),
                     ),
@@ -105,9 +107,12 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
                   final tasks = _applySorting(snapshot.data!);
                   return LayoutBuilder(
                     builder: (context, constraints) {
-                      final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
+                      final crossAxisCount =
+                          (constraints.maxWidth ~/ 200).clamp(2, 4);
                       final aspectRatio = 140 / 200;
-                      final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+                      final cardWidth =
+                          (constraints.maxWidth - (crossAxisCount - 1) * 16) /
+                              crossAxisCount;
                       final cardHeight = cardWidth / aspectRatio;
 
                       return GridView.builder(
@@ -170,13 +175,16 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.error, // Use error color for delete
+          backgroundColor:
+              Theme.of(context).colorScheme.error, // Use error color for delete
           foregroundColor: Theme.of(context).colorScheme.onError,
           padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
-          side: BorderSide(color: Theme.of(context).colorScheme.error.withOpacity(0.5), width: 2),
+          side: BorderSide(
+              color: Theme.of(context).colorScheme.error.withOpacity(0.5),
+              width: 2),
         ),
       ),
     );
@@ -200,7 +208,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
       additionalWidgets: ElevatedButton.icon(
         onPressed: () async {
           await DBHandler().saveTask(task);
-          DBHandler().removeSubmittedUser((await DBHandler().getCurUserId()));
+          DBHandler().removeSubmittedUser((await getCurUserId()));
           Navigator.pop(context);
           setState(() {
             _fetchTasks(); // Refresh the task list
@@ -218,7 +226,9 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
-          side: BorderSide(color: Theme.of(context).colorScheme.primary.withOpacity(0.5), width: 2),
+          side: BorderSide(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+              width: 2),
         ),
       ),
     );

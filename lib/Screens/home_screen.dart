@@ -10,8 +10,10 @@ import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/widgets/blossom_dialog_widget.dart';
 import 'package:mental_load/widgets/flower_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -56,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
   };
   double screenWidth = 0;
   double screenPaddingTop = 0;
+  int curUserId = 0;
 
   @override
   void initState() {
@@ -71,6 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+
     List<User> allUsers = await DBHandler().getUsers();
 
     List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
@@ -124,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     setState(() {
+      curUserId = prefs.getInt(constCurrentUserId) ?? 0;
       blossomData = data;
       _users = allUsers;
       blossomStrings = newBlossomStrings;
@@ -180,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Column(children: [
                     Names(users: _users, blossomStrings: blossomStrings),
                     const TreeHomeScreen(),
-                    FlowersHomeScreen(users: _users),
+                    FlowersHomeScreen(users: _users, curUserId: curUserId),
                   ]),
                   for (Category tmpCategory in Category.values)
                     for (int i = 0;
@@ -318,8 +324,10 @@ class TreeHomeScreen extends StatelessWidget {
 
 class FlowersHomeScreen extends StatefulWidget {
   final List<User> users;
+  final int curUserId;
 
-  const FlowersHomeScreen({super.key, required this.users});
+  const FlowersHomeScreen(
+      {super.key, required this.users, required this.curUserId});
 
   @override
   State<FlowersHomeScreen> createState() => _FlowersHomeScreenState();
@@ -387,6 +395,7 @@ class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
                                 mood: newMood);
                             DBHandler().saveMood(moodToSave);
                           },
+                          disabled: widget.curUserId != currentMood.userId,
                         ),
                     ],
                   ),

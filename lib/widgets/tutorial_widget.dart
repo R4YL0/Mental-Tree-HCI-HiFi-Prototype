@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/Screens/settings_screen.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/User.dart';

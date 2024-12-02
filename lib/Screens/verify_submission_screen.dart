@@ -4,9 +4,11 @@ import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/TaskDistributor.dart';
 import 'package:mental_load/classes/User.dart';
-import 'package:mental_load/main.dart';
+import 'package:mental_load/constants/strings.dart';
+import 'package:mental_load/functions/sharedPreferences.dart';
 import 'package:mental_load/widgets/cards_bottom_sheet.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TaskSubmissionScreen extends StatefulWidget {
   final TabController tabController;
@@ -26,6 +28,7 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   late Future<List<Task>> _likedTasksFuture;
   late Future<List<Task>> _dislikedTasksFuture;
   late Future<List<Task>> _undecidedTasksFuture;
+  late User currUser;
 
   final DBHandler _dbHandler = DBHandler();
   bool _submitted = false;
@@ -33,6 +36,17 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   @override
   void initState() {
     super.initState();
+    _myInit();
+  }
+
+  void _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+    int? curUserId = prefs.getInt(constCurrentUserId);
+    if (curUserId != null) {
+      User? newCurrUser = await DBHandler().getUserByUserId(curUserId);
+      if (newCurrUser != null) setState(() => currUser = newCurrUser);
+    }
+
     _fetchSubmissionStatus();
     _fetchTasks();
   }
@@ -42,7 +56,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
   }
 
   void _showTaskBottomSheet(BuildContext context, Task task) async {
-    TaskState? currentState = (await DBHandler().getCurUser()).taskStates[task.taskId];
+    TaskState? currentState =
+        (await DBHandler().getCurUser()).taskStates[task.taskId];
 
     showTaskBottomSheet(
       context: context,
@@ -63,7 +78,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     try {
                       final currentUser = await DBHandler().getCurUser();
                       currentUser.taskStates[task.taskId] = TaskState.Like;
-                      await currentUser.updateTaskState(task.taskId, TaskState.Like);
+                      await currentUser.updateTaskState(
+                          task.taskId, TaskState.Like);
                       await _fetchTasks();
                       setState(() {});
                     } catch (e) {
@@ -71,7 +87,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     }
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: currentState == TaskState.Like ? Colors.green : Colors.grey[300],
+                    backgroundColor: currentState == TaskState.Like
+                        ? Colors.green
+                        : Colors.grey[300],
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
@@ -79,7 +97,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                   child: Text(
                     "Liked",
                     style: TextStyle(
-                      color: currentState == TaskState.Like ? Colors.white : Colors.black,
+                      color: currentState == TaskState.Like
+                          ? Colors.white
+                          : Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -97,7 +117,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     try {
                       final currentUser = await DBHandler().getCurUser();
                       currentUser.taskStates[task.taskId] = TaskState.Dislike;
-                      await currentUser.updateTaskState(task.taskId, TaskState.Dislike);
+                      await currentUser.updateTaskState(
+                          task.taskId, TaskState.Dislike);
                       await _fetchTasks();
                       setState(() {});
                     } catch (e) {
@@ -105,7 +126,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     }
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: currentState == TaskState.Dislike ? Colors.red : Colors.grey[300],
+                    backgroundColor: currentState == TaskState.Dislike
+                        ? Colors.red
+                        : Colors.grey[300],
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
@@ -113,7 +136,9 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                   child: Text(
                     "Disliked",
                     style: TextStyle(
-                      color: currentState == TaskState.Dislike ? Colors.white : Colors.black,
+                      color: currentState == TaskState.Dislike
+                          ? Colors.white
+                          : Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -139,7 +164,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     }
                   },
                   style: TextButton.styleFrom(
-                    backgroundColor: currentState == null ? Colors.blue : Colors.grey[300],
+                    backgroundColor:
+                        currentState == null ? Colors.blue : Colors.grey[300],
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.zero,
                     ),
@@ -163,121 +189,121 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
 
   Future<void> _fetchSubmissionStatus() async {
     List<int> submittedUsers = await _dbHandler.getSubmittedUsers();
-    int curUserId = await DBHandler().getCurUserId();
+    int curUserId = await getCurUserId();
     setState(() {
       _submitted = submittedUsers.contains(curUserId);
     });
   }
 
   Future<void> _fetchTasks() async {
-    int curUserId = await DBHandler().getCurUserId();
+    int curUserId = await getCurUserId();
     _likedTasksFuture = _dbHandler.getLikedTasksByUserId(curUserId);
     _dislikedTasksFuture = _dbHandler.getDislikedTasksByUserId(curUserId);
     _undecidedTasksFuture = _dbHandler.getUndecidedTasksByUserID(curUserId);
   }
 
   Future<void> _submitSelection() async {
-  final dbHandler = DBHandler();
-  final currentUserId = await dbHandler.getCurUserId();
+    final dbHandler = DBHandler();
+    final currentUserId = await getCurUserId();
 
-  await dbHandler.saveSubmittedUser(currentUserId);
+    await dbHandler.saveSubmittedUser(currentUserId);
 
-  setState(() {
-    _submitted = true;
-  });
+    setState(() {
+      _submitted = true;
+    });
 
-  final allUsers = await dbHandler.getUsers();
-  final submittedUsers = await dbHandler.getSubmittedUsers();
+    final allUsers = await dbHandler.getUsers();
+    final submittedUsers = await dbHandler.getSubmittedUsers();
 
-  if (allUsers.length == submittedUsers.length) {
-    if (context.mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            elevation: 8,
-            backgroundColor: Colors.white,
-            insetPadding: const EdgeInsets.all(16),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    "Preferences Submitted",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+    if (allUsers.length == submittedUsers.length) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 8,
+              backgroundColor: Colors.white,
+              insetPadding: const EdgeInsets.all(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      "Preferences Submitted",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(thickness: 1.5, color: Colors.grey[300]),
-                  const SizedBox(height: 16),
-                  Text(
-                    "Great news! All users have submitted their preferences. The app has now distributed tasks based on everyone's choices.",
-                    textAlign: TextAlign.left,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.grey[700],
-                      height: 1.5,
+                    const SizedBox(height: 16),
+                    Divider(thickness: 1.5, color: Colors.grey[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      "Great news! All users have submitted their preferences. The app has now distributed tasks based on everyone's choices.",
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[700],
+                        height: 1.5,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: SizedBox(
-                      width: 160,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: SizedBox(
+                        width: 160,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                Theme.of(context).colorScheme.primary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          "Show My Tasks",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                          child: const Text(
+                            "Show My Tasks",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          );
-        },
-      );
+            );
+          },
+        );
+      }
+
+      final taskDistributor = TaskDistributor();
+
+      await taskDistributor.createAssignedTaskDistribution();
+      print("TASKS DISTRIBUTED");
+
+      widget.onUpdate();
+    } else {
+      widget.tabController.animateTo(3);
     }
-
-    final taskDistributor = TaskDistributor(); 
-
-    await taskDistributor.createAssignedTaskDistribution();
-    print("TASKS DISTRIBUTED");
-
-    widget.onUpdate();
-  } else {
-    widget.tabController.animateTo(3);
   }
-}
-
 
   void _editSubmission() async {
-    await _dbHandler.removeSubmittedUser(await DBHandler().getCurUserId());
+    await _dbHandler.removeSubmittedUser(await getCurUserId());
 
     setState(() {
       _submitted = false;
@@ -372,7 +398,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                               height: 200 * 1.25,
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
-                                  final double cardHeightBig = constraints.maxHeight;
+                                  final double cardHeightBig =
+                                      constraints.maxHeight;
                                   return Cards(
                                     thisTask: Future.value(task),
                                     sState: SmallState.info,
@@ -440,7 +467,8 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 30, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(25),
                       ),

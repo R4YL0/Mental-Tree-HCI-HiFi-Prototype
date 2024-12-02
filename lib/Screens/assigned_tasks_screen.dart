@@ -175,54 +175,45 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        body: Padding(
-            padding: EdgeInsets.only(top: 0, right: 10, left: 10),
-            child: Column(children: [
-              // TabBar
-              TabBar(
-                controller: _tabController,
-                indicatorColor: Colors.blue,
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.grey,
-                tabs: const [
-                  Tab(icon: Icon(Icons.task), text: "All Tasks"),
-                  Tab(icon: Icon(Icons.assignment_outlined), text: "My Tasks"),
-                  Tab(icon: Icon(Icons.group_outlined), text: "Others' Tasks"),
-                ],
-              ),
-              const SizedBox(height: 10),
-              // TabBarView
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    // All Tasks Tab
-                    TaskOverviewDistributedScreen(),
-                    // TabBarView
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          // All Tasks Tab
-                          TaskOverviewDistributedScreen(),
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Padding(
+      padding: EdgeInsets.only(top: 0, right: 10, left: 10),
+      child: Column(
+        children: [
+          // TabBar
+          TabBar(
+            controller: _tabController,
+            indicatorColor: Colors.blue,
+            labelColor: Colors.blue,
+            unselectedLabelColor: Colors.grey,
+            tabs: const [
+              Tab(icon: Icon(Icons.task), text: "All Tasks"),
+              Tab(icon: Icon(Icons.assignment_outlined), text: "My Tasks"),
+              Tab(icon: Icon(Icons.group_outlined), text: "Others' Tasks"),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // TabBarView
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // All Tasks Tab
+                TaskOverviewDistributedScreen(),
+                // My Tasks Tab
+                _buildMyTasksTab(),
+                // Others' Tasks Tab
+                _buildOthersTasksTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 
-                          // My Tasks Tab
-                          _buildMyTasksTab(),
-                          // My Tasks Tab
-                          _buildMyTasksTab(),
-
-                          // Others' Tasks Tab
-                          _buildOthersTasksTab(),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ])));
-  }
 
 // My Tasks Tab
   Widget _buildMyTasksTab() {

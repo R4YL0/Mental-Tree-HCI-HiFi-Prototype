@@ -68,6 +68,7 @@ class CategoryChartWidget extends StatefulWidget {
 class _CategoryChartWidgetState extends State<CategoryChartWidget> {
   List<User> users = [];
   List<_CategoryCount> chartData = [];
+  double maxCatCount = 0;
 
   @override
   void initState() {
@@ -77,6 +78,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
 
   _myInit() async {
     users = await DBHandler().getUsers();
+
     final Map<Category, List<AssignedTask>>
         allAssignedTasks; // not really all, depends on variable if completed or not
 
@@ -88,22 +90,31 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
           await AssignedTask.getAssignedButNotCompletedTasksDictionary();
     }
     final allCategoryAssignedTasks = allAssignedTasks[widget.category];
-    if (allCategoryAssignedTasks != null)
-      // ignore: curly_braces_in_flow_control_structures
+    if (allCategoryAssignedTasks != null) {
       for (AssignedTask aTask in allCategoryAssignedTasks) {
-        bool entryExists = false;
-        for (_CategoryCount catCount in chartData) {
-          if (catCount.userId == aTask.user.userId &&
-              catCount.category == aTask.task.category.name) {
-            catCount.count += 1;
-            entryExists = true;
+        // either not completed task (then not care about finishDate) or finishDate is < 30 days
+        if (!widget.completed ||
+            (aTask.finishDate != null &&
+                aTask.finishDate!.difference(DateTime.now()).inDays < 30)) {
+          bool entryExists = false;
+          for (_CategoryCount catCount in chartData) {
+            if (catCount.userId == aTask.user.userId &&
+                catCount.category == aTask.task.category.name) {
+              catCount.count += 1;
+              if (catCount.count > maxCatCount) {
+                maxCatCount = catCount.count.toDouble();
+              }
+              entryExists = true;
+            }
+          }
+          if (entryExists == false) {
+            chartData.add(
+                _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
+            if (maxCatCount < 1) maxCatCount = 1;
           }
         }
-        if (entryExists == false) {
-          chartData.add(
-              _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
-        }
       }
+    }
     chartData.sort((a, b) => a.category.compareTo(b.category));
     setState(() {});
   }
@@ -115,10 +126,10 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
         title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),
         labelStyle: TextStyle(fontSize: 10),
       ),
-      primaryYAxis: const NumericAxis(
+      primaryYAxis: NumericAxis(
         title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)),
         minimum: 0,
-        maximum: 20,
+        maximum: maxCatCount == 0 ? 20 : maxCatCount,
       ),
       legend: const Legend(isVisible: true),
       tooltipBehavior: TooltipBehavior(enable: true),

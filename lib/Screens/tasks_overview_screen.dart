@@ -128,7 +128,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
                               sState: SmallState.info,
                               bState: BigState.info,
                               size: Size.small,
-                              heightBig: cardHeight,
+                              heightBig: cardHeight-30,
                             ),
                           );
                         },

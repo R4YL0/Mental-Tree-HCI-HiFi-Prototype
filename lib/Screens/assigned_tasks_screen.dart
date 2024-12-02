@@ -864,7 +864,7 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
                                 sState: task.finishDate != null ? SmallState.done : SmallState.todo,
                                 bState: BigState.info,
                                 size: Size.small,
-                                heightBig: cardHeight,
+                                heightBig: cardHeight-20,
                                 doneDate: task.finishDate,
                               );
 
@@ -1013,7 +1013,7 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview> with Sing
                                   sState: SmallState.info,
                                   bState: BigState.info,
                                   size: Size.small,
-                                  heightBig: cardHeight,
+                                  heightBig: cardHeight-30,
                                 ),
                               );
                             },

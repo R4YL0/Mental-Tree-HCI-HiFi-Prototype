@@ -118,21 +118,21 @@ class _Cards extends State<Cards> {
                           ),
                         ],
                       ),
-                      textScaleFactor: 0.65,
+                      textScaleFactor: 0.8,
                     ),
                   ),
                   Align(
-                    alignment: Alignment(-0.34, -0.417),
+                    alignment: Alignment(0, -0.45),
                     child: ColoredBox(
-                      color: Color.fromARGB(255, 254, 213, 182),
+                      color: Color.fromARGB(255, 226, 226, 226),
                       child: SizedBox(
-                        width: cardWidth * 0.95,
-                        height: cardHeight * 0.4,
+                        width: cardWidth * 0.98,
+                        height: cardHeight * 0.43,
                       ),
                     ),
                   ),
                   Align(
-                    alignment: Alignment(-0.34, -0.417),
+                    alignment: Alignment(0, -0.417),
                     child: ClipRect(
                       child: SizedBox(
                         width: cardWidth * 0.95, 
@@ -157,7 +157,7 @@ class _Cards extends State<Cards> {
                     child: Text(
                       "${snapshot.requireData.priority}/5",
                       style: TextStyle(fontWeight: FontWeight.bold),
-                      textScaleFactor: 0.7,
+                      textScaleFactor: 0.9,
                     ),
                   ),
                   Align(
@@ -173,7 +173,7 @@ class _Cards extends State<Cards> {
                     child: Text(
                       "${snapshot.requireData.difficulty}/5",
                       style: TextStyle(fontWeight: FontWeight.bold),
-                      textScaleFactor: 0.7,
+                      textScaleFactor: 0.9,
                     ),
                   ),
                   buttons(snapshot),
@@ -203,21 +203,21 @@ class _Cards extends State<Cards> {
               child: Stack(
                 children: <Widget>[
                   Align(
-                    alignment: Alignment(0, -0.7),
+                    alignment: Alignment(0, -0.67),
                     child: ColoredBox(
-                      color: Color.fromARGB(255, 254, 213, 182),
+                      color: Color.fromARGB(255, 226, 226, 226),
                       child: SizedBox(
-                        width: cardWidth * 0.95,
-                        height: cardHeight * 0.5,
+                        width: cardWidth*1.1,
+                        height: cardHeight * 0.52,
                       ),
                     ),
                   ),
                   Align(
-                    alignment: Alignment(0, -0.7),
+                    alignment: Alignment(0, -0.65),
                     child: ClipRect(
                       // Ensures the image is cropped to fit within the orange box
                       child: SizedBox(
-                        width: cardWidth * 0.95, // Same width as the orange box
+                        width: cardWidth * 1.07, // Same width as the orange box
                         height: cardHeight * 0.5, // Same height as the orange box
                         child: Image.memory(
                           snapshot.requireData.img,
@@ -255,7 +255,7 @@ class _Cards extends State<Cards> {
           child: Text(
             dueDate(s.requireData.frequency, s),
             style: TextStyle(fontWeight: FontWeight.bold),
-            textScaler: TextScaler.linear(2.2 * widget.heightBig / 550),
+            textScaler: TextScaler.linear(2 * widget.heightBig / 550),
           ),
         ),
       ],
@@ -293,7 +293,29 @@ class _Cards extends State<Cards> {
   }
 
   Widget toDoButtons(AsyncSnapshot<Task> s) {
-    return _twoButtons("Check off", AppColors.success, true, Colors.black, s);
+    return Stack(
+      children: <Widget>[
+        Align(
+          alignment: Alignment(0.0, 1),
+          child: MaterialButton(
+            color: AppColors.success,
+            textColor: Colors.black,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            height: 35,
+            minWidth: 130,
+            onPressed: () => setState(() {
+              widget.sState = SmallState.done;
+              widget.finalDateNotifier.value = DateTime.now();
+              print("check off pressed");
+            }),
+            child: Text(
+              "Check off",
+              textScaler: TextScaler.linear(0.7),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   //BigCards Sections: General, SubTasks, Notes
@@ -303,14 +325,14 @@ class _Cards extends State<Cards> {
         names(s.requireData.name, Size.big, s),
         categoryMenu(s),
         Align(
-          alignment: Alignment(-0.88, 0.07),
+          alignment: Alignment(-0.9, 0.08),
           child: Text(
             "General",
-            textScaler: TextScaler.linear(1.1 * widget.heightBig / 550),
+            textScaler: TextScaler.linear(1.2 * widget.heightBig / 550),
           ),
         ),
         Align(
-          alignment: Alignment(-0.88, 0.15),
+          alignment: Alignment(-0.9, 0.15),
           child: Text(
             "Priority",
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -422,14 +444,14 @@ class _Cards extends State<Cards> {
           names(s.requireData.name, Size.big, s),
           categoryMenu(s),
           Align(
-            alignment: Alignment(-0.88, 0.07),
+            alignment: Alignment(-0.9, 0.08),
             child: Text(
               "General",
-              textScaler: TextScaler.linear(1.1 * widget.heightBig / 550),
+              textScaler: TextScaler.linear(1.2 * widget.heightBig / 550),
             ),
           ),
           Align(
-            alignment: Alignment(-0.88, 0.15),
+            alignment: Alignment(-0.9, 0.15),
             child: Text(
               "Priority",
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -558,14 +580,14 @@ class _Cards extends State<Cards> {
         names(s.requireData.name, Size.big, s),
         categoryMenu(s),
         Align(
-          alignment: Alignment(-0.88, 0.07),
+          alignment: Alignment(-0.9, 0.15),
           child: Text(
             "General",
-            textScaler: TextScaler.linear(1.1 * widget.heightBig / 550),
+            textScaler: TextScaler.linear(1.2 * widget.heightBig / 550),
           ),
         ),
         Align(
-          alignment: Alignment(-0.88, 0.25),
+          alignment: Alignment(-0.9, 0.25),
           child: Text(
             "Priority",
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -597,7 +619,7 @@ class _Cards extends State<Cards> {
           ),
         ),
         Align(
-          alignment: Alignment(-0.88, 0.45),
+          alignment: Alignment(-0.88, 0.42),
           child: Text(
             "Next Subtask",
             style: TextStyle(fontWeight: FontWeight.bold),
@@ -606,14 +628,15 @@ class _Cards extends State<Cards> {
         ),
         findSubtask(s.requireData.subtasks),
         Align(
-          alignment: Alignment(-0.88, 0.07),
+          alignment: Alignment(-0.9, 0.65),
           child: Text(
             "Notes",
+            style: TextStyle(fontWeight: FontWeight.bold),
             textScaler: TextScaler.linear(1.1 * widget.heightBig / 550),
           ),
         ),
         Align(
-          alignment: Alignment(0, 0.6),
+          alignment: Alignment(0, 0.85),
           child: ConstrainedBox(
             constraints: BoxConstraints(maxHeight: 100 * widget.heightBig / 550, maxWidth: 270 * widget.heightBig / 550),
             child: SingleChildScrollView(
@@ -943,27 +966,27 @@ class _Cards extends State<Cards> {
         );
     }
     if(s == Size.small) {
-      if(name.length>10 && name.substring(10,11) != ' ') {
+      if(name.length>13 && (name.substring(13,14) != ' ' && name.substring(12,13) != ' ')) {
         return Stack(children: <Widget> [
             Align(alignment: Alignment(-0.90, -0.9) , child:
-              Text("${name.substring(0,10)}-", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.8*widget.heightBig/550),),),
-            Align(alignment: Alignment(-0.7, -0.75) , child:
-              Text(name.substring(10), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.5*widget.heightBig/550),),)
+              Text("${name.substring(0,13)}-", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),),
+            Align(alignment: Alignment(-0.9, -0.8) , child:
+              Text(name.substring(13), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.6*widget.heightBig/550),),)
             ,]
         );
       }
-      else if(name.length>10) {
+      else if(name.length>13) {
         return Stack(children: <Widget> [
             Align(alignment: Alignment(-0.90, -0.9) , child:
-              Text(name.substring(0,10), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.8*widget.heightBig/550),),),
-            Align(alignment: Alignment(-0.7, -0.75) , child:
-              Text(name.substring(10), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.5*widget.heightBig/550),),)
+              Text(name.substring(0,13), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),),
+            Align(alignment: Alignment(-0.9, -0.78) , child:
+              Text(name.substring(13), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.6*widget.heightBig/550),),)
             ,]
         );
       }
       else {
         return Align(alignment: Alignment(-0.90, -0.9) , child:
-          Text(name, style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(0.8*widget.heightBig/550),),);
+          Text(name, style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),);
       }
     } else {
       return Align(alignment: Alignment(-0.8, -0.94) , child:
@@ -985,7 +1008,7 @@ class _Cards extends State<Cards> {
   }
 
   Widget findSubtask(List<Subtask> s) {
-    double position = widget.bState == BigState.swipe ? 0.65 : 0.7;
+    double position = widget.bState == BigState.swipe ? 0.55 : 0.7;
     if (s.isNotEmpty) {
       Subtask f = s.firstWhere((Subtask f) => !f.isDone, orElse: () => s.last);
       subTaskIdx = s.indexOf(f);
@@ -1076,14 +1099,21 @@ class _Cards extends State<Cards> {
   }
 
   Widget categoryMenu(AsyncSnapshot<Task> s) {
-    if(widget.bState != BigState.edit) {
+    if(widget.bState == BigState.info) {
       return Align(alignment: Alignment(0.65, -0.92) , child:
           Text(s.requireData.category.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
             Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
             Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
           ],
         ), textScaler: TextScaler.linear(1.4),),);
-    } 
+    } else if (widget.bState == BigState.swipe) {
+       return Align(alignment: Alignment(0.85, -0.95) , child:
+          Text(s.requireData.category.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
+            Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
+            Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
+          ],
+        ), textScaler: TextScaler.linear(1.4),),);
+    }
     var list = [
       DropdownMenuItem<Category>(value: Category.Admin, child:
         Text(Category.Admin.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
@@ -1147,7 +1177,9 @@ class _Cards extends State<Cards> {
         children: freqOptions,
         onPressed: (value) => setState(() {
           s.requireData.frequency = Frequency.values.elementAt(value);
-          if(value == Frequency.oneTime) { datePicker();}
+          if(Frequency.values.elementAt(value) == Frequency.oneTime) {
+            datePicker(s);
+          }
         }),
         borderRadius: BorderRadius.all(Radius.circular(40)),
         constraints: BoxConstraints(minWidth: 75 * widget.heightBig / 550, minHeight: 35 * widget.heightBig / 550),
@@ -1155,11 +1187,20 @@ class _Cards extends State<Cards> {
     );
   }
 
-  void datePicker() async {
-    //TODO
-    DateTime picked;
-    //final Future<DateTime?> pickedDate = showDatePicker(context: context, firstDate: DateTime.now(), lastDate: DateTime(2025), onDatePickerModeChange: (value) => {picked = value;},);
-
+  Future<void> datePicker(AsyncSnapshot<Task> s) async {
+    DateTime end = DateTime(DateTime.now().year+2);
+    DateTime start = DateTime.now();
+    if(s.requireData.startDate != null) {
+      start = s.requireData.startDate as DateTime;
+    }
+    DateTime init = DateTime.now();
+    if(s.requireData.dueDate != null) {
+      init = s.requireData.dueDate as DateTime;
+    }
+    DateTime? picked = await showDatePicker(context: context, firstDate: start, initialDate: init, lastDate: end);
+    if(picked != null) {
+      setState(() { s.requireData.dueDate = picked;});
+    }
   }
 
   /*void chooseImage(AsyncSnapshot<Task> s) async {

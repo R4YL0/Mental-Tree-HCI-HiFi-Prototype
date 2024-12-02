@@ -378,7 +378,7 @@ class _TaskSubmissionScreenState extends State<TaskSubmissionScreen> {
                                     sState: SmallState.info,
                                     bState: BigState.info,
                                     size: Size.small,
-                                    heightBig: cardHeightBig,
+                                    heightBig: cardHeightBig-30,
                                   );
                                 },
                               ),

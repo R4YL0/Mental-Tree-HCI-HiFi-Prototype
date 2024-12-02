@@ -133,7 +133,7 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
                               sState: SmallState.info,
                               bState: BigState.info,
                               size: Size.small,
-                              heightBig: cardHeight,
+                              heightBig: cardHeight-30,
                             ),
                           );
                         },

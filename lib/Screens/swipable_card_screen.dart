@@ -205,7 +205,7 @@ if (_remainingTasks.isEmpty || _submittedUsers.contains(curUserId)) {
                       sState: SmallState.info,
                       bState: BigState.swipe,
                       size: Size.big,
-                      heightBig: cardHeightBig,
+                      heightBig: cardHeightBig-75,
                     );
                   },
                   onSwipe: (previousIndex, currentIndex, direction) async {

@@ -21,15 +21,23 @@ class Cards extends StatefulWidget {
   var sState = SmallState.edit;
   var bState = BigState.info;
   var size = Size.small;
-  DateTime finalDate = DateTime(2045);
+  final ValueNotifier<DateTime?> finalDateNotifier;
   double heightBig = 550;
-  
-  Cards({super.key, required this.thisTask, required this.sState, this.size = Size.small, required this.bState, required this.heightBig});
+
+  Cards({
+    super.key,
+    required this.thisTask,
+    required this.sState,
+    this.size = Size.small,
+    required this.bState,
+    required this.heightBig,
+    DateTime? doneDate,
+  }) : finalDateNotifier = ValueNotifier<DateTime?>(doneDate);
 
   @override
   State<Cards> createState() => _Cards();
-
 }
+
 
 class _Cards extends State<Cards> {
   var oldState = SmallState.info;
@@ -267,7 +275,8 @@ class _Cards extends State<Cards> {
             minWidth: 130,
             onPressed: () => setState(() {
               widget.sState = SmallState.todo;
-              widget.finalDate = DateTime(2045);
+              widget.finalDateNotifier.value = null;
+              print("undo pressed");
             }),
             child: Text(
               "Undo",
@@ -1214,7 +1223,7 @@ class _Cards extends State<Cards> {
             onPressed: () => setState(() {
               if (sml) {
                 widget.sState = SmallState.done;
-                widget.finalDate = DateTime.now();
+                widget.finalDateNotifier.value = DateTime.now();
               } else {
                 widget.bState = BigState.edit;
                 widget.size = Size.big;

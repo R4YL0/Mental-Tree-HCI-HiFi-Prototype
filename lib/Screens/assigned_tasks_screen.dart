@@ -177,44 +177,51 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: EdgeInsets.only(top: 0, right: 10, left: 10),
-        child: Column(
-          children: [
-            // TabBar
-            TabBar(
-              controller: _tabController,
-              indicatorColor: Colors.blue,
-              labelColor: Colors.blue,
-              unselectedLabelColor: Colors.grey,
-              tabs: const [
-                Tab(icon: Icon(Icons.task), text: "All Tasks"),
-                Tab(icon: Icon(Icons.assignment_outlined), text: "My Tasks"),
-                Tab(icon: Icon(Icons.group_outlined), text: "Others' Tasks"),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // TabBarView
-            Expanded(
-              child: TabBarView(
+        body: Padding(
+            padding: EdgeInsets.only(top: 0, right: 10, left: 10),
+            child: Column(children: [
+              // TabBar
+              TabBar(
                 controller: _tabController,
-                children: [
-                  // All Tasks Tab
-                  TaskOverviewDistributedScreen(),
-
-                  // My Tasks Tab
-                  _buildMyTasksTab(),
-
-                  // Others' Tasks Tab
-                  _buildOthersTasksTab(),
+                indicatorColor: Colors.blue,
+                labelColor: Colors.blue,
+                unselectedLabelColor: Colors.grey,
+                tabs: const [
+                  Tab(icon: Icon(Icons.task), text: "All Tasks"),
+                  Tab(icon: Icon(Icons.assignment_outlined), text: "My Tasks"),
+                  Tab(icon: Icon(Icons.group_outlined), text: "Others' Tasks"),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
+              const SizedBox(height: 10),
+              // TabBarView
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // All Tasks Tab
+                    TaskOverviewDistributedScreen(),
+                    // TabBarView
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        children: [
+                          // All Tasks Tab
+                          TaskOverviewDistributedScreen(),
+
+                          // My Tasks Tab
+                          _buildMyTasksTab(),
+                          // My Tasks Tab
+                          _buildMyTasksTab(),
+
+                          // Others' Tasks Tab
+                          _buildOthersTasksTab(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ])));
   }
 
 // My Tasks Tab
@@ -266,7 +273,7 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Show Completed Tasks"),
+            const Text("Show Completed Tasks"),
             Switch(
               value: _showCompletedTasks,
               onChanged: (value) {
@@ -320,12 +327,44 @@ class _AssignedTasksOverviewState extends State<AssignedTasksOverview>
 
                         return GestureDetector(
                           onTap: () => _showYourTaskAction(context, task),
-                          child: Cards(
-                            thisTask: Future.value(task.task),
-                            sState: sState,
-                            bState: BigState.info,
-                            size: Size.small,
-                            heightBig: cardHeight,
+                          child: Builder(
+                            builder: (context) {
+                              final myCard = Cards(
+                                thisTask: Future.value(task.task),
+                                sState: task.finishDate != null
+                                    ? SmallState.done
+                                    : SmallState.todo,
+                                bState: BigState.info,
+                                size: Size.small,
+                                heightBig: cardHeight,
+                                doneDate: task.finishDate,
+                              );
+
+                              final finalDateNotifier =
+                                  myCard.finalDateNotifier;
+
+                              // Async handler function
+                              Future<void> handleFinalDateChange(
+                                  DateTime? newValue) async {
+                                await task.setFinishDate(newValue);
+                              }
+
+                              // Add listener to handle finalDate changes
+                              finalDateNotifier.addListener(() {
+                                // Get the updated value from the notifier
+                                final updatedValue = finalDateNotifier.value;
+
+                                // Call the async function
+                                handleFinalDateChange(updatedValue);
+                              });
+
+                              return ValueListenableBuilder<DateTime?>(
+                                valueListenable: finalDateNotifier,
+                                builder: (context, finalDate, child) {
+                                  return myCard;
+                                },
+                              );
+                            },
                           ),
                         );
                       },

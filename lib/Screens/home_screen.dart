@@ -10,8 +10,10 @@ import 'package:mental_load/classes/DBHandler.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
+import 'package:mental_load/constants/strings.dart';
 import 'package:mental_load/widgets/blossom_dialog_widget.dart';
 import 'package:mental_load/widgets/flower_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -326,9 +328,20 @@ class FlowersHomeScreen extends StatefulWidget {
 }
 
 class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
+  late int curUserId;
+
   @override
   void initState() {
     super.initState();
+    _myInit();
+  }
+
+  void _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      curUserId = prefs.getInt(constCurrentUserId) ?? 0;
+    });
   }
 
   Future<List<Mood>> _getUserMoods() async {
@@ -387,6 +400,7 @@ class _FlowersHomeScreenState extends State<FlowersHomeScreen> {
                                 mood: newMood);
                             DBHandler().saveMood(moodToSave);
                           },
+                          disabled: curUserId != currentMood.userId,
                         ),
                     ],
                   ),

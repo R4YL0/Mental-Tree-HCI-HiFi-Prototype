@@ -612,7 +612,7 @@ class _MoodChartState extends State<MoodChart> {
                     for(var moodMap in data.values)
                       Row(
                         children: [
-                          for (int i=moodMap.values.length-1;i>= 0;i--)
+                          for (int i=0;i<moodMap.values.length;i++)
                             Padding(
                               padding: const EdgeInsets.all(2),
                               child: Container(

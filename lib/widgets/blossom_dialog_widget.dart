@@ -69,6 +69,8 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
   List<User> users = [];
   List<_CategoryCount> chartData = [];
   List<_CategoryCount> chartData2 = [];
+  String dataSize = "S";
+  
 
   @override
   void initState() {
@@ -77,6 +79,12 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
   }
 
   _myInit() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      dataSize = prefs.getString(constDataSet) ?? "S";
+    });
+
+    int dataSetSize = dataSize == "S" ? 5 : dataSize == "M" ? 10 : 20;
     users = await DBHandler().getUsers();
 
     final Map<Category, List<AssignedTask>>
@@ -86,7 +94,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
 
     allAssignedTasks =
         await AssignedTask.getAssignedAndCompletedTasksDictionary();
-    final allCategoryAssignedTasks = allAssignedTasks[widget.category]?.sublist(0, widget.dataSetSize);
+    final allCategoryAssignedTasks = allAssignedTasks[widget.category]?.sublist(0, dataSetSize);
     if (allCategoryAssignedTasks != null) {
       for (AssignedTask aTask in allCategoryAssignedTasks) {
         // either not completed task (then not care about finishDate) or finishDate is < 30 days
@@ -114,7 +122,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
           await AssignedTask.getAssignedButNotCompletedTasksDictionary();
       int limit = 0;
             if(openAssignedTasks[widget.category] != null) {
-              limit = openAssignedTasks[widget.category]!.length > widget.dataSetSize ? widget.dataSetSize : openAssignedTasks[widget.category]!.length;
+              limit = openAssignedTasks[widget.category]!.length > dataSetSize ? dataSetSize : openAssignedTasks[widget.category]!.length;
             }
       final openCategoryAssignedTasks = openAssignedTasks[widget.category]?.sublist(0, limit);
       if (openCategoryAssignedTasks != null)
@@ -135,7 +143,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
         }
       chartData2.sort((a, b) => a.category.compareTo(b.category));
     //}
-    setState(() {});
+    
   }
 
   @override
@@ -277,7 +285,7 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
               limit = assignedTasks[widget.category]!.length > widget.dataSetSize ? widget.dataSetSize : assignedTasks[widget.category]!.length;
             }
             final List<AssignedTask> categoryAssignedTasks =
-                assignedTasks[widget.category]?.sublist(0, limit) ?? [];
+                assignedTasks[widget.category] ?? [];
 
             return ConstrainedBox(
               constraints: BoxConstraints(maxHeight: 306), child: 

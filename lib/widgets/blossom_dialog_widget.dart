@@ -20,6 +20,7 @@ class BlossomDialogWidget extends StatefulWidget {
 
 class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
   String testVersion = "A";
+  String dataSize = "S";
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       testVersion = prefs.getString(constTestVersion) ?? "A";
+      dataSize = prefs.getString(constDataSet) ?? "S";
     });
   }
 
@@ -43,8 +45,8 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CategoryChartWidget(category: widget.category, completed: testVersion == "A"),
-            CategoryListWidget(category: widget.category),
+            CategoryChartWidget(category: widget.category, completed: testVersion == "A", dataSetSize: dataSize == "S" ? 5 : dataSize == "M" ? 10 : 20),
+            CategoryListWidget(category: widget.category, dataSetSize: dataSize == "S" ? 5 : dataSize == "M" ? 10 : 20),
           ],
         ),
       ),
@@ -55,8 +57,9 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
 class CategoryChartWidget extends StatefulWidget {
   final Category category;
   final bool completed;
+  final int dataSetSize;
   const CategoryChartWidget(
-      {super.key, required this.category, required this.completed});
+      {super.key, required this.category, required this.completed, required this.dataSetSize});
 
   @override
   State<CategoryChartWidget> createState() => _CategoryChartWidgetState();
@@ -83,7 +86,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
 
     allAssignedTasks =
         await AssignedTask.getAssignedAndCompletedTasksDictionary();
-    final allCategoryAssignedTasks = allAssignedTasks[widget.category];
+    final allCategoryAssignedTasks = allAssignedTasks[widget.category]?.sublist(0, widget.dataSetSize);
     if (allCategoryAssignedTasks != null) {
       for (AssignedTask aTask in allCategoryAssignedTasks) {
         // either not completed task (then not care about finishDate) or finishDate is < 30 days
@@ -109,7 +112,11 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
     //if (!widget.completed) {
       openAssignedTasks =
           await AssignedTask.getAssignedButNotCompletedTasksDictionary();
-      final openCategoryAssignedTasks = openAssignedTasks[widget.category];
+      int limit = 0;
+            if(openAssignedTasks[widget.category] != null) {
+              limit = openAssignedTasks[widget.category]!.length > widget.dataSetSize ? widget.dataSetSize : openAssignedTasks[widget.category]!.length;
+            }
+      final openCategoryAssignedTasks = openAssignedTasks[widget.category]?.sublist(0, limit);
       if (openCategoryAssignedTasks != null)
         // ignore: curly_braces_in_flow_control_structures
         for (AssignedTask aTask in openCategoryAssignedTasks) {
@@ -133,17 +140,17 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
 
   @override
   Widget build(BuildContext context) {
+    double maxAll = 0;
+    for(int i = 0; i < chartData.length; i++) {
+      maxAll = (maxAll < chartData[i].count.toDouble() ? chartData[i].count.toDouble() : maxAll);
+    }
+    //maxAll = maxAll < widget.dataSetSize.toDouble() ? widget.dataSetSize.toDouble() : maxAll;
     double maxOpen = 0;
     for(int i = 0; i < chartData2.length; i++) {
       maxOpen = (maxOpen < chartData2[i].count.toDouble() ? chartData2[i].count.toDouble() : maxOpen);
     }
     maxOpen = maxOpen < 5 ? 5 : maxOpen;
-    double maxAll = 0;
-    for(int i = 0; i < chartData.length; i++) {
-      maxAll = (maxAll < chartData[i].count.toDouble() ? chartData[i].count.toDouble() : maxAll);
-    }
-    maxAll = maxAll < 10 ? 10 : maxAll;
-    maxOpen = maxOpen < 5 ? 5 : maxOpen;
+    maxOpen = maxOpen > maxAll ? maxAll : maxOpen;
     return SfCartesianChart(
       primaryXAxis: const CategoryAxis(
         title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),
@@ -153,6 +160,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
         title: AxisTitle(text: "Tasks Last 30 Days", textStyle: TextStyle(fontSize: 12)),
         minimum: 0,
         maximum: maxAll,
+        interval: 1,
       ),
       legend: const Legend(isVisible: true),
       axes: [
@@ -162,6 +170,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
           opposedPosition: true,
           minimum: 0,
           maximum: maxOpen,
+          interval: 1,
           )
       ],
       tooltipBehavior: TooltipBehavior(enable: true),
@@ -222,8 +231,9 @@ class Info extends StatelessWidget {
 
 class CategoryListWidget extends StatefulWidget {
   final Category category;
+  final int dataSetSize;
 
-  const CategoryListWidget({super.key, required this.category});
+  const CategoryListWidget({super.key, required this.category, required this.dataSetSize});
 
   @override
   State<CategoryListWidget> createState() => _CategoryListWidgetState();
@@ -261,8 +271,12 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
           } else {
             final Map<Category, List<AssignedTask>> assignedTasks =
                 snapshot.data ?? {};
+            int limit = 0;
+            if(assignedTasks[widget.category] != null) {
+              limit = assignedTasks[widget.category]!.length > widget.dataSetSize ? widget.dataSetSize : assignedTasks[widget.category]!.length;
+            }
             final List<AssignedTask> categoryAssignedTasks =
-                assignedTasks[widget.category] ?? [];
+                assignedTasks[widget.category]?.sublist(0, limit) ?? [];
 
             return ListView.separated(
                 shrinkWrap: true,

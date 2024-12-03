@@ -43,11 +43,8 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CategoryChartWidget(category: widget.category, completed: true),
-            if (testVersion == "A")
-              CategoryChartWidget(category: widget.category, completed: false)
-            else
-              CategoryListWidget(category: widget.category),
+            CategoryChartWidget(category: widget.category, completed: testVersion == "A"),
+            CategoryListWidget(category: widget.category),
           ],
         ),
       ),
@@ -68,6 +65,7 @@ class CategoryChartWidget extends StatefulWidget {
 class _CategoryChartWidgetState extends State<CategoryChartWidget> {
   List<User> users = [];
   List<_CategoryCount> chartData = [];
+  List<_CategoryCount> chartData2 = [];
 
   @override
   void initState() {
@@ -79,14 +77,11 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
     users = await DBHandler().getUsers();
     final Map<Category, List<AssignedTask>>
         allAssignedTasks; // not really all, depends on variable if completed or not
+    final Map<Category, List<AssignedTask>>
+        openAssignedTasks;
 
-    if (widget.completed) {
-      allAssignedTasks =
-          await AssignedTask.getAssignedAndCompletedTasksDictionary();
-    } else {
-      allAssignedTasks =
-          await AssignedTask.getAssignedButNotCompletedTasksDictionary();
-    }
+    allAssignedTasks =
+        await AssignedTask.getAssignedAndCompletedTasksDictionary();
     final allCategoryAssignedTasks = allAssignedTasks[widget.category];
     if (allCategoryAssignedTasks != null)
       // ignore: curly_braces_in_flow_control_structures
@@ -105,22 +100,64 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
         }
       }
     chartData.sort((a, b) => a.category.compareTo(b.category));
+    //if (!widget.completed) {
+      openAssignedTasks =
+          await AssignedTask.getAssignedButNotCompletedTasksDictionary();
+      final openCategoryAssignedTasks = openAssignedTasks[widget.category];
+      if (openCategoryAssignedTasks != null)
+        // ignore: curly_braces_in_flow_control_structures
+        for (AssignedTask aTask in openCategoryAssignedTasks) {
+          bool entryExists = false;
+          for (_CategoryCount catCount in chartData2) {
+            if (catCount.userId == aTask.user.userId &&
+                catCount.category == aTask.task.category.name) {
+              catCount.count += 1;
+              entryExists = true;
+            }
+          }
+          if (entryExists == false) {
+            chartData2.add(
+                _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
+          }
+        }
+      chartData2.sort((a, b) => a.category.compareTo(b.category));
+    //}
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    double maxOpen = 0;
+    for(int i = 0; i < chartData2.length; i++) {
+      maxOpen = (maxOpen < chartData2[i].count.toDouble() ? chartData2[i].count.toDouble() : maxOpen);
+    }
+    maxOpen = maxOpen < 5 ? 5 : maxOpen;
+    double maxAll = 0;
+    for(int i = 0; i < chartData.length; i++) {
+      maxAll = (maxAll < chartData[i].count.toDouble() ? chartData[i].count.toDouble() : maxAll);
+    }
+    maxAll = maxAll < 10 ? 10 : maxAll;
+    maxOpen = maxOpen < 5 ? 5 : maxOpen;
     return SfCartesianChart(
       primaryXAxis: const CategoryAxis(
         title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),
         labelStyle: TextStyle(fontSize: 10),
       ),
-      primaryYAxis: const NumericAxis(
-        title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)),
+      primaryYAxis: NumericAxis(
+        title: AxisTitle(text: "Tasks Last 30 Days", textStyle: TextStyle(fontSize: 12)),
         minimum: 0,
-        maximum: 20,
+        maximum: maxAll,
       ),
       legend: const Legend(isVisible: true),
+      axes: [
+        if(!widget.completed)
+          NumericAxis(
+          title: const AxisTitle(text: "Tasks Open", textStyle: TextStyle(fontSize: 12)),
+          opposedPosition: true,
+          minimum: 0,
+          maximum: maxOpen,
+          )
+      ],
       tooltipBehavior: TooltipBehavior(enable: true),
       series: <CartesianSeries>[
         for (User tmpUser in users)
@@ -133,6 +170,18 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
             name: tmpUser.name,
             color: tmpUser.flowerColor,
           ),
+        if(!widget.completed)
+          for (User tmpUser in users)
+            ColumnSeries<_CategoryCount, String>(
+              dataSource: chartData2
+                  .where((data) => data.userId == tmpUser.userId)
+                  .toList(),
+              xValueMapper: (_CategoryCount data, _) => data.category,
+              yValueMapper: (_CategoryCount data, _) => data.count*maxAll/maxOpen,
+              name: tmpUser.name.substring(0,1),
+              color: tmpUser.flowerColor,
+              borderColor: Colors.black,
+            ),
       ],
     );
   }

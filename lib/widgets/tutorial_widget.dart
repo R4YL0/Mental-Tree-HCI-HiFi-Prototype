@@ -83,13 +83,13 @@ class _TutorialWidgetState extends State<TutorialWidget> {
           "If we click on a Card, we’ll open up it’s Info-view, which consists of the General Page, Subtasks, and Notes";
     } else if (_state == 14) {
       newDialogText =
-          "Within a card, you can click the edit button on the top-right, you’ll open up the Edit-View, where everything can be edited. Just click on the according button or text and you’ll be able to change it";
+          "Within a card, you can click the edit button on the top-right to open up the Edit-View. By Clicking on any Button or Text, you can to change it";
     } else if (_state == 15) {
       newDialogText =
           "Important: The Priority and Difficulty Ratings are not only for you to judge how much effort a Task takes, but is also taken into consideration for Shuffling";
     } else if (_state == 16) {
       newDialogText =
-          "To leave the Edit-View you need to press the Accept button on the Top-right, you'll get back to the Info-View";
+          "To leave the Edit-View you need to press the Accept button on the Top-right, then you'll get back to the Info-View";
     } else if (_state == 17) {
       newDialogText =
           "You’re all caught up now! We hope this helps your household to manage the tasks and reduce your Mental Load ;)";

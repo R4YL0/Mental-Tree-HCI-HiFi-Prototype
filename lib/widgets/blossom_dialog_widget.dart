@@ -144,7 +144,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
     for(int i = 0; i < chartData.length; i++) {
       maxAll = (maxAll < chartData[i].count.toDouble() ? chartData[i].count.toDouble() : maxAll);
     }
-    //maxAll = maxAll < widget.dataSetSize.toDouble() ? widget.dataSetSize.toDouble() : maxAll;
+    maxAll = maxAll < widget.dataSetSize.toDouble() ? widget.dataSetSize.toDouble() : maxAll;
     double maxOpen = 0;
     for(int i = 0; i < chartData2.length; i++) {
       maxOpen = (maxOpen < chartData2[i].count.toDouble() ? chartData2[i].count.toDouble() : maxOpen);
@@ -173,6 +173,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
           interval: 1,
           )
       ],
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       tooltipBehavior: TooltipBehavior(enable: true),
       series: <CartesianSeries>[
         for (User tmpUser in users)
@@ -278,7 +279,9 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
             final List<AssignedTask> categoryAssignedTasks =
                 assignedTasks[widget.category]?.sublist(0, limit) ?? [];
 
-            return ListView.separated(
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: 306), child: 
+            ListView.separated(
                 shrinkWrap: true,
                 itemCount: categoryAssignedTasks.length,
                 itemBuilder: (context, index) {
@@ -302,7 +305,7 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
                 },
                 separatorBuilder: (context, index) => const SizedBox(
                       height: 5,
-                    ));
+                    )));
           }
         });
   }

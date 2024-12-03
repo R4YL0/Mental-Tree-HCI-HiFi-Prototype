@@ -74,26 +74,23 @@ class _TutorialWidgetState extends State<TutorialWidget> {
           "On Preferences you can see which Tasks you liked and disliked";
     } else if (_state == 11) {
       newDialogText =
-          "Overview allows you to see all tasks you’ve created, can create new ones and edit them";
+          "On Group you can see who has already chosen their favorites";
     } else if (_state == 12) {
       newDialogText =
-          "On Group you can see who has already chosen their favorites";
+          "After everyone has chosen their favorites, the cards get shuffled and everybody gets their tasks assigned";
     } else if (_state == 13) {
       newDialogText =
-          "After everyone has chosen their favorites, the cards get shuffled and everybody gets their tasks assigned";
+          "If we click on a Card, we’ll open up it’s Info-view, which consists of the General Page, Subtasks, and Notes";
     } else if (_state == 14) {
       newDialogText =
-          "If we get back to the Overview and click on a Card, we’ll open up it’s Info-view, which consists of the General Page, Subtasks, and Notes";
+          "Within a card, you can click the edit button on the top-right, you’ll open up the Edit-View, where everything can be edited. Just click on the according button or text and you’ll be able to change it";
     } else if (_state == 15) {
       newDialogText =
-          "If we click on the edit button on the top-right, you’ll open up the Edit-View, where everything can be edited. Just click on the according button or text and you’ll be able to change it";
+          "Important: The Priority and Difficulty Ratings are not only for you to judge how much effort a Task takes, but is also taken into consideration for Shuffling";
     } else if (_state == 16) {
       newDialogText =
-          "Important: The Priority and Difficulty Ratings are not only for you to judge how much effort a Task takes, but is also taken into consideration for Shuffling";
+          "To leave the Edit-View you need to press the Accept button on the Top-right, you'll get back to the Info-View";
     } else if (_state == 17) {
-      newDialogText =
-          "By clicking on the Accept button on the Top-right, we’ll get back to the Info-View";
-    } else if (_state == 18) {
       newDialogText =
           "You’re all caught up now! We hope this helps your household to manage the tasks and reduce your Mental Load ;)";
     } else {
@@ -129,7 +126,7 @@ class _TutorialWidgetState extends State<TutorialWidget> {
                 user: widget.user,
                 startIndex: 7,
               ));
-    } else if (_state == 19) {
+    } else if (_state == 18) {
       Navigator.of(context).pop(); // pop dialog
       Navigator.of(context).pop(); // pop cards screen
       Navigator.of(context).pop(); // pop dialog

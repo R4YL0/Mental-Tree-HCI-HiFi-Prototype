@@ -19,12 +19,14 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   Set<String> _segmentAB = {"A"};
+  Set<String> _segmentSML = {"S"};
   bool _userChanged = false;
 
   @override
   void initState() {
     super.initState();
     _loadSwitchAB();
+    _loadSwitchSML();
   }
 
   Future<void> _loadSwitchAB() async {
@@ -35,11 +37,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _loadSwitchSML() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      _segmentSML = {prefs.getString(constDataSet) ?? "S"};
+    });
+  }
+
   void _onSelectionChangedAB(Set<String> newValue) async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _segmentAB = newValue;
       prefs.setString(constTestVersion, _segmentAB.first);
+    });
+  }
+
+  void _onSelectionChangedSML(Set<String> newValue) async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _segmentSML = newValue;
+      prefs.setString(constDataSet, _segmentSML.first);
     });
   }
 
@@ -102,6 +120,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
                 selected: _segmentAB,
                 onSelectionChanged: _onSelectionChangedAB,
+              ),
+            ),
+          ]),
+          SettingsSection(tiles: [
+            CustomSettingsTile(
+              child: SegmentedButton(
+                segments: const [
+                  ButtonSegment(value: "S", label: Text("Small Dataset")),
+                  ButtonSegment<String>(value: "M", label: Text("Medium Dataset")),
+                  ButtonSegment<String>(value: "L", label: Text("Large Dataset")),
+                ],
+                selected: _segmentSML,
+                onSelectionChanged: _onSelectionChangedSML,
               ),
             ),
           ]),

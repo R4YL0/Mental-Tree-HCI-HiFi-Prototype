@@ -9,6 +9,7 @@ import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/Subtask.dart';
 import 'package:mental_load/classes/Task.dart';
+import 'package:mental_load/classes/TaskDistributor.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/strings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,6 +73,9 @@ void main() async {
 
   //await DBHandler().getAssignedTasks().then((assignedTask){print("assignedtask number: ${assignedTask.length}");});
   ///DELETE ALL DATA///
+  ///
+
+  print("old data deleted");
 
   ///CREATE USERS AND TASKS///
   User theo = await User.create(name: "Theo", flowerColor: Colors.red);
@@ -80,10 +84,14 @@ void main() async {
   User anna = await User.create(name: "Anna", flowerColor: Colors.blue);
   User sebi = await User.create(name: "Sebi", flowerColor: Colors.yellow);
 
+  print("3 users created");
+
   Map<String, Uint8List> images = await loadImages();
   Uint8List bakeCookiesImg = images['lib/assets/images/bakeCookies.jpg']!;
-  Uint8List cleanLivingRoomImg = images['lib/assets/images/cleanLivingRoom.jpg']!;
-  Uint8List deepCleanBathroomImg = images['lib/assets/images/deepCleanBathroom.jpg']!;
+  Uint8List cleanLivingRoomImg =
+      images['lib/assets/images/cleanLivingRoom.jpg']!;
+  Uint8List deepCleanBathroomImg =
+      images['lib/assets/images/deepCleanBathroom.jpg']!;
   Uint8List doLaundryImg = images['lib/assets/images/doLaundry.jpg']!;
   Uint8List fileTaxesImg = images['lib/assets/images/fileTaxes.jpg']!;
   Uint8List mealPrepImg = images['lib/assets/images/mealPrep.jpg']!;
@@ -97,7 +105,8 @@ void main() async {
   Task task1 = await Task.create(
     name: "Clean Living Room",
     frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.wednesday), // Next Wednesday
+    startDate: calculateNextStartDate(today, Frequency.weekly,
+        weekday: DateTime.wednesday), // Next Wednesday
     notes: "Vacuum the carpet and dust the furniture.",
     isPrivate: false,
     difficulty: 3,
@@ -114,7 +123,8 @@ void main() async {
   Task task2 = await Task.create(
     name: "Wash Bedsheets",
     frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.thursday), // Next Thursday
+    startDate: calculateNextStartDate(today, Frequency.weekly,
+        weekday: DateTime.thursday), // Next Thursday
     notes: "Use gentle cycle and fabric softener.",
     isPrivate: true,
     difficulty: 2,
@@ -148,7 +158,8 @@ void main() async {
   Task task4 = await Task.create(
     name: "Weed the Garden",
     frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.tuesday), // Next Tuesday
+    startDate: calculateNextStartDate(today, Frequency.weekly,
+        weekday: DateTime.tuesday), // Next Tuesday
     notes: "Remove weeds and trim hedges.",
     isPrivate: false,
     difficulty: 4,
@@ -182,7 +193,8 @@ void main() async {
   Task task6 = await Task.create(
     name: "File Taxes",
     frequency: Frequency.yearly,
-    startDate: calculateNextStartDate(today, Frequency.yearly), // Next April 1st
+    startDate:
+        calculateNextStartDate(today, Frequency.yearly), // Next April 1st
     notes: "Organize all receipts and documents before filing.",
     isPrivate: true,
     difficulty: 5,
@@ -216,7 +228,8 @@ void main() async {
   Task task8 = await Task.create(
     name: "Do Laundry",
     frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.friday), // Next Friday
+    startDate: calculateNextStartDate(today, Frequency.weekly,
+        weekday: DateTime.friday), // Next Friday
     notes: "Wash whites and colored clothes separately.",
     isPrivate: false,
     difficulty: 2,
@@ -250,7 +263,8 @@ void main() async {
   Task task10 = await Task.create(
     name: "Mow the Lawn",
     frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.saturday), // Next Saturday
+    startDate: calculateNextStartDate(today, Frequency.weekly,
+        weekday: DateTime.saturday), // Next Saturday
     notes: "Ensure even cutting and dispose of grass clippings.",
     isPrivate: false,
     difficulty: 3,
@@ -263,6 +277,8 @@ void main() async {
     ],
     img: mowTheLawnImg,
   );
+
+  print("10 tasks created");
 
   /* UNCOMPLETED TASKS */
   /*
@@ -410,14 +426,41 @@ void main() async {
   ];
 
   final random = Random();
+
+  for (int i = 0; i < 20; i++) {
+    for (int j = 0; j < 10; j++) {
+      Task curTask = tasks[j];
+      // if (curTask.category == Category.Outdoor) {
+      await Task.create(
+          name: '${curTask.name} $i',
+          category: curTask.category,
+          frequency: curTask.frequency,
+          notes: curTask.notes,
+          isPrivate: curTask.isPrivate,
+          difficulty: curTask.difficulty,
+          priority: curTask.priority);
+    }
+    // }
+  }
+
+  print("further 100 tasks created (kind of clones)");
+
+  final taskDistributor = TaskDistributor();
+
+  await taskDistributor.createAssignedTaskDistribution();
+
+  print("100 tasks distributed");
+
   final now = DateTime.now();
   final taskHistory = <AssignedTask>[];
 
   for (int i = 0; i < 100; i++) {
     final task = tasks[random.nextInt(tasks.length)];
-    final daysAgo = random.nextInt(20) + 1; // Random day within the last 20 days
+    final daysAgo =
+        random.nextInt(20) + 1; // Random day within the last 20 days
     final dueDate = now.subtract(Duration(days: daysAgo));
-    final finishDate = dueDate.subtract(Duration(days: random.nextInt(2) + 1)); // Finish before the due date
+    final finishDate = dueDate.subtract(
+        Duration(days: random.nextInt(2) + 1)); // Finish before the due date
 
     User assignedUser;
 
@@ -434,7 +477,9 @@ void main() async {
     }
 
     // Theo handles Cleaning and Laundry disproportionately
-    if (assignedUser == theo && (task.category == Category.Cleaning || task.category == Category.Laundry)) {
+    if (assignedUser == theo &&
+        (task.category == Category.Cleaning ||
+            task.category == Category.Laundry)) {
       assignedUser = theo;
     }
 
@@ -544,7 +589,8 @@ void main() async {
   runApp(MyApp());
 }
 
-DateTime calculateNextStartDate(DateTime today, Frequency frequency, {int weekday = DateTime.monday}) {
+DateTime calculateNextStartDate(DateTime today, Frequency frequency,
+    {int weekday = DateTime.monday}) {
   switch (frequency) {
     case Frequency.daily:
       return today; // Daily tasks start today

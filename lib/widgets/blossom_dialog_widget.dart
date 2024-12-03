@@ -75,6 +75,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
 
   _myInit() async {
     users = await DBHandler().getUsers();
+
     final Map<Category, List<AssignedTask>>
         allAssignedTasks; // not really all, depends on variable if completed or not
     final Map<Category, List<AssignedTask>>
@@ -83,22 +84,27 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
     allAssignedTasks =
         await AssignedTask.getAssignedAndCompletedTasksDictionary();
     final allCategoryAssignedTasks = allAssignedTasks[widget.category];
-    if (allCategoryAssignedTasks != null)
-      // ignore: curly_braces_in_flow_control_structures
+    if (allCategoryAssignedTasks != null) {
       for (AssignedTask aTask in allCategoryAssignedTasks) {
-        bool entryExists = false;
-        for (_CategoryCount catCount in chartData) {
-          if (catCount.userId == aTask.user.userId &&
-              catCount.category == aTask.task.category.name) {
-            catCount.count += 1;
-            entryExists = true;
+        // either not completed task (then not care about finishDate) or finishDate is < 30 days
+        if (!widget.completed ||
+            (aTask.finishDate != null &&
+                aTask.finishDate!.difference(DateTime.now()).inDays < 30)) {
+          bool entryExists = false;
+          for (_CategoryCount catCount in chartData) {
+            if (catCount.userId == aTask.user.userId &&
+                catCount.category == aTask.task.category.name) {
+              catCount.count += 1;
+              entryExists = true;
+            }
+          }
+          if (entryExists == false) {
+            chartData.add(
+                _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
           }
         }
-        if (entryExists == false) {
-          chartData.add(
-              _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
-        }
       }
+    }
     chartData.sort((a, b) => a.category.compareTo(b.category));
     //if (!widget.completed) {
       openAssignedTasks =

@@ -107,12 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 'fill="#${tmpColor.value.toRadixString(16).substring(2)}"');
             newBlossomStrings[tmp.user.userId] = svgContent;
             /* load position */
-            int maxRadius = ((screenWidth - 140) / 2).toInt();
+            int maxRadius = ((screenWidth - 180) / 2).toInt();
             int r = Random().nextInt(maxRadius) +
-                60; //random number between 0 and maxRadius
-            double angle = (Random().nextInt(51) + 5) +
+                80; //random number between 0 and maxRadius
+            double angle = (Random().nextInt(41) + 10) +
                 (angles[tmp.task.category] ?? 0)
-                    .toDouble(); //50 degree random angle
+                    .toDouble(); //40 degree random angle
             angle = (math.pi / 180) * angle; //convert degrees to radians
             //double angle = Random().nextDouble()*math.pi/3+((math.pi/180)*(angles[tmp.task.category.name]?? 0)); //360 = 2pi, 180 = pi, 1 = pi/180
             double x = r * cos(angle);

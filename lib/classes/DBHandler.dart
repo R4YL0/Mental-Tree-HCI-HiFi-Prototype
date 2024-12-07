@@ -39,6 +39,10 @@ class DBHandler {
 
   late final SharedPreferences prefs;
 
+  //Save Indices for different DataSet Sizes
+  final dataSet = List<int>.empty(growable: true);
+  String dataSize = "S";
+
   Future<void> initDb() async {
     prefs = await SharedPreferences.getInstance();
 
@@ -148,12 +152,38 @@ class DBHandler {
         .toList();
   }
 
-  Future<List<AssignedTask>> getAssignedTasks() async {
+  Future<List<AssignedTask>> getAssignedTasks({bool open = true,}) async {
     final assignedTasksJson =
         _assignedTaskStorage.getItem('assigned_tasks') ?? [];
-    return List<Map<String, dynamic>>.from(assignedTasksJson)
+
+    List<AssignedTask> allAssigned = List<Map<String, dynamic>>.from(assignedTasksJson)
         .map<AssignedTask>((json) => AssignedTask.fromJson(json))
         .toList();
+
+    if(!open) {
+      return allAssigned;
+    }
+
+    dataSize = prefs.getString(constDataSet) ?? "S";
+
+    int dataSizeLength = dataSize == "S" ? 5 : dataSize == "M" ? 10 : 20;
+    dataSizeLength = allAssigned.length < dataSizeLength ? allAssigned.length : dataSizeLength;
+    if(dataSet.length != dataSizeLength) {
+      dataSet.clear();
+      allAssigned.shuffle();
+      for(int i = 0; i < dataSizeLength; i++) {
+        dataSet.add(allAssigned[i].assignedTaskId);
+      }
+    }
+
+    List<AssignedTask> assignedDataSet = List<AssignedTask>.empty(growable: true);
+    for(int i = 0; i < dataSizeLength; i++) {
+      if(dataSet[i] != -1) { //If Task deleted from Assigned
+        assignedDataSet.add(allAssigned.singleWhere((aTask)=>aTask.assignedTaskId == dataSet[i]));
+      }
+    }
+
+    return assignedDataSet;
   }
 
   Future<List<AssignedTask>> getAssignedTasksByTaskId() async {
@@ -303,7 +333,7 @@ class DBHandler {
   }
 
   Future<void> saveAssignedTask(AssignedTask newAssignedTask) async {
-    final assignedTasks = await getAssignedTasks();
+    final assignedTasks = await getAssignedTasks(open:false);
 
     // Update if already in DB
     int index = assignedTasks.indexWhere((assignedTask) =>
@@ -312,6 +342,12 @@ class DBHandler {
       assignedTasks.removeAt(index);
     }
     assignedTasks.add(newAssignedTask);
+
+    int dataSetIndex = dataSet.indexWhere((idx) => idx == index);
+
+    if(dataSetIndex != -1) {
+      dataSet[dataSetIndex] = newAssignedTask.assignedTaskId;
+    }
 
     await _assignedTaskStorage.setItem(
       'assigned_tasks',
@@ -374,12 +410,18 @@ class DBHandler {
   }
 
   Future<void> removeAssignedTask(int id) async {
-    final assignedTasks = await getAssignedTasks();
+    final assignedTasks = await getAssignedTasks(open:false);
 
     int index = assignedTasks
         .indexWhere((assignedTask) => assignedTask.assignedTaskId == id);
     if (index != -1) {
       assignedTasks.removeAt(index);
+    }
+
+    int dataSetIndex = dataSet.indexWhere((idx) => idx == index);
+    
+    if(dataSetIndex != -1) {
+      dataSet[dataSetIndex] = -1;
     }
 
     await _assignedTaskStorage.setItem(

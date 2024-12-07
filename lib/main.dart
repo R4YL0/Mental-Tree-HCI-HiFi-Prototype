@@ -35,7 +35,7 @@ void main() async {
   });
   //await DBHandler().getTasks().then((task){print("task number: ${task.length}");});
 
-  await DBHandler().getAssignedTasks().then((assignedTasks) async {
+  await DBHandler().getAssignedTasks(open: false).then((assignedTasks) async {
     for (AssignedTask currAssTask in assignedTasks) {
       await DBHandler().removeAssignedTask(currAssTask.assignedTaskId);
     }

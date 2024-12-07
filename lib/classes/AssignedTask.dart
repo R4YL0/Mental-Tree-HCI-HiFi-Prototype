@@ -70,13 +70,13 @@ class AssignedTask {
 
   // Find all completed tasks for a specific user
   static Future<List<AssignedTask>> getCompletedTasksForUser(int userId) async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
+    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
     return assignedTasks.where((task) => task._user.userId == userId && task._finishDate != null).toList();
   }
 
   // Find all completed tasks ordered by the finish date
   static Future<List<AssignedTask>> getCompletedTasks() async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
+    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
     return assignedTasks.where((task) => task._finishDate != null).toList()..sort((a, b) => a._finishDate!.compareTo(b._finishDate!));
   }
 
@@ -87,7 +87,7 @@ class AssignedTask {
   }
 
   static Future<Map<Category, List<AssignedTask>>> getAssignedTasksDictionary() async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
+    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
     final Map<Category, List<AssignedTask>> tasksByCategory = {};
 
     for (var task in assignedTasks) {
@@ -120,7 +120,7 @@ class AssignedTask {
 
   // Get assigned tasks dictionary
   static Future<Map<Category, List<AssignedTask>>> getAssignedAndCompletedTasksDictionary() async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
+    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
     final Map<Category, List<AssignedTask>> tasksByCategory = {};
 
     for (var task in assignedTasks) {

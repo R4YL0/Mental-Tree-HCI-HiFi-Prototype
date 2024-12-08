@@ -43,6 +43,7 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Text("Category: ${widget.category.name}",style: TextStyle(fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 0, 0, 0)),),
             CategoryChartWidget(category: widget.category, completed: testVersion == "A",),
             Text("List of Open Tasks (Click to see the Task)",style: TextStyle(fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 80, 80, 80)),),
             CategoryListWidget(category: widget.category,),

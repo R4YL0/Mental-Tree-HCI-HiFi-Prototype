@@ -31,13 +31,13 @@ class _WaitingForOthersScreenState extends State<WaitingForOthersScreen> {
   }
 
   Future<List<User>> _getSubmittedUsers() async {
-    final List<int> submittedUsers = await DBHandler().getSubmittedUsers();
+    final List<String> submittedUsers = await DBHandler().getSubmittedUsers();
     final List<User> allUsers = await DBHandler().getUsers();
     return allUsers.where((user) => submittedUsers.contains(user.userId)).toList();
   }
 
   Future<List<User>> _getNotSubmittedUsers() async {
-    final List<int> submittedUsers = await DBHandler().getSubmittedUsers();
+    final List<String> submittedUsers = await DBHandler().getSubmittedUsers();
     final List<User> allUsers = await DBHandler().getUsers();
     return allUsers.where((user) => !submittedUsers.contains(user.userId)).toList();
   }
@@ -116,7 +116,7 @@ class _WaitingForOthersScreenState extends State<WaitingForOthersScreen> {
     // Mark all users as submitted
     final allUsers = await dbHandler.getUsers();
     for (final user in allUsers) {
-      await dbHandler.saveSubmittedUser(user.userId);
+      await DBHandler().addSubmittedUser(user.userId);
     }
 
     setState(() {
@@ -323,22 +323,32 @@ class _WaitingForOthersScreenState extends State<WaitingForOthersScreen> {
   }
 
   Future<List<Widget>> _getUserPreferenceWidgets(User user) async {
-    List<Widget> widgets = [];
-    for (int taskId in user.taskStates.keys) {
-      final Task task = await DBHandler().getTaskByTaskId(taskId);
-      final String taskName = task.name;
-      final String taskPreference = user.taskStates[taskId] == TaskState.Like ? "Like" : "Dislike";
+  List<Widget> widgets = [];
+  for (String taskId in user.taskStates.keys) {
+    final Task? task = await DBHandler().getTaskById(taskId);
 
-      final Icon icon = user.taskStates[taskId] == TaskState.Like ? const Icon(Icons.thumb_up, color: Colors.green) : const Icon(Icons.thumb_down, color: Colors.red);
-
-      widgets.add(
-        ListTile(
-          leading: icon,
-          title: Text(taskName),
-          subtitle: Text(taskPreference),
-        ),
-      );
+    // Throw an error if the task is null
+    if (task == null) {
+      throw Exception('Task with ID $taskId not found.');
     }
-    return widgets;
+
+    final String taskName = task.name;
+    final String taskPreference =
+        user.taskStates[taskId] == TaskState.Like ? "Like" : "Dislike";
+
+    final Icon icon = user.taskStates[taskId] == TaskState.Like
+        ? const Icon(Icons.thumb_up, color: Colors.green)
+        : const Icon(Icons.thumb_down, color: Colors.red);
+
+    widgets.add(
+      ListTile(
+        leading: icon,
+        title: Text(taskName),
+        subtitle: Text(taskPreference),
+      ),
+    );
   }
+  return widgets;
+}
+
 }

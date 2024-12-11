@@ -48,7 +48,7 @@ class _FlowerWidgetState extends State<FlowerWidget> {
   }
 
   Future<String> _modifySvgContent(String rawSvgContent) async {
-    User? tmpUser = await DBHandler().getUserByUserId(widget.mood.userId);
+    User? tmpUser = await DBHandler().getUserById(widget.mood.userId);
     setState(() {
       color = tmpUser?.flowerColor ?? Colors.red;
     });
@@ -71,7 +71,7 @@ class _FlowerWidgetState extends State<FlowerWidget> {
   }
 
   void _loadName() async {
-    User? user = await DBHandler().getUserByUserId(widget.mood.userId);
+    User? user = await DBHandler().getUserById(widget.mood.userId);
     setState(() {
       name = user?.name ?? "";
     });

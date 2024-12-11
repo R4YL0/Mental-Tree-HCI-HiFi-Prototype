@@ -1,610 +1,430 @@
 import 'dart:math';
 import 'dart:typed_data';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/classes/AssignedTask.dart';
 import 'package:mental_load/classes/DBHandler.dart';
-import 'package:mental_load/Screens/navigator_screen.dart';
 import 'package:mental_load/classes/Mood.dart';
 import 'package:mental_load/classes/Subtask.dart';
 import 'package:mental_load/classes/Task.dart';
-import 'package:mental_load/classes/TaskDistributor.dart';
-import 'package:mental_load/classes/User.dart';
-import 'package:mental_load/constants/strings.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
 
-  // Initialize DBHandler
-  await DBHandler().initDb();
+  //await createTasks();
+  //await createAssignedTasks();
+  //createMoodHistoryForLast20Days();
 
-  ///DELETE ALL DATA///
-  await DBHandler().getUsers().then((user) async {
-    for (User currUser in user) {
-      await DBHandler().removeUser(currUser.userId);
-    }
-  });
-  //await DBHandler().getUsers().then((user){print("user number: ${user.length}");});
-
-  await DBHandler().getTasks().then((tasks) async {
-    for (Task currTask in tasks) {
-      await DBHandler().removeTask(currTask.taskId);
-    }
-  });
-  //await DBHandler().getTasks().then((task){print("task number: ${task.length}");});
-
-  await DBHandler().getAssignedTasks(open: false).then((assignedTasks) async {
-    for (AssignedTask currAssTask in assignedTasks) {
-      await DBHandler().removeAssignedTask(currAssTask.assignedTaskId);
-    }
-  });
-
-  await DBHandler().getSubmittedUsers().then((indices) async {
-    for (int index in indices) {
-      await DBHandler().removeSubmittedUser(index);
-    }
-  });
-
-  Future<Map<String, Uint8List>> loadImages() async {
-    List<String> imagePaths = [
-      'lib/assets/images/bakeCookies.jpg',
-      'lib/assets/images/cleanLivingRoom.jpg',
-      'lib/assets/images/deepCleanBathroom.jpg',
-      'lib/assets/images/doLaundry.jpg',
-      'lib/assets/images/fileTaxes.jpg',
-      'lib/assets/images/mealPrep.jpg',
-      'lib/assets/images/mowTheLawn.jpg',
-      'lib/assets/images/pickUpKids.jpg',
-      'lib/assets/images/washBedsheets.jpg',
-      'lib/assets/images/weedGarden.jpeg',
-    ];
-
-    List<Uint8List> images = await Future.wait(
-      imagePaths.map((path) async {
-        ByteData byteData = await rootBundle.load(path);
-        return byteData.buffer.asUint8List();
-      }).toList(),
-    );
-
-    return Map.fromIterables(imagePaths, images);
-  }
-
-  //await DBHandler().getAssignedTasks().then((assignedTask){print("assignedtask number: ${assignedTask.length}");});
-  ///DELETE ALL DATA///
-  ///
-
-  print("old data deleted");
-
-  ///CREATE USERS AND TASKS///
-  User theo = await User.create(name: "Theo", flowerColor: Colors.red);
-  final prefs = await SharedPreferences.getInstance();
-  prefs.setInt(constCurrentUserId, theo.userId);
-  User anna = await User.create(name: "Anna", flowerColor: Colors.blue);
-  User sebi = await User.create(name: "Sebi", flowerColor: Colors.yellow);
-
-  print("3 users created");
-
-  Map<String, Uint8List> images = await loadImages();
-  Uint8List bakeCookiesImg = images['lib/assets/images/bakeCookies.jpg']!;
-  Uint8List cleanLivingRoomImg =
-      images['lib/assets/images/cleanLivingRoom.jpg']!;
-  Uint8List deepCleanBathroomImg =
-      images['lib/assets/images/deepCleanBathroom.jpg']!;
-  Uint8List doLaundryImg = images['lib/assets/images/doLaundry.jpg']!;
-  Uint8List fileTaxesImg = images['lib/assets/images/fileTaxes.jpg']!;
-  Uint8List mealPrepImg = images['lib/assets/images/mealPrep.jpg']!;
-  Uint8List mowTheLawnImg = images['lib/assets/images/mowTheLawn.jpg']!;
-  Uint8List pickUpKidsImg = images['lib/assets/images/pickUpKids.jpg']!;
-  Uint8List washBedsheetsImg = images['lib/assets/images/washBedsheets.jpg']!;
-  Uint8List weedGardenImg = images['lib/assets/images/weedGarden.jpeg']!;
-
-  DateTime today = DateTime.now();
-
-  Task task1 = await Task.create(
-    name: "Clean Living Room",
-    frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly,
-        weekday: DateTime.wednesday), // Next Wednesday
-    notes: "Vacuum the carpet and dust the furniture.",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Cleaning,
-    subtasks: [
-      await Subtask.create(name: "Vacuum the carpet"),
-      await Subtask.create(name: "Dust the furniture"),
-      await Subtask.create(name: "Organize the shelves"),
-    ],
-    img: cleanLivingRoomImg,
-  );
-
-  Task task2 = await Task.create(
-    name: "Wash Bedsheets",
-    frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly,
-        weekday: DateTime.thursday), // Next Thursday
-    notes: "Use gentle cycle and fabric softener.",
-    isPrivate: true,
-    difficulty: 2,
-    priority: 3,
-    category: Category.Laundry,
-    subtasks: [
-      await Subtask.create(name: "Remove bedsheets from all rooms"),
-      await Subtask.create(name: "Sort bedsheets by color"),
-      await Subtask.create(name: "Wash and dry"),
-    ],
-    img: washBedsheetsImg,
-  );
-
-  Task task3 = await Task.create(
-    name: "Meal Prep",
-    frequency: Frequency.daily,
-    startDate: calculateNextStartDate(today, Frequency.daily), // Starts today
-    notes: "Chop vegetables and prepare ingredients for dinner.",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Cooking,
-    subtasks: [
-      await Subtask.create(name: "Chop vegetables"),
-      await Subtask.create(name: "Prepare protein (chicken, tofu, etc.)"),
-      await Subtask.create(name: "Marinate ingredients"),
-    ],
-    img: mealPrepImg,
-  );
-
-  Task task4 = await Task.create(
-    name: "Weed the Garden",
-    frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly,
-        weekday: DateTime.tuesday), // Next Tuesday
-    notes: "Remove weeds and trim hedges.",
-    isPrivate: false,
-    difficulty: 4,
-    priority: 3,
-    category: Category.Outdoor,
-    subtasks: [
-      await Subtask.create(name: "Remove weeds from flower beds"),
-      await Subtask.create(name: "Trim hedges"),
-      await Subtask.create(name: "Rake and collect debris"),
-    ],
-    img: weedGardenImg,
-  );
-
-  Task task5 = await Task.create(
-    name: "Pick Up Kids from School",
-    frequency: Frequency.daily,
-    startDate: calculateNextStartDate(today, Frequency.daily), // Starts today
-    notes: "Arrive 10 minutes early to avoid traffic.",
-    isPrivate: false,
-    difficulty: 2,
-    priority: 5,
-    category: Category.Childcare,
-    subtasks: [
-      await Subtask.create(name: "Pack snacks and water"),
-      await Subtask.create(name: "Check traffic route"),
-      await Subtask.create(name: "Pick up and return home safely"),
-    ],
-    img: pickUpKidsImg,
-  );
-
-  Task task6 = await Task.create(
-    name: "File Taxes",
-    frequency: Frequency.yearly,
-    startDate:
-        calculateNextStartDate(today, Frequency.yearly), // Next April 1st
-    notes: "Organize all receipts and documents before filing.",
-    isPrivate: true,
-    difficulty: 5,
-    priority: 5,
-    category: Category.Admin,
-    subtasks: [
-      await Subtask.create(name: "Gather all income statements"),
-      await Subtask.create(name: "Organize deductible receipts"),
-      await Subtask.create(name: "Submit forms online"),
-    ],
-    img: fileTaxesImg,
-  );
-
-  Task task7 = await Task.create(
-    name: "Deep Clean Bathroom",
-    frequency: Frequency.monthly,
-    startDate: calculateNextStartDate(today, Frequency.monthly), // Mid-month
-    notes: "Scrub tiles, clean mirrors, and disinfect surfaces.",
-    isPrivate: true,
-    difficulty: 4,
-    priority: 5,
-    category: Category.Cleaning,
-    subtasks: [
-      await Subtask.create(name: "Scrub tiles and grout"),
-      await Subtask.create(name: "Clean mirrors"),
-      await Subtask.create(name: "Disinfect sink and toilet"),
-    ],
-    img: deepCleanBathroomImg,
-  );
-
-  Task task8 = await Task.create(
-    name: "Do Laundry",
-    frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly,
-        weekday: DateTime.friday), // Next Friday
-    notes: "Wash whites and colored clothes separately.",
-    isPrivate: false,
-    difficulty: 2,
-    priority: 4,
-    category: Category.Laundry,
-    subtasks: [
-      await Subtask.create(name: "Sort clothes by color"),
-      await Subtask.create(name: "Load the washing machine"),
-      await Subtask.create(name: "Fold and put away clothes"),
-    ],
-    img: doLaundryImg,
-  );
-
-  Task task9 = await Task.create(
-    name: "Bake Cookies",
-    frequency: Frequency.monthly,
-    startDate: calculateNextStartDate(today, Frequency.monthly), // Mid-month
-    notes: "Bake a batch of chocolate chip cookies for the family.",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 3,
-    category: Category.Cooking,
-    subtasks: [
-      await Subtask.create(name: "Gather ingredients"),
-      await Subtask.create(name: "Mix ingredients"),
-      await Subtask.create(name: "Bake in the oven"),
-    ],
-    img: bakeCookiesImg,
-  );
-
-  Task task10 = await Task.create(
-    name: "Mow the Lawn",
-    frequency: Frequency.weekly,
-    startDate: calculateNextStartDate(today, Frequency.weekly,
-        weekday: DateTime.saturday), // Next Saturday
-    notes: "Ensure even cutting and dispose of grass clippings.",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-    category: Category.Outdoor,
-    subtasks: [
-      await Subtask.create(name: "Start the lawn mower"),
-      await Subtask.create(name: "Mow the lawn evenly"),
-      await Subtask.create(name: "Dispose of grass clippings"),
-    ],
-    img: mowTheLawnImg,
-  );
-
-  print("10 tasks created");
-
-  /* UNCOMPLETED TASKS */
-  /*
-  AssignedTask utask1 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask2 = await AssignedTask.create(
-      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask3 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask4 = await AssignedTask.create(
-      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask5 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask6 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask7 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask8 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask9 = await AssignedTask.create(
-      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask10 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask11 = await AssignedTask.create(
-      user: theo, task: task4, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask12 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask13 = await AssignedTask.create(
-      user: theo, task: task2, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask14 = await AssignedTask.create(
-      user: theo, task: task3, dueDate: DateTime(2024, 12, 1));
-  AssignedTask utask15 = await AssignedTask.create(
-      user: theo, task: task1, dueDate: DateTime(2024, 12, 1));*/
-
-  /* UNCOMPLETED TASKS */
-
-/* COMPLETED TASKS */
-  /* AssignedTask atask1 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
-  AssignedTask atask2 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
-  AssignedTask atask3 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 2));
-  AssignedTask atask4 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
-  AssignedTask atask5 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
-  AssignedTask atask6 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask7 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask8 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask9 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
-  AssignedTask atask10 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
-  AssignedTask atask11 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
-  AssignedTask atask12 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
-  AssignedTask atask13 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
-  AssignedTask atask14 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
-  AssignedTask atask15 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
-  AssignedTask atask16 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
-  AssignedTask atask17 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
-  AssignedTask atask18 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
-  AssignedTask atask19 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
-  AssignedTask atask20 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
-  AssignedTask atask21 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
-  AssignedTask atask22 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
-  AssignedTask atask23 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
-  AssignedTask atask24 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
-  AssignedTask atask25 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
-  AssignedTask atask26 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
-  AssignedTask atask27 = await AssignedTask.create(user: theo, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 14));
-  AssignedTask atask28 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 14));
-  AssignedTask atask29 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 14));
-  AssignedTask atask30 = await AssignedTask.create(user: theo, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
-  AssignedTask atask31 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
-  AssignedTask atask32 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
-  AssignedTask atask33 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask atask34 = await AssignedTask.create(user: theo, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask atask35 = await AssignedTask.create(user: theo, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
-  AssignedTask atask36 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
-  AssignedTask atask37 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 18));
-  AssignedTask atask38 = await AssignedTask.create(user: theo, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 18));
-  AssignedTask atask39 = await AssignedTask.create(user: theo, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
-  AssignedTask atask40 = await AssignedTask.create(user: theo, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
-  AssignedTask atask41 = await AssignedTask.create(user: theo, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
-  AssignedTask atask42 = await AssignedTask.create(user: theo, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));
-  AssignedTask btask1 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
-  AssignedTask btask2 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
-  AssignedTask btask3 = await AssignedTask.create(user: anna, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 1));
-  AssignedTask btask4 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 2));
-  AssignedTask btask5 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask6 = await AssignedTask.create(user: anna, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
-  AssignedTask btask7 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
-  AssignedTask btask8 = await AssignedTask.create(user: anna, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 3));
-  AssignedTask btask9 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
-  AssignedTask btask10 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 4));
-  AssignedTask btask11 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
-  AssignedTask btask12 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
-  AssignedTask btask13 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 5));
-  AssignedTask btask14 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 6));
-  AssignedTask btask15 = await AssignedTask.create(user: anna, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
-  AssignedTask btask16 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
-  AssignedTask btask17 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 8));
-  AssignedTask btask18 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
-  AssignedTask btask19 = await AssignedTask.create(user: anna, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 9));
-  AssignedTask btask20 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
-  AssignedTask btask21 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 10));
-  AssignedTask btask22 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
-  AssignedTask btask23 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
-  AssignedTask btask24 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 11));
-  AssignedTask btask25 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
-  AssignedTask btask26 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 12));
-  AssignedTask btask27 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask28 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask29 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 13));
-  AssignedTask btask30 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 15));
-  AssignedTask btask31 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask32 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask33 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask34 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask35 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask btask36 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
-  AssignedTask btask37 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
-  AssignedTask btask38 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 17));
-  AssignedTask btask39 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
-  AssignedTask btask40 = await AssignedTask.create(user: anna, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
-  AssignedTask btask41 = await AssignedTask.create(user: anna, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));
-  AssignedTask btask42 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));
-  AssignedTask btask43 = await AssignedTask.create(user: anna, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
-  AssignedTask btask44 = await AssignedTask.create(user: anna, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
-  AssignedTask ctask1 = await AssignedTask.create(user: sebi, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 19));
-  AssignedTask ctask2 = await AssignedTask.create(user: sebi, task: task3, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
-  AssignedTask ctask3 = await AssignedTask.create(user: sebi, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 21));
-  AssignedTask ctask4 = await AssignedTask.create(user: sebi, task: task5, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 16));
-  AssignedTask ctask5 = await AssignedTask.create(user: sebi, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 18));
-  AssignedTask ctask6 = await AssignedTask.create(user: sebi, task: task6, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
-  AssignedTask ctask7 = await AssignedTask.create(user: sebi, task: task2, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
-  AssignedTask ctask8 = await AssignedTask.create(user: sebi, task: task1, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 23));
-  AssignedTask ctask9 = await AssignedTask.create(user: sebi, task: task4, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024, 11, 20));*/
-
-  final tasks = [
-    task1,
-    task2,
-    task3,
-    task4,
-    task5,
-    task6,
-    task7,
-    task8,
-    task9,
-    task10,
-  ];
-
-  final random = Random();
-
-  for (int i = 0; i < 20; i++) {
-    for (int j = 0; j < 10; j++) {
-      Task curTask = tasks[j];
-      // if (curTask.category == Category.Outdoor) {
-      await Task.create(
-          name: '${curTask.name} $i',
-          category: curTask.category,
-          frequency: curTask.frequency,
-          notes: curTask.notes,
-          isPrivate: curTask.isPrivate,
-          difficulty: curTask.difficulty,
-          priority: curTask.priority);
-    }
-    // }
-  }
-
-  print("further 100 tasks created (kind of clones)");
-
-  final taskDistributor = TaskDistributor();
-
-  await taskDistributor.createAssignedTaskDistribution();
-
-  print("100 tasks distributed");
-
-  final now = DateTime.now();
-  final taskHistory = <AssignedTask>[];
-
-  for (int i = 0; i < 100; i++) {
-    final task = tasks[random.nextInt(tasks.length)];
-    final daysAgo =
-        random.nextInt(20) + 1; // Random day within the last 20 days
-    final dueDate = now.subtract(Duration(days: daysAgo));
-    final finishDate = dueDate.subtract(
-        Duration(days: random.nextInt(2) + 1)); // Finish before the due date
-
-    User assignedUser;
-
-    // Unfair Distribution Logic
-    if (random.nextInt(10) < 5) {
-      // Theo does most tasks (50%)
-      assignedUser = theo;
-    } else if (random.nextInt(10) < 8) {
-      // Anna does mid-range (30%)
-      assignedUser = anna;
-    } else {
-      // Sebastian does very few (10%)
-      assignedUser = sebi;
-    }
-
-    // Theo handles Cleaning and Laundry disproportionately
-    if (assignedUser == theo &&
-        (task.category == Category.Cleaning ||
-            task.category == Category.Laundry)) {
-      assignedUser = theo;
-    }
-
-    final assignedTask = await AssignedTask.create(
-      user: assignedUser,
-      task: task,
-      dueDate: dueDate,
-      finishDate: finishDate,
-    );
-
-    taskHistory.add(assignedTask);
-  }
-
-  print("Task history with 50 tasks created successfully!");
-
-  ///CREATE USERS AND TASKS///
-
-  ///CREATE MOODS PER USER///
-  /* await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.bad, userId: theo.userId);
-  await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.good, userId: anna.userId);
-  await Mood.create(date: DateTime(2024, 11, 1), mood: Moods.mid, userId: sebi.userId);*/
-
-  final users = [theo, anna, sebi];
-  final moods = [Moods.bad, Moods.mid, Moods.good];
-
-  for (int i = 0; i < 20; i++) {
-    final date = now.subtract(Duration(days: i));
-    for (final user in users) {
-      final mood = moods[random.nextInt(moods.length)];
-      await Mood.create(date: date, mood: mood, userId: user.userId);
-    }
-  }
-
-  // Tasks example
-  /*Task myTask = await Task.create( // always use create not constructor! (also for mood, subtasks,...)
-    name: "Grocery Shopping 2",
-    frequency: Frequency.weekly,
-    category: Category.Admin,
-    notes: "bla bla bla",
-    //imgDst: "lib/assets/image1.png",
-    isPrivate: false,
-    difficulty: 3,
-    priority: 4,
-  );
-
-  DBHandler().saveTask(myTask);
-
-  /*User usertmp = await User.create(name: "Theo", flowerColor: Colors.lightGreenAccent);
-  DBHandler().saveUser(usertmp);
-  User usertmp2 = await User.create(name: "Anna", flowerColor: Colors.orange);
-  DBHandler().saveUser(usertmp2);*/
-
-  User usertmp = await User.create(name: "", flowerColor: Colors.red);
-  User usertmp2 = await User.create(name: "", flowerColor: Colors.red);
-  await DBHandler().getUsers().then((user){
-    for(User usertmpp in user){
-      if(usertmpp.userName == "Theo"){
-        usertmp = usertmpp;
-      }else if(usertmpp.userName == "Anna"){
-        usertmp2 = usertmpp;
-      }
-    }
-  });
-
-  AssignedTask task = await AssignedTask.create(user: usertmp, task: myTask, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,18));
-  DBHandler().saveAssignedTask(task);
-  task = await AssignedTask.create(user: usertmp, task: myTask, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,17));
-  DBHandler().saveAssignedTask(task);
-  task = await AssignedTask.create(user: usertmp, task: myTask, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,17));
-  DBHandler().saveAssignedTask(task);
-  task = await AssignedTask.create(user: usertmp2, task: myTask, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,12));
-  DBHandler().saveAssignedTask(task);
-  task = await AssignedTask.create(user: usertmp2, task: myTask, dueDate: DateTime(2024, 12, 1), finishDate: DateTime(2024,11,18));
-  DBHandler().saveAssignedTask(task);
-
-  await DBHandler().getAssignedTasks().then((element) {
-    print(element);
-  });
-
-  await DBHandler().getUsers().then((user) {print(user);});
-  
-  List<Task> allTasks = await DBHandler().getTasks();*/
-
-  // other data
-  /*DBHandler().getUsers();
-  DBHandler().getTasks();
-  DBHandler().getSubtasks();
-  DBHandler().getAssignedTasks();
-
-  // helpful functions
-  List<AssignedTask> tasksForUser = await AssignedTask.getTasksForUser(1);
-  List<AssignedTask> pendingTasks =
-      await AssignedTask.getCompletedTasksForUser(1); // sorting pref?
-  List<AssignedTask> incompleteTasks =
-      await AssignedTask.getIncompleteTasksForUser(1); // sorting pref?
-  List<AssignedTask> completedTasks = await AssignedTask
-      .getCompletedTasks(); // sorting pref? - already ordered by finish date :)
-  List<Mood> moodHistoryAllUsers =
-      await DBHandler().getMoods(); // sorting pref?
-  List<Mood> moodHistorySingleUser =
-      await DBHandler().getMoodsByUserId(1); // sorting pref?
-  Mood? lastMoodOfUser = await DBHandler().getLatestMoodByUserId(
-      1); // useful for query of new mood? (null if never assigned a mood)
-  */
-  ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
-DateTime calculateNextStartDate(DateTime today, Frequency frequency,
-    {int weekday = DateTime.monday}) {
+Future<void> createTasks() async {
+  final today = DateTime.now();
+
+  final tasks = [
+    Task.create(
+      name: "Clean Living Room",
+      category: Category.Cleaning,
+      frequency: Frequency.weekly,
+      notes: "Vacuum the carpet and dust the furniture.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Vacuum the carpet"),
+        await Subtask.create(taskId: "temp", name: "Dust the furniture"),
+        await Subtask.create(taskId: "temp", name: "Organize the shelves"),
+      ],
+      img: await loadImage('lib/assets/images/cleanLivingRoom.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.wednesday),
+    ),
+    Task.create(
+      name: "Wash Bedsheets",
+      category: Category.Laundry,
+      frequency: Frequency.weekly,
+      notes: "Use gentle cycle and fabric softener.",
+      isPrivate: true,
+      difficulty: 2,
+      priority: 3,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Remove bedsheets from all rooms"),
+        await Subtask.create(taskId: "temp", name: "Sort bedsheets by color"),
+        await Subtask.create(taskId: "temp", name: "Wash and dry"),
+      ],
+      img: await loadImage('lib/assets/images/washBedsheets.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.thursday),
+    ),
+    Task.create(
+      name: "Meal Prep",
+      category: Category.Cooking,
+      frequency: Frequency.daily,
+      notes: "Chop vegetables and prepare ingredients for dinner.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Chop vegetables"),
+        await Subtask.create(taskId: "temp", name: "Prepare protein (chicken, tofu, etc.)"),
+        await Subtask.create(taskId: "temp", name: "Marinate ingredients"),
+      ],
+      img: await loadImage('lib/assets/images/mealPrep.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.daily),
+    ),
+    Task.create(
+      name: "Weed the Garden",
+      category: Category.Outdoor,
+      frequency: Frequency.weekly,
+      notes: "Remove weeds and trim hedges.",
+      isPrivate: false,
+      difficulty: 4,
+      priority: 3,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Remove weeds from flower beds"),
+        await Subtask.create(taskId: "temp", name: "Trim hedges"),
+        await Subtask.create(taskId: "temp", name: "Rake and collect debris"),
+      ],
+      img: await loadImage('lib/assets/images/weedGarden.jpeg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.tuesday),
+    ),
+    Task.create(
+      name: "Pick Up Kids from School",
+      category: Category.Childcare,
+      frequency: Frequency.daily,
+      notes: "Arrive 10 minutes early to avoid traffic.",
+      isPrivate: false,
+      difficulty: 2,
+      priority: 5,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Pack snacks and water"),
+        await Subtask.create(taskId: "temp", name: "Check traffic route"),
+        await Subtask.create(taskId: "temp", name: "Pick up and return home safely"),
+      ],
+      img: await loadImage('lib/assets/images/pickUpKids.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.daily),
+    ),
+    Task.create(
+      name: "File Taxes",
+      category: Category.Admin,
+      frequency: Frequency.yearly,
+      notes: "Organize all receipts and documents before filing.",
+      isPrivate: true,
+      difficulty: 5,
+      priority: 5,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Gather all income statements"),
+        await Subtask.create(taskId: "temp", name: "Organize deductible receipts"),
+        await Subtask.create(taskId: "temp", name: "Submit forms online"),
+      ],
+      img: await loadImage('lib/assets/images/fileTaxes.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.yearly),
+    ),
+    Task.create(
+      name: "Deep Clean Bathroom",
+      category: Category.Cleaning,
+      frequency: Frequency.monthly,
+      notes: "Scrub tiles, clean mirrors, and disinfect surfaces.",
+      isPrivate: true,
+      difficulty: 4,
+      priority: 5,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Scrub tiles and grout"),
+        await Subtask.create(taskId: "temp", name: "Clean mirrors"),
+        await Subtask.create(taskId: "temp", name: "Disinfect sink and toilet"),
+      ],
+      img: await loadImage('lib/assets/images/deepCleanBathroom.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.monthly),
+    ),
+    Task.create(
+      name: "Do Laundry",
+      category: Category.Laundry,
+      frequency: Frequency.weekly,
+      notes: "Wash whites and colored clothes separately.",
+      isPrivate: false,
+      difficulty: 2,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Sort clothes by color"),
+        await Subtask.create(taskId: "temp", name: "Load the washing machine"),
+        await Subtask.create(taskId: "temp", name: "Fold and put away clothes"),
+      ],
+      img: await loadImage('lib/assets/images/doLaundry.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.friday),
+    ),
+    Task.create(
+      name: "Bake Cookies",
+      category: Category.Cooking,
+      frequency: Frequency.monthly,
+      notes: "Bake a batch of chocolate chip cookies for the family.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 3,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Gather ingredients"),
+        await Subtask.create(taskId: "temp", name: "Mix ingredients"),
+        await Subtask.create(taskId: "temp", name: "Bake in the oven"),
+      ],
+      img: await loadImage('lib/assets/images/bakeCookies.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.monthly),
+    ),
+    Task.create(
+      name: "Mow the Lawn",
+      category: Category.Outdoor,
+      frequency: Frequency.weekly,
+      notes: "Ensure even cutting and dispose of grass clippings.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Start the lawn mower"),
+        await Subtask.create(taskId: "temp", name: "Mow the lawn evenly"),
+        await Subtask.create(taskId: "temp", name: "Dispose of grass clippings"),
+      ],
+      img: await loadImage('lib/assets/images/mowTheLawn.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.saturday),
+    ),
+    Task.create(
+      name: "Clean Kitchen",
+      category: Category.Cleaning,
+      frequency: Frequency.daily,
+      notes: "Wipe counters, wash dishes, and take out the trash.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 5,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Wash the dishes"),
+        await Subtask.create(taskId: "temp", name: "Wipe kitchen counters"),
+        await Subtask.create(taskId: "temp", name: "Take out the trash"),
+      ],
+      img: await loadImage('lib/assets/images/cleanKitchen.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.daily),
+    ),
+    Task.create(
+      name: "Restock Shared Pantry",
+      category: Category.Admin,
+      frequency: Frequency.weekly,
+      notes: "Check supplies and make a list of needed items.",
+      isPrivate: false,
+      difficulty: 2,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Check pantry inventory"),
+        await Subtask.create(taskId: "temp", name: "Make a shopping list"),
+        await Subtask.create(taskId: "temp", name: "Buy needed items"),
+      ],
+      img: await loadImage('lib/assets/images/restockPantry.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.monday),
+    ),
+    Task.create(
+      name: "Clean Windows",
+      category: Category.Cleaning,
+      frequency: Frequency.monthly,
+      notes: "Use glass cleaner and a squeegee for streak-free windows.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 3,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Remove curtains or blinds"),
+        await Subtask.create(taskId: "temp", name: "Spray and clean windows"),
+        await Subtask.create(taskId: "temp", name: "Wipe edges and replace curtains"),
+      ],
+      img: await loadImage('lib/assets/images/cleanWindows.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.monthly),
+    ),
+    Task.create(
+      name: "Vacuum Hallway",
+      category: Category.Cleaning,
+      frequency: Frequency.weekly,
+      notes: "Ensure a clean and welcoming shared space.",
+      isPrivate: false,
+      difficulty: 2,
+      priority: 3,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Pick up items off the floor"),
+        await Subtask.create(taskId: "temp", name: "Vacuum all floor areas"),
+        await Subtask.create(taskId: "temp", name: "Empty vacuum cleaner"),
+      ],
+      img: await loadImage('lib/assets/images/vacuumHallway.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.wednesday),
+    ),
+    Task.create(
+      name: "Organize Recycling",
+      category: Category.Admin,
+      frequency: Frequency.weekly,
+      notes: "Separate recyclables and take them to the designated bin.",
+      isPrivate: false,
+      difficulty: 2,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Sort paper, plastic, and glass"),
+        await Subtask.create(taskId: "temp", name: "Rinse out containers"),
+        await Subtask.create(taskId: "temp", name: "Take to recycling bins"),
+      ],
+      img: await loadImage('lib/assets/images/recycling.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.friday),
+    ),
+    Task.create(
+      name: "Water Indoor Plants",
+      category: Category.Outdoor,
+      frequency: Frequency.weekly,
+      notes: "Water all plants and check for any dry leaves.",
+      isPrivate: false,
+      difficulty: 1,
+      priority: 3,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Check soil moisture"),
+        await Subtask.create(taskId: "temp", name: "Water as needed"),
+        await Subtask.create(taskId: "temp", name: "Trim dry leaves"),
+      ],
+      img: await loadImage('lib/assets/images/waterPlants.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.weekly, weekday: DateTime.tuesday),
+    ),
+    Task.create(
+      name: "Host Flat Meeting",
+      category: Category.Admin,
+      frequency: Frequency.monthly,
+      notes: "Discuss tasks, bills, and any concerns.",
+      isPrivate: false,
+      difficulty: 3,
+      priority: 5,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Set a meeting time"),
+        await Subtask.create(taskId: "temp", name: "Prepare agenda"),
+        await Subtask.create(taskId: "temp", name: "Discuss and assign tasks"),
+      ],
+      img: await loadImage('lib/assets/images/flatMeeting.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.monthly),
+    ),
+    Task.create(
+      name: "Deep Clean Fridge",
+      category: Category.Cleaning,
+      frequency: Frequency.monthly,
+      notes: "Remove expired items and clean shelves.",
+      isPrivate: false,
+      difficulty: 4,
+      priority: 4,
+      subtasks: [
+        await Subtask.create(taskId: "temp", name: "Empty fridge shelves"),
+        await Subtask.create(taskId: "temp", name: "Clean shelves with disinfectant"),
+        await Subtask.create(taskId: "temp", name: "Restock items"),
+      ],
+      img: await loadImage('lib/assets/images/deepCleanFridge.jpg'),
+      startDate: calculateNextStartDate(today, Frequency.monthly),
+    ),
+  ];
+
+  await Future.wait(tasks);
+}
+
+Future<void> createAssignedTasks() async {
+  final dbHandler = DBHandler();
+  final users = await dbHandler.getUsers();
+  final tasks = await dbHandler.tasksStream.first;
+
+  if (users.isEmpty || tasks.isEmpty) {
+    print('No users or tasks available. Cannot create assigned tasks.');
+    return;
+  }
+
+  final random = Random();
+  final today = DateTime.now();
+
+  // Generate an unfair distribution of tasks per user.
+  // Example: some users get many tasks, some get very few.
+  final userTaskCounts = List.generate(users.length, (index) {
+    return random.nextInt(30) + 1; // Random number of tasks (1-30) per user
+  });
+
+  // Normalize to ensure we generate 100 tasks.
+  final totalTasks = userTaskCounts.reduce((a, b) => a + b);
+  userTaskCounts.asMap().forEach((index, count) {
+    userTaskCounts[index] = (count / totalTasks * 100).round();
+  });
+
+  int createdTasks = 0;
+  for (int i = 0; i < users.length; i++) {
+    if (createdTasks >= 100) break;
+
+    final user = users[i];
+    final taskCountForUser = userTaskCounts[i];
+
+    for (int j = 0; j < taskCountForUser && createdTasks < 100; j++) {
+      final task = tasks[random.nextInt(tasks.length)];
+
+      // Assign a random due date in the last 30 days.
+      final dueDate = today.subtract(Duration(days: random.nextInt(30)));
+
+      // Create the assigned task.
+      await AssignedTask.create(
+        user: user,
+        task: task,
+        dueDate: dueDate,
+        finishDate: dueDate,
+      );
+
+      createdTasks++;
+    }
+  }
+
+  print('$createdTasks tasks assigned among ${users.length} users.');
+}
+
+Future<Uint8List> loadImage(String path) async {
+  try {
+    final data = await rootBundle.load(path);
+    return data.buffer.asUint8List();
+  } catch (e) {
+    throw Exception("Error loading image: $e");
+  }
+}
+
+Future<void> createMoodHistoryForLast20Days() async {
+  final dbHandler = DBHandler();
+  final users = await dbHandler.getUsers();
+  final random = Random();
+  final moods = Moods.values;
+
+  try {
+    for (final userId in users) {
+      for (int i = 0; i < 20; i++) {
+        final date = DateTime.now().subtract(Duration(days: i));
+
+        // Select a random mood
+        final mood = moods[random.nextInt(moods.length)];
+
+        // Create and save the mood using the Mood.create function
+        await Mood.create(
+          userId: userId.userId,
+          date: date,
+          mood: mood,
+        );
+
+        print('Saved mood for user $userId on ${date.toIso8601String()}');
+      }
+    }
+
+    print('Mood history created for the last 20 days for all users.');
+  } catch (e) {
+    print('Error creating mood history: $e');
+  }
+}
+
+DateTime calculateNextStartDate(DateTime today, Frequency frequency, {int weekday = DateTime.monday}) {
   switch (frequency) {
     case Frequency.daily:
-      return today; // Daily tasks start today
+      return today;
     case Frequency.weekly:
-      int daysToNextWeekday = (weekday - today.weekday + 7) % 7;
+      final daysToNextWeekday = (weekday - today.weekday + 7) % 7;
       return today.add(Duration(days: daysToNextWeekday));
     case Frequency.monthly:
-      return DateTime(today.year, today.month, 15); // Mid-month start
+      return DateTime(today.year, today.month, 15);
     case Frequency.yearly:
-      return DateTime(today.year + 1, 4, 1); // Tax season example (April 1st)
+      return DateTime(today.year + 1, 4, 1);
     case Frequency.oneTime:
-      return today.add(Duration(days: 7)); // Default to a week from today
-    default:
-      return today;
+      return today.add(const Duration(days: 7));
   }
 }
 

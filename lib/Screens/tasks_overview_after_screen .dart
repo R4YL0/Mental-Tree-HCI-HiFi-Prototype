@@ -14,20 +14,13 @@ class TaskOverviewDistributedScreen extends StatefulWidget {
 
 class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedScreen> {
   String _sortOption = "Name";
-  Category? _selectedCategory;
-  Future<List<Task>>? _allTasks;
-  int? _selectedUserId;
+  String? _selectedUserId;
   Future<List<User>>? _usersFuture;
 
   @override
   void initState() {
     super.initState();
-    _fetchTasks();
     _usersFuture = DBHandler().getUsers();
-  }
-
-  void _fetchTasks() {
-    _allTasks = DBHandler().getTasks();
   }
 
   void _rotateSortOption() {
@@ -44,110 +37,111 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
     });
   }
 
-  List<Task> _applySorting(List<Task> tasks) {
-    if (_sortOption == "Name") {
-      tasks.sort((a, b) => a.name.compareTo(b.name));
-    } else if (_sortOption == "Difficulty") {
-      tasks.sort((a, b) => a.difficulty.compareTo(b.difficulty));
-    } else if (_sortOption == "Priority") {
-      tasks.sort((a, b) => a.priority.compareTo(b.priority));
-    } else if (_sortOption == "Category") {
-      tasks.sort((a, b) => a.category.name.compareTo(b.category.name));
-    }
-
-    return tasks;
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.sort),
-                    onPressed: _rotateSortOption,
-                  ),
-                  Text("Sort by $_sortOption"),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 10.0),
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                  ),
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add Task"),
-                  onPressed: () {
-                    _handleAddTask(context);
-                  },
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.sort),
+                  onPressed: _rotateSortOption,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: FutureBuilder<List<Task>>(
-              future: _allTasks,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return const Center(child: Text("Error loading tasks."));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text("No tasks found."));
-                } else {
-                  final tasks = _applySorting(snapshot.data!);
-                  return LayoutBuilder(
-                    builder: (context, constraints) {
-                      final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
-                      final aspectRatio = 140 / 200;
-                      final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
-                      final cardHeight = cardWidth / aspectRatio;
-
-                      return GridView.builder(
-                        padding: const EdgeInsets.all(8.0),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount,
-                          crossAxisSpacing: 16.0,
-                          mainAxisSpacing: 16.0,
-                          childAspectRatio: aspectRatio,
-                        ),
-                        itemCount: tasks.length,
-                        itemBuilder: (context, index) {
-                          final task = tasks[index];
-                          return GestureDetector(
-                            onTap: () => _showTaskDetails(context, task),
-                            child: Cards(
-                              thisTask: Future.value(task),
-                              sState: SmallState.info,
-                              bState: BigState.info,
-                              size: Size.small,
-                              heightBig: cardHeight-30,
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                }
-              },
+                Text("Sort by $_sortOption"),
+              ],
             ),
+            Padding(
+              padding: const EdgeInsets.only(right: 10.0),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20.0),
+                  ),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text("Add Task"),
+                onPressed: () {
+                  _handleAddTask(context);
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: StreamBuilder<List<Task>>(
+            stream: DBHandler().tasksStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return const Center(child: Text("Error loading tasks."));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("No tasks found."));
+              } else {
+                final tasks = _applySorting(snapshot.data!);
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
+                    final aspectRatio = 140 / 200;
+                    final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
+                    final cardHeight = cardWidth / aspectRatio;
+
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(8.0),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: 16.0,
+                        mainAxisSpacing: 16.0,
+                        childAspectRatio: aspectRatio,
+                      ),
+                      itemCount: tasks.length,
+                      itemBuilder: (context, index) {
+                        final task = tasks[index];
+                        return GestureDetector(
+                          onTap: () => _showTaskDetails(context, task),
+                          child: Cards(
+                            thisTask: Future.value(task),
+                            sState: SmallState.info,
+                            bState: BigState.info,
+                            size: Size.small,
+                            heightBig: cardHeight - 30,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              }
+            },
           ),
-        ],
-      ),
-    );
+        ),
+      ],
+    ),
+  );
+}
+
+List<Task> _applySorting(List<Task> tasks) {
+  if (_sortOption == "Name") {
+    tasks.sort((a, b) => a.name.compareTo(b.name));
+  } else if (_sortOption == "Difficulty") {
+    tasks.sort((a, b) => a.difficulty.compareTo(b.difficulty));
+  } else if (_sortOption == "Priority") {
+    tasks.sort((a, b) => a.priority.compareTo(b.priority));
+  } else if (_sortOption == "Category") {
+    tasks.sort((a, b) => a.category.name.compareTo(b.category.name));
   }
+
+  return tasks;
+}
+
 
   void _showTaskDetails(BuildContext context, Task task) {
     showTaskBottomSheet(
@@ -157,17 +151,18 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
       bState: BigState.info,
       onClose: () {
         Navigator.pop(context);
-        setState(() {
-          _fetchTasks();
-        });
+        //setState(() {
+          //_fetchTasks();
+        //});
       },
       additionalWidgets: ElevatedButton.icon(
         onPressed: () async {
-          await DBHandler().removeTask(task.taskId);
+          task.removeFromFirebase();
+          //await DBHandler().removeTask(task.taskId);
           Navigator.pop(context);
-          setState(() {
-            _fetchTasks();
-          });
+          //setState(() {
+            //_fetchTasks();
+          //});
         },
         icon: const Icon(Icons.delete),
         label: const Text(
@@ -188,7 +183,7 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
   }
 
   void _handleAddTask(BuildContext context) async {
-    Task task = await createDefaultTask();
+    Task task = await Task.createDefaultTask();
 
     showTaskBottomSheet(
       context: context,
@@ -196,10 +191,10 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
       size: Size.big,
       bState: BigState.edit,
       onClose: () {
-        DBHandler().removeTask(task.taskId);
+        //DBHandler().removeTask(task.taskId);
         Navigator.pop(context);
         setState(() {
-          _fetchTasks();
+         // _fetchTasks();
         });
       },
       additionalWidgets: StatefulBuilder(
@@ -234,12 +229,12 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
                                 border: Border.all(color: Colors.grey[400]!),
                               ),
                               child: DropdownButtonHideUnderline(
-                                child: DropdownButton<int>(
+                                child: DropdownButton<String>(
                                   value: _selectedUserId,
                                   hint: const Text("Assign to User"),
                                   isExpanded: true,
                                   items: users.map((user) {
-                                    return DropdownMenuItem<int>(
+                                    return DropdownMenuItem<String>(
                                       value: user.userId,
                                       child: Text(user.name),
                                     );
@@ -266,7 +261,7 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
                                   : () async {
                                       await DBHandler().saveTask(task);
 
-                                      final user = await DBHandler().getUserByUserId(_selectedUserId!);
+                                      final user = await DBHandler().getUserById(_selectedUserId!);
                                       if (user == null) {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           const SnackBar(content: Text("Error: User not found.")),
@@ -280,9 +275,9 @@ class _TaskOverviewDistributedScreenState extends State<TaskOverviewDistributedS
                                         dueDate: calculateNextDueDate(task),
                                       );
                                       Navigator.pop(context);
-                                      setState(() {
-                                        _fetchTasks();
-                                      });
+                                      //setState(() {
+                                        //_fetchTasks();
+                                      //});
                                     },
                               icon: const Icon(Icons.save),
                               label: const Text(

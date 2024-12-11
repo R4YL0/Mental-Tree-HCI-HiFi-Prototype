@@ -1,75 +1,89 @@
-import 'package:flutter/material.dart';
-import 'package:mental_load/classes/DBHandler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum Moods { good, mid, bad }
 
 class Mood {
-  final int _moodId;
-  int _userId;
-  DateTime _date;
-  Moods _mood;
+  final String moodId;
+  String userId;
+  DateTime date;
+  Moods mood;
 
-  // Getters & Setters
-  int get moodId => _moodId;
-  int get userId => _userId;
-  DateTime get date => _date;
-  Moods get mood => _mood;
+  // Constructor
+  Mood({
+    required this.moodId,
+    required this.userId,
+    required this.date,
+    required this.mood,
+  });
 
-  set userId(value) => {_userId = value, DBHandler().saveMood(this)};
-  set date(value) => {_date = value, DBHandler().saveMood(this)};
-  set mood(value) => {_mood = value, DBHandler().saveMood(this)};
+  // Create Mood with Unique ID
+static Future<Mood> create({
+  required String userId, // Change this to match your userId type
+  required DateTime date,
+  required Moods mood,
+}) async {
+  final docRef = FirebaseFirestore.instance.collection('moods').doc();
+  final moodObj = Mood(
+    moodId: docRef.id,
+    userId: userId, // Pass userId as a string
+    date: date,
+    mood: mood,
+  );
+  await docRef.set(moodObj.toJson());
+  return moodObj;
+}
 
-  // Private Constructor
-  Mood._({
-    required int moodId,
-    required int userId,
-    required DateTime date,
-    required Moods mood,
-  })  : _moodId = moodId,
-        _userId = userId,
-        _date = date,
-        _mood = mood;
 
-  // Factory Constructor with Auto ID
-  static Future<Mood> create({
-    required int userId,
-    required DateTime date,
-    required Moods mood,
-  }) async {
-    final id = await DBHandler().getNextMoodId();
-    Mood mood2 = Mood._(
-      moodId: id,
-      userId: userId,
-      date: date,
-      mood: mood,
-    );
-    await DBHandler().saveMood(mood2);
-    return mood2;
+  // Save Mood to Firebase
+  Future<void> saveToFirebase() async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      // Save mood data to Firestore
+      await firestore.collection('moods').doc(moodId).set(toJson());
+      print('Mood saved successfully to Firebase.');
+    } catch (e) {
+      print('Error saving mood to Firebase: $e');
+    }
   }
 
+  // Remove Mood from Firebase
+  Future<void> removeFromFirebase() async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    try {
+      // Delete mood document from Firestore
+      await firestore.collection('moods').doc(moodId).delete();
+      print('Mood removed successfully from Firebase.');
+    } catch (e) {
+      print('Error removing mood from Firebase: $e');
+    }
+  }
+
+  // Convert Mood to JSON
   Map<String, dynamic> toJson() => {
-        'moodId': _moodId,
-        'userId': _userId,
-        'date': _date.toIso8601String(),
-        'mood': _mood.toString(),
+        'userId': userId,
+        'date': date.toIso8601String(),
+        'mood': mood.name, // Convert enum to string
       };
 
-  static Mood fromJson(Map<String, dynamic> json) {
-    return Mood._(
-      moodId: json['moodId'],
+  // Parse JSON to Create a Mood Object
+  factory Mood.fromJson(String moodId, Map<String, dynamic> json) {
+    return Mood(
+      moodId: moodId,
       userId: json['userId'],
       date: DateTime.parse(json['date']),
-      mood: Moods.values.firstWhere((e) => e.toString() == json['mood']),
+      mood: Moods.values.firstWhere((e) => e.name == json['mood']),
     );
   }
 
   @override
   String toString() {
     return 'Mood: {\n'
-        '  moodId: $_moodId,\n'
-        '  userId: $_userId,\n'
-        '  date: ${_date.toIso8601String()},\n'
-        '  mood: $_mood\n'
+        '  moodId: $moodId,\n'
+        '  userId: $userId,\n'
+        '  date: $date,\n'
+        '  mood: $mood\n'
         '}';
   }
 }

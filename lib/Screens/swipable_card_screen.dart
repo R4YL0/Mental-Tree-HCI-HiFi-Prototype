@@ -13,8 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SwipableCardScreen extends StatefulWidget {
   final TabController tabController;
 
-  const SwipableCardScreen({Key? key, required this.tabController})
-      : super(key: key);
+  const SwipableCardScreen({Key? key, required this.tabController}) : super(key: key);
 
   @override
   State<SwipableCardScreen> createState() => _SwipableCardScreenState();
@@ -26,7 +25,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
   late CardSwiperController _cardController;
   bool _isLoading = true;
   late User currUser;
-  List<int> _submittedUsers = [];
+  List<String> _submittedUsers = [];
 
   @override
   void initState() {
@@ -36,9 +35,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
   }
 
   void _myInit() async {
-    final curUserId = await getCurUserId();
-    User? newCurrUser = await DBHandler().getUserByUserId(curUserId);
-    if (newCurrUser != null) setState(() => currUser = newCurrUser);
+    User newCurrUser = await DBHandler().getCurUser();
+    setState(() => currUser = newCurrUser);
 
     _initializeData();
   }
@@ -48,10 +46,8 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
       _isLoading = true;
     });
     _submittedUsers = await DBHandler().getSubmittedUsers();
-    _remainingTasks =
-        await DBHandler().getUndecidedTasksByUserID(await getCurUserId());
-    _cardsAtStart =
-        await DBHandler().getUndecidedTasksByUserID(await getCurUserId());
+    _remainingTasks = await DBHandler().getUndecidedTasksByUserId(await getCurUserId()).first;
+    _cardsAtStart = await DBHandler().getUndecidedTasksByUserId(await getCurUserId()).first;
     _isLoading = false;
     setState(() {});
   }
@@ -59,14 +55,12 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
   void _likeTask(Task task) async {
     _remainingTasks.remove(task);
 
-    (await DBHandler().getCurUser())
-        .updateTaskState(task.taskId, TaskState.Like);
+    (await DBHandler().getCurUser()).updateTaskState(task.taskId, TaskState.Like);
   }
 
   void _dislikeTask(Task task) async {
     _remainingTasks.remove(task);
-    (await DBHandler().getCurUser())
-        .updateTaskState(task.taskId, TaskState.Dislike);
+    (await DBHandler().getCurUser()).updateTaskState(task.taskId, TaskState.Dislike);
   }
 
   @override
@@ -77,7 +71,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
       );
     }
 
-    return FutureBuilder<int>(
+    return FutureBuilder<String>(
       future: getCurUserId(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -94,14 +88,14 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
           );
         }
 
-        int curUserId = snapshot.data!;
+        String curUserId = snapshot.data!;
         // Continue building the UI with `curUserId` available
         return _buildMainContent(curUserId);
       },
     );
   }
 
-  _buildMainContent(int curUserId) {
+  _buildMainContent(String curUserId) {
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(),
@@ -170,8 +164,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30.0),
                 ),
@@ -214,14 +207,13 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                   isLoop: false,
                   duration: const Duration(milliseconds: 300),
                   numberOfCardsDisplayed: cardsToShow,
-                  cardBuilder:
-                      (context, index, percentThresholdX, percentThresholdY) {
+                  cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
                     return Cards(
                       thisTask: Future.value(_cardsAtStart[index]),
                       sState: SmallState.info,
                       bState: BigState.swipe,
                       size: Size.big,
-                      heightBig: cardHeightBig-75,
+                      heightBig: cardHeightBig - 75,
                     );
                   },
                   onSwipe: (previousIndex, currentIndex, direction) async {
@@ -236,8 +228,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                   onEnd: () {
                     widget.tabController.animateTo(2);
                   },
-                  allowedSwipeDirection:
-                      AllowedSwipeDirection.only(left: true, right: true),
+                  allowedSwipeDirection: AllowedSwipeDirection.only(left: true, right: true),
                   padding: EdgeInsets.only(bottom: 50),
                 ),
               );
@@ -245,8 +236,7 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
           ),
         ),
         Padding(
-          padding:
-              const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 20),
+          padding: const EdgeInsets.only(top: 0, right: 10, left: 10, bottom: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -261,15 +251,13 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: Row(
                   children: const [
                     Icon(Icons.favorite, color: Colors.white, size: 30),
                     SizedBox(width: 8),
-                    Text("Like",
-                        style: TextStyle(fontSize: 18, color: Colors.white)),
+                    Text("Like", style: TextStyle(fontSize: 18, color: Colors.white)),
                   ],
                 ),
               ),
@@ -284,15 +272,13 @@ class _SwipableCardScreenState extends State<SwipableCardScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 ),
                 child: Row(
                   children: const [
                     Icon(Icons.thumb_down, color: Colors.white, size: 30),
                     SizedBox(width: 8),
-                    Text("Dislike",
-                        style: TextStyle(fontSize: 18, color: Colors.white)),
+                    Text("Dislike", style: TextStyle(fontSize: 18, color: Colors.white)),
                   ],
                 ),
               ),

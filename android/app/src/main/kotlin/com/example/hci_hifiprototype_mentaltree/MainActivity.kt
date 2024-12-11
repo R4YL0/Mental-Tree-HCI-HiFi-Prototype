@@ -1,4 +1,4 @@
-package com.example.hci_hifiprototype_mentaltree
+package com.mentaltree.app
 
 import io.flutter.embedding.android.FlutterActivity
 

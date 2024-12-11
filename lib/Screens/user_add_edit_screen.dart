@@ -119,7 +119,7 @@ class _UserAddEditScreenState extends State<UserAddEditScreen> {
 
   void _onPressedDeleteFinal() async {
     if (widget.user is User) {
-      int userId = widget.user?.userId as int;
+      String userId = widget.user?.userId as String;
       await DBHandler().removeUser(userId);
     }
     if (context.mounted) {

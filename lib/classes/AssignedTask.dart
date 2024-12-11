@@ -1,154 +1,235 @@
-import 'User.dart';
-import 'Task.dart';
-import 'DBHandler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/Task.dart';
+import 'package:mental_load/classes/User.dart';
 
 class AssignedTask {
-  int _assignedTaskId;
-  User _user;
-  Task _task;
-  DateTime _dueDate;
-  DateTime? _finishDate;
+  String assignedTaskId;
+  User user;
+  Task task;
+  DateTime dueDate;
+  DateTime? finishDate;
 
-  // Getters & Setters
-  int get assignedTaskId => _assignedTaskId;
-  User get user => _user;
-  Task get task => _task;
-  DateTime get dueDate => _dueDate;
-  DateTime? get finishDate => _finishDate;
+  AssignedTask({
+    required this.assignedTaskId,
+    required this.user,
+    required this.task,
+    required this.dueDate,
+    this.finishDate,
+  });
 
-  set assignedTaskId(int value) => {_assignedTaskId = value, DBHandler().saveAssignedTask(this)};
-  set task(Task value) => {_task = value, DBHandler().saveAssignedTask(this)};
-  set dueDate(DateTime value) => {_dueDate = value, DBHandler().saveAssignedTask(this)};
+  Future<void> setUser(User newUser) async {
+    final firestore = FirebaseFirestore.instance;
 
-  setUser(User value) async {
-    _user = value;
-    await DBHandler().saveAssignedTask(this);
+    try {
+      // Update the user field in memory
+      user = newUser;
+
+      // Save the updated user ID to Firestore
+      await firestore.collection('assigned_tasks').doc(assignedTaskId).update({
+        'userId': newUser.userId,
+      });
+    } catch (e) {
+      print('Error updating user in AssignedTask: $e');
+    }
   }
 
-  setFinishDate(DateTime? finishDate) async {
-    _finishDate = finishDate;
-    await DBHandler().saveAssignedTask(this);
+  // Save AssignedTask to Firebase
+  Future<void> saveToFirebase() async {
+    final firestore = FirebaseFirestore.instance;
+    try {
+      await firestore.collection('assigned_tasks').doc(assignedTaskId).set(toJson());
+    } catch (e) {
+      print('Error saving AssignedTask to Firebase: $e');
+    }
   }
 
-  // Private Constructor
-  AssignedTask._({
-    required int assignedTaskId,
-    required User user,
-    required Task task,
-    required DateTime dueDate,
+  // Remove AssignedTask from Firebase
+  Future<void> removeFromFirebase() async {
+    final firestore = FirebaseFirestore.instance;
+    try {
+      await firestore.collection('assigned_tasks').doc(assignedTaskId).delete();
+    } catch (e) {
+      print('Error removing AssignedTask from Firebase: $e');
+    }
+  }
+
+  /// Update specific fields of an AssignedTask in Firebase
+  Future<void> updateFieldsInFirebase({
+    User? user,
+    Task? task,
+    DateTime? dueDate,
     DateTime? finishDate,
-  })  : _assignedTaskId = assignedTaskId,
-        _user = user,
-        _task = task,
-        _dueDate = dueDate,
-        _finishDate = finishDate;
+  }) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  // Factory Constructor with Auto ID
+    try {
+      Map<String, dynamic> fieldsToUpdate = {};
+
+      // Add fields to update map if not null
+      if (user != null) fieldsToUpdate['userId'] = user.userId;
+      if (task != null) fieldsToUpdate['taskId'] = task.taskId;
+      if (dueDate != null) fieldsToUpdate['dueDate'] = dueDate.toIso8601String();
+      if (finishDate != null) {
+        fieldsToUpdate['finishDate'] = finishDate.toIso8601String();
+      } else {
+        fieldsToUpdate['finishDate'] = null; // Handle nullable finishDate
+      }
+
+      if (fieldsToUpdate.isNotEmpty) {
+        await firestore.collection('assigned_tasks').doc(assignedTaskId).update(fieldsToUpdate);
+        print('AssignedTask fields updated successfully in Firebase.');
+      } else {
+        print('No fields to update.');
+      }
+    } catch (e) {
+      print('Error updating fields in Firebase: $e');
+      throw e;
+    }
+  }
+
+  // Convert AssignedTask to JSON for Firebase
+  Map<String, dynamic> toJson() => {
+        'assignedTaskId': assignedTaskId,
+        'userId': user.userId, // Save userId from the User object
+        'taskId': task.taskId, // Save taskId from the Task object
+        'dueDate': dueDate.toIso8601String(),
+        'finishDate': finishDate?.toIso8601String(),
+      };
+
+  // Create AssignedTask from Firebase JSON
+  static Future<AssignedTask> fromJson(String id, Map<String, dynamic> json) async {
+    final dbHandler = DBHandler();
+    final user = await dbHandler.getUserById(json['userId']); // Fetch User object
+    if (user == null) {
+      throw Exception('User with ID ${json['userId']} not found');
+    }
+
+    final task = await dbHandler.getTaskById(json['taskId']); // Fetch Task object
+    if (task == null) {
+      throw Exception('Task with ID ${json['taskId']} not found');
+    }
+
+    return AssignedTask(
+      assignedTaskId: id,
+      user: user,
+      task: task,
+      dueDate: DateTime.parse(json['dueDate']),
+      finishDate: json['finishDate'] != null ? DateTime.parse(json['finishDate']) : null,
+    );
+  }
+
+  // Factory Constructor to Create New AssignedTask
   static Future<AssignedTask> create({
     required User user,
     required Task task,
     required DateTime dueDate,
     DateTime? finishDate,
   }) async {
-    final assignedTaskId = await DBHandler().getNextAssignedTaskId();
-    AssignedTask assignedTask = AssignedTask._(
-      assignedTaskId: assignedTaskId,
+    final firestore = FirebaseFirestore.instance;
+    final id = firestore.collection('assigned_tasks').doc().id; // Generate a unique ID
+    final assignedTask = AssignedTask(
+      assignedTaskId: id,
       user: user,
       task: task,
       dueDate: dueDate,
       finishDate: finishDate,
     );
-    await DBHandler().saveAssignedTask(assignedTask);
+    await assignedTask.saveToFirebase();
     return assignedTask;
   }
 
-  // Find all tasks assigned to a specific user
-  static Future<List<AssignedTask>> getTasksForUser(int userId) async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
-    return assignedTasks.where((task) => task._user.userId == userId).toList();
-  }
+  static Future<List<AssignedTask>> getTasksForUser(String? userId) async {
+    final firestore = FirebaseFirestore.instance;
 
-  // Find all completed tasks for a specific user
-  static Future<List<AssignedTask>> getCompletedTasksForUser(int userId) async {
-    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
-    return assignedTasks.where((task) => task._user.userId == userId && task._finishDate != null).toList();
-  }
-
-  // Find all completed tasks ordered by the finish date
-  static Future<List<AssignedTask>> getCompletedTasks() async {
-    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
-    return assignedTasks.where((task) => task._finishDate != null).toList()..sort((a, b) => a._finishDate!.compareTo(b._finishDate!));
-  }
-
-  // Get all tasks not completed for a specific user
-  static Future<List<AssignedTask>> getIncompleteTasksForUser(int userId) async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
-    return assignedTasks.where((task) => task._user.userId == userId && task._finishDate == null).toList();
-  }
-
-  static Future<Map<Category, List<AssignedTask>>> getAssignedTasksDictionary() async {
-    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
-    final Map<Category, List<AssignedTask>> tasksByCategory = {};
-
-    for (var task in assignedTasks) {
-      final category = task._task.category;
-      if (!tasksByCategory.containsKey(category)) {
-        tasksByCategory[category] = [];
+    // If userId is null, fetch the first user from the database
+    if (userId == null) {
+      final users = await DBHandler().getUsers();
+      if (users.isNotEmpty) {
+        userId = users.first.userId;
+      } else {
+        // Handle the case where no users exist in the database
+        throw Exception("No users found in the database.");
       }
-      tasksByCategory[category]?.add(task);
     }
-    return tasksByCategory;
+
+    // Query assigned tasks for the given userId
+    final snapshot = await firestore.collection('assigned_tasks').where('userId', isEqualTo: userId).get();
+
+    // Map Firestore documents to AssignedTask objects
+    return Future.wait(snapshot.docs.map((doc) async => await AssignedTask.fromJson(doc.id, doc.data() as Map<String, dynamic>)));
   }
 
-  static Future<Map<Category, List<AssignedTask>>> getAssignedButNotCompletedTasksDictionary() async {
-    final assignedTasks = await DBHandler().getAssignedTasks();
-    final Map<Category, List<AssignedTask>> tasksByCategory = {};
+  static Future<List<AssignedTask>> getAllCompletedTasks() async {
+    final firestore = FirebaseFirestore.instance;
 
-    for (var task in assignedTasks) {
-      if (task.finishDate != null) {
-        continue;
-      }
+    // Query all assigned tasks that have a non-null finishDate (completed tasks)
+    final snapshot = await firestore.collection('assigned_tasks').get();
 
-      final category = task._task.category;
-      if (!tasksByCategory.containsKey(category)) {
-        tasksByCategory[category] = [];
-      }
-      tasksByCategory[category]?.add(task);
+    final result = await Future.wait(snapshot.docs
+      .where((doc) => doc.data()['finishDate'] != null) // Filter documents with non-null finishDate
+      .map((doc) async => AssignedTask.fromJson(doc.id, doc.data() as Map<String, dynamic>))
+      .toList());
+
+
+    result.sort((a, b) => b.dueDate.compareTo(a.dueDate));
+
+    // Convert Firestore documents to a list of AssignedTask objects
+    return result;
+  }
+
+  // Retrieve Completed Tasks for a Specific User
+  static Future<List<AssignedTask>> getCompletedTasksForUser(User user) async {
+    final firestore = FirebaseFirestore.instance;
+    final snapshot = await firestore.collection('assigned_tasks').where('userId', isEqualTo: user.userId).where('finishDate', isNotEqualTo: null).get();
+    return Future.wait(snapshot.docs.map((doc) async => await AssignedTask.fromJson(doc.id, doc.data() as Map<String, dynamic>)));
+  }
+
+  // Retrieve Incomplete Tasks for a Specific User
+  static Future<List<AssignedTask>> getIncompleteTasksForUser(User user) async {
+    final firestore = FirebaseFirestore.instance;
+    final snapshot = await firestore.collection('assigned_tasks').where('userId', isEqualTo: user.userId).where('finishDate', isEqualTo: null).get();
+    return Future.wait(snapshot.docs.map((doc) async => await AssignedTask.fromJson(doc.id, doc.data() as Map<String, dynamic>)));
+  }
+
+  // Retrieve All Assigned Tasks Grouped by Category
+  static Future<Map<Category, List<AssignedTask>>> getTasksByCategory() async {
+    final firestore = FirebaseFirestore.instance;
+    final snapshot = await firestore.collection('assigned_tasks').get();
+
+    final assignedTasks = await Future.wait(snapshot.docs.map((doc) async => await AssignedTask.fromJson(doc.id, doc.data() as Map<String, dynamic>)));
+
+    final Map<Category, List<AssignedTask>> categorizedTasks = {};
+
+    for (var assignedTask in assignedTasks) {
+      final category = assignedTask.task.category;
+      categorizedTasks.putIfAbsent(category, () => []).add(assignedTask);
     }
-    return tasksByCategory;
+    return categorizedTasks;
   }
 
-  // Get assigned tasks dictionary
+  // Retrieve Assigned and Completed Tasks Grouped by Category
   static Future<Map<Category, List<AssignedTask>>> getAssignedAndCompletedTasksDictionary() async {
-    final assignedTasks = await DBHandler().getAssignedTasks(open: false);
-    final Map<Category, List<AssignedTask>> tasksByCategory = {};
+    final firestore = FirebaseFirestore.instance;
+    final snapshot = await firestore.collection('assigned_tasks').where('finishDate', isNotEqualTo: null).get();
 
-    for (var task in assignedTasks) {
-      if (task.finishDate == null) {
-        continue;
-      }
+    // Parse the snapshot into a list of AssignedTasks
+    final assignedTasks = await Future.wait(snapshot.docs.map((doc) async => await AssignedTask.fromJson(doc.id, doc.data() as Map<String, dynamic>)));
 
-      final category = task._task.category;
-      if (!tasksByCategory.containsKey(category)) {
-        tasksByCategory[category] = [];
-      }
-      tasksByCategory[category]?.add(task);
+    final Map<Category, List<AssignedTask>> categorizedTasks = {};
+
+    for (var assignedTask in assignedTasks) {
+      final category = assignedTask.task.category;
+      categorizedTasks.putIfAbsent(category, () => []).add(assignedTask);
     }
-    return tasksByCategory;
+
+    return categorizedTasks;
   }
 
-  Map<String, dynamic> toJson() => {
-        'assignedTaskId': _assignedTaskId,
-        'user': _user.toJson(),
-        'task': _task.toJson(),
-        'dueDate': _dueDate.toIso8601String(),
-        'finishDate': _finishDate?.toIso8601String(),
-      };
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
 
-  AssignedTask.fromJson(Map<String, dynamic> json)
-      : _assignedTaskId = json['assignedTaskId'],
-        _user = User.fromJson(json['user']),
-        _task = Task.fromJson(json['task']),
-        _dueDate = DateTime.parse(json['dueDate']),
-        _finishDate = json['finishDate'] != null ? DateTime.parse(json['finishDate']) : null;
+    return other is AssignedTask && other.assignedTaskId == assignedTaskId;
+  }
 }

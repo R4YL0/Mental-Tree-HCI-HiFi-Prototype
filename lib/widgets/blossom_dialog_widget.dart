@@ -6,6 +6,8 @@ import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/classes/User.dart';
 import 'package:mental_load/constants/colors.dart';
 import 'package:mental_load/constants/strings.dart';
+import 'package:mental_load/widgets/cards_bottom_sheet.dart';
+import 'package:mental_load/widgets/cards_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
@@ -37,16 +39,95 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.all(10),
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CategoryChartWidget(category: widget.category, completed: testVersion == "A",),
-            Text("List of Open Tasks (Click to see the Task)",style: TextStyle(fontWeight: FontWeight.bold, color: const Color.fromARGB(255, 80, 80, 80)),),
-            CategoryListWidget(category: widget.category,),
-          ],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+      ),
+      elevation: 8,
+      backgroundColor: Colors.white,
+      insetPadding: const EdgeInsets.all(16),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.75,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Updated Title
+              Text(
+                "${widget.category.name} Overview", // Dynamically set category name
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Divider(thickness: 1.5, color: Colors.grey[300]),
+              SizedBox(height: 8),
+
+              // Reduced Chart Height
+              SizedBox(
+                height: 200, // Set a fixed height for the chart
+                child: CategoryChartWidget(
+                  category: widget.category,
+                  completed: testVersion == "A",
+                ),
+              ),
+
+              SizedBox(height: 8),
+
+              // Subheading
+              Text(
+                "List of Open Tasks (Click to see the Task)",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: const Color.fromARGB(255, 80, 80, 80),
+                ),
+              ),
+
+              SizedBox(height: 8),
+
+              // Category List Widget
+              Expanded(
+                child: CategoryListWidget(
+                  category: widget.category,
+                ),
+              ),
+
+              SizedBox(height: 12),
+
+              // Close Button
+              Align(
+                alignment: Alignment.center,
+                child: SizedBox(
+                  width: 120,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      "Close",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -56,8 +137,11 @@ class _BlossomDialogWidgetState extends State<BlossomDialogWidget> {
 class CategoryChartWidget extends StatefulWidget {
   final Category category;
   final bool completed;
-  const CategoryChartWidget(
-      {super.key, required this.category, required this.completed,});
+  const CategoryChartWidget({
+    super.key,
+    required this.category,
+    required this.completed,
+  });
 
   @override
   State<CategoryChartWidget> createState() => _CategoryChartWidgetState();
@@ -67,7 +151,7 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
   List<User> users = [];
   List<_CategoryCount> chartData = [];
   List<_CategoryCount> chartData2 = [];
-  
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -77,113 +161,66 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
 
   _myInit() async {
     users = await DBHandler().getUsers();
+    final Map<Category, List<AssignedTask>> allAssignedTasks = await AssignedTask.getAssignedAndCompletedTasksDictionary();
+    final Map<Category, List<AssignedTask>> openAssignedTasks = await DBHandler().getAssignedButNotCompletedTasksDictionary();
 
-    final Map<Category, List<AssignedTask>>
-        allAssignedTasks; // not really all, depends on variable if completed or not
-    final Map<Category, List<AssignedTask>>
-        openAssignedTasks;
-
-    allAssignedTasks =
-        await AssignedTask.getAssignedAndCompletedTasksDictionary();
     final allCategoryAssignedTasks = allAssignedTasks[widget.category];
     if (allCategoryAssignedTasks != null) {
       for (AssignedTask aTask in allCategoryAssignedTasks) {
-        // either not completed task (then not care about finishDate) or finishDate is < 30 days
-        if (!widget.completed ||
-            (aTask.finishDate != null &&
-                aTask.finishDate!.difference(DateTime.now()).inDays < 30)) {
-          bool entryExists = false;
-          for (_CategoryCount catCount in chartData) {
-            if (catCount.userId == aTask.user.userId &&
-                catCount.category == aTask.task.category.name) {
-              catCount.count += 1;
-              entryExists = true;
-            }
-          }
-          if (entryExists == false) {
-            chartData.add(
-                _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
-          }
+        if (aTask.finishDate != null && aTask.finishDate!.difference(DateTime.now()).inDays < 30) {
+          _addOrUpdateChartData(chartData, aTask);
         }
       }
     }
-    chartData.sort((a, b) => a.category.compareTo(b.category));
-    //if (!widget.completed) {
-      openAssignedTasks =
-          await AssignedTask.getAssignedButNotCompletedTasksDictionary();
-      final openCategoryAssignedTasks = openAssignedTasks[widget.category];
-      if (openCategoryAssignedTasks != null)
-        // ignore: curly_braces_in_flow_control_structures
-        for (AssignedTask aTask in openCategoryAssignedTasks) {
-          bool entryExists = false;
-          for (_CategoryCount catCount in chartData2) {
-            if (catCount.userId == aTask.user.userId &&
-                catCount.category == aTask.task.category.name) {
-              catCount.count += 1;
-              entryExists = true;
-            }
-          }
-          if (entryExists == false) {
-            chartData2.add(
-                _CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
-          }
-        }
-      chartData2.sort((a, b) => a.category.compareTo(b.category));
-    //}
-    
+
+    final openCategoryAssignedTasks = openAssignedTasks[widget.category];
+    if (openCategoryAssignedTasks != null) {
+      for (AssignedTask aTask in openCategoryAssignedTasks) {
+        _addOrUpdateChartData(chartData2, aTask);
+      }
+    }
+
+    setState(() {
+      isLoading = false; // Data is ready
+    });
+  }
+
+  void _addOrUpdateChartData(List<_CategoryCount> chartDataList, AssignedTask aTask) {
+    bool entryExists = false;
+    for (_CategoryCount catCount in chartDataList) {
+      if (catCount.userId == aTask.user.userId && catCount.category == aTask.task.category.name) {
+        catCount.count += 1;
+        entryExists = true;
+      }
+    }
+    if (!entryExists) {
+      chartDataList.add(_CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
+    }
+    chartDataList.sort((a, b) => a.category.compareTo(b.category));
   }
 
   @override
   Widget build(BuildContext context) {
-    double maxAll = 0;
-    for(int i = 0; i < chartData.length; i++) {
-      maxAll = (maxAll < chartData[i].count.toDouble() ? chartData[i].count.toDouble() : maxAll);
+    if (isLoading) {
+      return const Center(child: CircularProgressIndicator()); // Show a loading indicator
     }
-    double maxOpen = 0;
-    for(int i = 0; i < chartData2.length; i++) {
-      maxOpen = (maxOpen < chartData2[i].count.toDouble() ? chartData2[i].count.toDouble() : maxOpen);
-    }
-    return Row(children: [
-      Expanded( child:
-        SfCartesianChart(
-          primaryXAxis: const CategoryAxis(
-            title: AxisTitle(text: "Done Tasks", textStyle: TextStyle(fontSize: 12,)),
-            labelStyle: TextStyle(fontSize: 10),
-          ),
-          primaryYAxis: NumericAxis(
-            //title: AxisTitle(text: "Tasks Last 30 Days", textStyle: TextStyle(fontSize: 12)),
-            minimum: 0,
-            maximum: maxAll,
-          ),
-          legend: const Legend(isVisible: true),
-          backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-          tooltipBehavior: TooltipBehavior(enable: true),
-          series: <CartesianSeries>[
-            for (User tmpUser in users)
-              ColumnSeries<_CategoryCount, String>(
-                dataSource: chartData
-                    .where((data) => data.userId == tmpUser.userId)
-                    .toList(),
-                xValueMapper: (_CategoryCount data, _) => data.category,
-                yValueMapper: (_CategoryCount data, _) => data.count,
-                name: tmpUser.name.substring(0,widget.completed ? tmpUser.name.length : 1),
-                color: tmpUser.flowerColor,
-              ),
-            
-          ],
-        )),
-      if(!widget.completed)
-        Expanded( child:
-          SfCartesianChart(
+
+    double maxAll = chartData.isNotEmpty ? chartData.map((data) => data.count).reduce((a, b) => a > b ? a : b).toDouble() : 0.0;
+
+    double maxOpen = chartData2.isNotEmpty ? chartData2.map((data) => data.count).reduce((a, b) => a > b ? a : b).toDouble() : 0.0;
+
+    return Row(
+      children: [
+        Expanded(
+          child: SfCartesianChart(
             primaryXAxis: const CategoryAxis(
-              title: AxisTitle(text: "Open Tasks", textStyle: TextStyle(fontSize: 12)),
-              labelStyle: TextStyle(fontSize: 10),
+              title: AxisTitle(text: "Done Tasks", textStyle: TextStyle(fontSize: 12)),
+              labelStyle: TextStyle(fontSize: 0),
             ),
             primaryYAxis: NumericAxis(
-              //title: AxisTitle(text: "Tasks Open", textStyle: TextStyle(fontSize: 12)),
               minimum: 0,
-              maximum: maxOpen,
-              opposedPosition: true,
+              maximum: maxAll,
+              interval: 1,
             ),
             legend: const Legend(isVisible: true),
             backgroundColor: const Color.fromARGB(255, 255, 255, 255),
@@ -191,24 +228,52 @@ class _CategoryChartWidgetState extends State<CategoryChartWidget> {
             series: <CartesianSeries>[
               for (User tmpUser in users)
                 ColumnSeries<_CategoryCount, String>(
-                  dataSource: chartData2
-                      .where((data) => data.userId == tmpUser.userId)
-                      .toList(),
+                  dataSource: chartData.where((data) => data.userId == tmpUser.userId).toList(),
                   xValueMapper: (_CategoryCount data, _) => data.category,
                   yValueMapper: (_CategoryCount data, _) => data.count,
-                  name: tmpUser.name.substring(0,1),
-                  color: tmpUser.flowerColor,
+                  name: widget.completed ? tmpUser.name : tmpUser.name.substring(0, 1), // Full or abbreviated name
+                  color: tmpUser.flowerColor, // User-specific color
                 ),
             ],
-          )),
-    ],);
+          ),
+        ),
+        if (!widget.completed)
+          Expanded(
+            child: SfCartesianChart(
+              primaryXAxis: const CategoryAxis(
+                title: AxisTitle(text: "Open Tasks", textStyle: TextStyle(fontSize: 12)),
+                labelStyle: TextStyle(fontSize: 0),
+              ),
+              primaryYAxis: NumericAxis(
+                minimum: 0,
+                maximum: maxOpen,
+                interval: 1,
+                opposedPosition: true,
+              ),
+              legend: const Legend(isVisible: true),
+              backgroundColor: const Color.fromARGB(255, 255, 255, 255),
+              tooltipBehavior: TooltipBehavior(enable: true),
+              series: <CartesianSeries>[
+                for (User tmpUser in users)
+                  ColumnSeries<_CategoryCount, String>(
+                    dataSource: chartData2.where((data) => data.userId == tmpUser.userId).toList(),
+                    xValueMapper: (_CategoryCount data, _) => data.category,
+                    yValueMapper: (_CategoryCount data, _) => data.count,
+                    name: tmpUser.name.substring(0, 1), // Abbreviated name for open tasks
+                    color: tmpUser.flowerColor, // User-specific color
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 }
 
 class _CategoryCount {
   final String category;
   int count;
-  final int userId;
+  final String userId;
 
   _CategoryCount(this.category, this.count, this.userId);
 }
@@ -225,8 +290,7 @@ class Info extends StatelessWidget {
           Icons.lightbulb_outline,
           size: 16,
         ),
-        Text("You can click on a name to deactivate its data!",
-            style: TextStyle(fontSize: 12)),
+        Text("You can click on a name to deactivate its data!", style: TextStyle(fontSize: 12)),
       ],
     );
   }
@@ -235,7 +299,10 @@ class Info extends StatelessWidget {
 class CategoryListWidget extends StatefulWidget {
   final Category category;
 
-  const CategoryListWidget({super.key, required this.category,});
+  const CategoryListWidget({
+    super.key,
+    required this.category,
+  });
 
   @override
   State<CategoryListWidget> createState() => _CategoryListWidgetState();
@@ -252,9 +319,9 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
 
   void _myInit() async {
     final prefs = await SharedPreferences.getInstance();
-    int? curUserId = prefs.getInt(constCurrentUserId);
+    String? curUserId = prefs.getString(constCurrentUserId);
     if (curUserId != null) {
-      User? newCurrUser = await DBHandler().getUserByUserId(curUserId);
+      User? newCurrUser = await DBHandler().getUserById(curUserId);
       if (newCurrUser != null) setState(() => currUser = newCurrUser);
     }
   }
@@ -262,59 +329,133 @@ class _CategoryListWidgetState extends State<CategoryListWidget> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<Category, List<AssignedTask>>>(
-        future: AssignedTask.getAssignedButNotCompletedTasksDictionary(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+      future: DBHandler().getAssignedButNotCompletedTasksDictionary(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              snapshot.error.toString(),
+              style: TextStyle(color: Colors.red),
+            ),
+          );
+        } else {
+          final Map<Category, List<AssignedTask>> assignedTasks = snapshot.data ?? {};
+          final List<AssignedTask> categoryAssignedTasks = assignedTasks[widget.category] ?? [];
+
+          if (categoryAssignedTasks.isNotEmpty) {
+            // Separate tasks of the current user
+            List<AssignedTask> currentUserTasks = categoryAssignedTasks.where((task) => task.user.userId == currUser.userId).toList();
+
+            // Separate tasks of other users
+            List<AssignedTask> otherUserTasks = categoryAssignedTasks.where((task) => task.user.userId != currUser.userId).toList();
+
+            // Sort other user tasks alphabetically by user name
+            otherUserTasks.sort((a, b) => a.user.name.compareTo(b.user.name));
+
+            // Combine the sorted tasks
+            categoryAssignedTasks
+              ..clear()
+              ..addAll(otherUserTasks)
+              ..addAll(currentUserTasks); // Current user's tasks at the end
           }
 
-          if (snapshot.hasError) {
-            return Text(snapshot.error.toString());
-          } else {
-            final Map<Category, List<AssignedTask>> assignedTasks =
-                snapshot.data ?? {};
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 306),
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: categoryAssignedTasks.length,
+              itemBuilder: (context, index) {
+                AssignedTask curTask = categoryAssignedTasks[index];
 
-            //TODO: Show own Tasks last
-            final List<AssignedTask> categoryAssignedTasks = assignedTasks[widget.category] ?? [];
-            if(categoryAssignedTasks.isNotEmpty) {
-              int start = categoryAssignedTasks.indexWhere((e) => e.user.name == currUser.name);
-              int end = categoryAssignedTasks.lastIndexWhere((e) => e.user.name == currUser.name);
-              //print("Start: $start, End $end");
-              if(start != -1 || end != -1) {
-                List<AssignedTask> userCAT = categoryAssignedTasks.sublist(start, end+1);
-                categoryAssignedTasks.removeRange(start, end+1);
-                categoryAssignedTasks.addAll(userCAT);
-              }
-            }
-
-            return ConstrainedBox(
-              constraints: BoxConstraints(maxHeight: 306), child: 
-            ListView.separated(
-                shrinkWrap: true,
-                itemCount: categoryAssignedTasks.length,
-                itemBuilder: (context, index) {
-                  AssignedTask curTask = categoryAssignedTasks[index];
-
-                  return ListTile(
-                    title: Text(curTask.task.name),
-                    tileColor: curTask.user.flowerColor,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                          color: AppColors.primary.withOpacity(0.2), width: 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    trailing: Icon(Icons.help),
-                    onTap: () {
+                return GestureDetector(
+                  onTap: () {
+                    if (curTask.user.userId == currUser.userId) {
+                      showTaskBottomSheet(context: context, task: curTask, size: Size.big);
+                    } else {
                       showOthersTaskAction(context, curTask, currUser, () {
                         setState(() {});
                       });
-                    },
-                  );
-                },
-                separatorBuilder: (context, index) => const SizedBox(
-                      height: 5,
-                    )));
-          }
-        });
+                    }
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 8), // Added margin for better spacing
+                    padding: const EdgeInsets.all(12), // Increased padding for a clean look
+                    decoration: BoxDecoration(
+                      color: curTask.user.flowerColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.4),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2), // Shadow for card effect
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center, // Center alignment for better look
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: curTask.user.flowerColor,
+                          child: Text(
+                            curTask.user.name.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12), // Adjusted spacing between avatar and text
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                curTask.task.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 4), // Adjusted spacing between title and notes
+                              Text(
+                                curTask.task.notes,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Icon(
+                          Icons.chevron_right,
+                          color: AppColors.primary,
+                          size: 20,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              separatorBuilder: (context, index) => const SizedBox(height: 10), // Increased spacing between items
+            ),
+          );
+        }
+      },
+    );
   }
 }

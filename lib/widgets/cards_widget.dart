@@ -38,7 +38,6 @@ class Cards extends StatefulWidget {
   State<Cards> createState() => _Cards();
 }
 
-
 class _Cards extends State<Cards> {
   var oldState = SmallState.info;
   var subTaskIdx = 0;
@@ -86,7 +85,7 @@ class _Cards extends State<Cards> {
   //Dividing The Screen into SmallCards and BigCards
   Widget smallCard() {
     final double cardHeight = widget.heightBig; // Use heightBig for consistency
-    final double cardWidth = cardHeight /200 *140;
+    final double cardWidth = cardHeight / 200 * 140;
 
     return FutureBuilder<Task>(
       future: widget.thisTask,
@@ -135,11 +134,11 @@ class _Cards extends State<Cards> {
                     alignment: Alignment(0, -0.417),
                     child: ClipRect(
                       child: SizedBox(
-                        width: cardWidth * 0.95, 
-                        height: cardHeight * 0.4, 
+                        width: cardWidth * 0.95,
+                        height: cardHeight * 0.4,
                         child: Image.memory(
                           snapshot.requireData.img,
-                          fit: BoxFit.cover, 
+                          fit: BoxFit.cover,
                         ),
                       ),
                     ),
@@ -190,7 +189,7 @@ class _Cards extends State<Cards> {
 
   Widget bigCard() {
     final double cardHeight = widget.heightBig;
-    final double cardWidth = cardHeight /200 *140;
+    final double cardWidth = cardHeight / 200 * 140;
 
     return FutureBuilder<Task>(
       future: widget.thisTask,
@@ -207,7 +206,7 @@ class _Cards extends State<Cards> {
                     child: ColoredBox(
                       color: Color.fromARGB(255, 226, 226, 226),
                       child: SizedBox(
-                        width: cardWidth*1.1,
+                        width: cardWidth * 1.1,
                         height: cardHeight * 0.52,
                       ),
                     ),
@@ -426,17 +425,16 @@ class _Cards extends State<Cards> {
           child: IconButton(
             onPressed: () => setState(() {
               widget.bState = BigState.edit;
-              section = Section.general; }),
+              section = Section.general;
+            }),
             icon: Icon(
               Icons.edit,
               color: AppColors.primary,
-               size: 28, 
-            )
-            ,
+              size: 28,
+            ),
             tooltip: "Edit Task",
           ),
         ),
-
       ]);
     } else if (widget.bState == BigState.edit) {
       return Stack(
@@ -451,50 +449,96 @@ class _Cards extends State<Cards> {
             ),
           ),
           Align(
-            alignment: Alignment(-0.9, 0.15),
-            child: Text(
-              "Priority",
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(1.2 * widget.heightBig / 550),
-            ),
-          ),
-          Align(
-            alignment: Alignment(0, 0.25),
-            child: SizedBox(
-              width: 300 * widget.heightBig / 550,
-              height: 10 * widget.heightBig / 550,
-              child: Slider(
-                value: s.requireData.priority.toDouble(),
-                onChanged: (value) => setState(() {
-                  s.requireData.priority = value.ceil();
-                }),
-                min: 1,
-                max: 5,
-                divisions: 4,
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment(-0.88, 0.35),
-            child: Text(
-              "Difficulty",
-              style: TextStyle(fontWeight: FontWeight.bold),
-              textScaler: TextScaler.linear(1.2 * widget.heightBig / 550),
-            ),
-          ),
-          Align(
-            alignment: Alignment(0, 0.45),
-            child: SizedBox(
-              width: 300 * widget.heightBig / 550,
-              height: 10 * widget.heightBig / 550,
-              child: Slider(
-                value: s.requireData.difficulty.toDouble(),
-                onChanged: (value) => setState(() {
-                  s.requireData.difficulty = value.ceil();
-                }),
-                min: 1,
-                max: 5,
-                divisions: 4,
+            alignment: Alignment(-0.88, 0.35), // Adjust alignment for proper placement
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 22.0 * (widget.heightBig / 550)), // Dynamic horizontal padding
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Priority Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          "Priority",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0 * (widget.heightBig / 550),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 8,
+                        child: Slider(
+                          value: s.requireData.priority.toDouble(),
+                          onChanged: (value) {
+                            setState(() {
+                              s.requireData.priority = value.ceil();
+                            });
+                          },
+                          min: 1,
+                          max: 5,
+                          divisions: 4,
+                          label: s.requireData.priority.toString(),
+                          activeColor: AppColors.primary,
+                          inactiveColor: AppColors.secondary,
+                        ),
+                      ),
+                      Text(
+                        "${s.requireData.priority}/5",
+                        style: TextStyle(
+                          fontSize: 14.0 * (widget.heightBig / 550),
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Difficulty Row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          "Difficulty",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.0 * (widget.heightBig / 550),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 8,
+                        child: Slider(
+                          value: s.requireData.difficulty.toDouble(),
+                          onChanged: (value) {
+                            setState(() {
+                              s.requireData.difficulty = value.ceil();
+                            });
+                          },
+                          min: 1,
+                          max: 5,
+                          divisions: 4,
+                          label: s.requireData.difficulty.toString(),
+                          activeColor: AppColors.primary,
+                          inactiveColor: AppColors.secondary,
+                        ),
+                      ),
+                      Text(
+                        "${s.requireData.difficulty}/5",
+                        style: TextStyle(
+                          fontSize: 14.0 * (widget.heightBig / 550),
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -511,20 +555,70 @@ class _Cards extends State<Cards> {
             child: frequency(s),
           ),
           Align(
-              alignment: Alignment(-0.7, 1),
-              child: TextButton.icon(
-                onPressed: () => setState(() {
-                  section = Section.subtasks;
-                }),
-                icon: Icon(
-                  Icons.arrow_left,
-                  color: Color.fromARGB(255, 170, 170, 170),
+            alignment: Alignment(-0.5, 0.88), // Adjust alignment to shift the entire row further right
+            child: Row(
+              children: [
+                // Spacer to push the text further to the right
+                Spacer(flex: 1),
+
+                // Dynamic Text with Selected Date
+                Expanded(
+                  flex: 20, // Adjust the proportion of space allocated to the text
+                  child: Text(
+                    s.requireData.frequency == Frequency.oneTime
+                        ? "Due date: ${s.requireData.dueDate != null ? "${s.requireData.dueDate!.day}/${s.requireData.dueDate!.month}/${s.requireData.dueDate!.year}" : "Not set"}"
+                        : "Start date: ${s.requireData.startDate != null ? "${s.requireData.startDate!.day}/${s.requireData.startDate!.month}/${s.requireData.startDate!.year}" : "Not set"}",
+                    style: TextStyle(
+                      fontSize: 18.0 * (widget.heightBig / 550), // Adjust font size dynamically
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                label: Text(
-                  "Subtask",
-                  textScaler: TextScaler.linear(widget.heightBig / 550),
+
+                // Icon button
+                IconButton(
+                  icon: Icon(
+                    Icons.calendar_today,
+                    color: AppColors.primary,
+                  ),
+                  onPressed: () async {
+                    DateTime? pickedDate = await showDatePicker(
+                      context: context,
+                      initialDate: s.requireData.frequency == Frequency.oneTime ? s.requireData.dueDate ?? DateTime.now() : s.requireData.startDate ?? DateTime.now(),
+                      firstDate: DateTime.now(),
+                      lastDate: DateTime.now().add(Duration(days: 365 * 2)), // 2 years from now
+                    );
+                    if (pickedDate != null) {
+                      setState(() {
+                        if (s.requireData.frequency == Frequency.oneTime) {
+                          s.requireData.dueDate = pickedDate; // Update due date for one-time frequency
+                        } else {
+                          s.requireData.startDate = pickedDate; // Update start date for other frequencies
+                        }
+                      });
+                    }
+                  },
+                  tooltip: "Pick a Date",
                 ),
-              )),
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment(-0.7, 1),
+            child: TextButton.icon(
+              onPressed: () => setState(() {
+                section = Section.subtasks;
+              }),
+              icon: Icon(
+                Icons.arrow_left,
+                color: Color.fromARGB(255, 170, 170, 170),
+              ),
+              label: Text(
+                "Subtask",
+                textScaler: TextScaler.linear(widget.heightBig / 550),
+              ),
+            ),
+          ),
           Align(
             alignment: Alignment(0.7, 1),
             child: TextButton.icon(
@@ -551,6 +645,7 @@ class _Cards extends State<Cards> {
                   onPressed: () => setState(() {
                     widget.bState = BigState.info;
                     section = Section.general;
+                    s.requireData.saveToFirebase();
                   }),
                   icon: Icon(
                     Icons.check,
@@ -563,18 +658,21 @@ class _Cards extends State<Cards> {
             ),
           ),
           Align(
-              alignment: Alignment(0.8, -0.1),
-              child: IconButton(
-                  onPressed: () {
-                    chooseImage(s);
-                  },
-                  icon: Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                    shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
-                  ))),
+            alignment: Alignment(0.8, -0.1),
+            child: IconButton(
+              onPressed: () {
+                chooseImage(s);
+              },
+              icon: Icon(
+                Icons.edit,
+                color: Colors.white,
+                shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
+              ),
+            ),
+          ),
         ],
       );
+      ;
     } else {
       return Stack(children: <Widget>[
         names(s.requireData.name, Size.big, s),
@@ -751,56 +849,56 @@ class _Cards extends State<Cards> {
             )),
         Align(alignment: Alignment(0, 0.5), child: text4Subtask(s)),
         Align(
-            alignment: Alignment(1, -1),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () => setState(() {
-                    widget.bState = BigState.info;
-                    section = Section.general;
-                  }),
-                  icon: Icon(
-                    Icons.check,
-                    color: Colors.green,
-                    size: 24,
-                  ),
-                  tooltip: "Confirm Editing",
+          alignment: Alignment(1, -1),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () => setState(() {
+                  widget.bState = BigState.info;
+                  section = Section.general;
+                  s.requireData.saveToFirebase();
+                }),
+                icon: Icon(
+                  Icons.check,
+                  color: Colors.green,
+                  size: 24,
                 ),
-              ],
-            ),
+                tooltip: "Confirm Editing",
+              ),
+            ],
           ),
-          Align(
-              alignment: Alignment(0.8, -0.1),
-              child: IconButton(
-                  onPressed: () {
-                    chooseImage(s);
-                  },
-                  icon: Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                    shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
-                  ))),
+        ),
+        Align(
+            alignment: Alignment(0.8, -0.1),
+            child: IconButton(
+                onPressed: () {
+                  chooseImage(s);
+                },
+                icon: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
+                ))),
       ]);
     } else {
       output.add(
-      //Edit Button
-      Align(
-        alignment: Alignment(1, -1),
-        child: IconButton(
-          onPressed: () => setState(() {
-            widget.bState = BigState.edit;
-            section = Section.general; }),
-          icon: Icon(
-            Icons.edit,
-            color: AppColors.primary,
-              size: 28, 
-          )
-          ,
-          tooltip: "Edit Task",
+        //Edit Button
+        Align(
+          alignment: Alignment(1, -1),
+          child: IconButton(
+            onPressed: () => setState(() {
+              widget.bState = BigState.edit;
+              section = Section.general;
+            }),
+            icon: Icon(
+              Icons.edit,
+              color: AppColors.primary,
+              size: 28,
+            ),
+            tooltip: "Edit Task",
+          ),
         ),
-      ),
-
       );
     }
 
@@ -856,13 +954,13 @@ class _Cards extends State<Cards> {
           child: IconButton(
             onPressed: () => setState(() {
               widget.bState = BigState.edit;
-              section = Section.general; }),
+              section = Section.general;
+            }),
             icon: Icon(
               Icons.edit,
               color: AppColors.primary,
-               size: 28, 
-            )
-            ,
+              size: 28,
+            ),
             tooltip: "Edit Task",
           ),
         ),
@@ -915,36 +1013,37 @@ class _Cards extends State<Cards> {
               ),
             )),
         Align(
-            alignment: Alignment(1, -1),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  onPressed: () => setState(() {
-                    widget.bState = BigState.info;
-                    section = Section.general;
-                  }),
-                  icon: Icon(
-                    Icons.check,
-                    color: Colors.green,
-                    size: 24,
-                  ),
-                  tooltip: "Confirm Editing",
+          alignment: Alignment(1, -1),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () => setState(() {
+                  widget.bState = BigState.info;
+                  section = Section.general;
+                  s.requireData.saveToFirebase();
+                }),
+                icon: Icon(
+                  Icons.check,
+                  color: Colors.green,
+                  size: 24,
                 ),
-              ],
-            ),
+                tooltip: "Confirm Editing",
+              ),
+            ],
           ),
-          Align(
-              alignment: Alignment(0.8, -0.1),
-              child: IconButton(
-                  onPressed: () {
-                    chooseImage(s);
-                  },
-                  icon: Icon(
-                    Icons.edit,
-                    color: Colors.white,
-                    shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
-                  ))),
+        ),
+        Align(
+            alignment: Alignment(0.8, -0.1),
+            child: IconButton(
+                onPressed: () {
+                  chooseImage(s);
+                },
+                icon: Icon(
+                  Icons.edit,
+                  color: Colors.white,
+                  shadows: [Shadow(color: Colors.black, offset: Offset(2, 2), blurRadius: 2)],
+                ))),
       ]);
     } else {
       return general(s);
@@ -953,53 +1052,102 @@ class _Cards extends State<Cards> {
 
   //Helper Functions: names, chooseImage, findSubtask, nextSubtask, text4Subtask, categoryMenu, frequency, dueDates, _twoButtons
   Widget names(String name, Size s, AsyncSnapshot<Task> t) {
-    if(widget.bState == BigState.edit) {
-      return Align(alignment: Alignment(-0.75, -0.94) , child:
-          ConstrainedBox(constraints: BoxConstraints(maxHeight: 50*widget.heightBig/550, maxWidth: 190*widget.heightBig/550), child: /*Row(children: <Widget>[*/
-            EditableText(scrollPhysics: NeverScrollableScrollPhysics(), scrollPadding: EdgeInsets.all(0),
-              controller: TextEditingController(text: t.requireData.name), focusNode: FocusNode(), cursorColor: Colors.black, backgroundCursorColor: Colors.black,
-              maxLines: 2, minLines: 2, textInputAction: TextInputAction.done,
-              onSubmitted: (value) => setState(() {Task change = t.requireData; change.name = value;}),
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),
+    if (widget.bState == BigState.edit) {
+      return Align(
+          alignment: Alignment(-0.75, -0.94),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 50 * widget.heightBig / 550, maxWidth: 190 * widget.heightBig / 550),
+            child: /*Row(children: <Widget>[*/
+                EditableText(
+              scrollPhysics: NeverScrollableScrollPhysics(),
+              scrollPadding: EdgeInsets.all(0),
+              controller: TextEditingController(text: t.requireData.name),
+              focusNode: FocusNode(),
+              cursorColor: Colors.black,
+              backgroundCursorColor: Colors.black,
+              maxLines: 2,
+              minLines: 2,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) => setState(() {
+                Task change = t.requireData;
+                change.name = value;
+              }),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+              textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
+            ),
             //Icon(Icons.edit, color: Colors.grey, size: 15,),
-          /*]),*/)
-        );
+            /*]),*/
+          ));
     }
-    if(s == Size.small) {
-      if(name.length>13 && (name.substring(13,14) != ' ' && name.substring(12,13) != ' ')) {
-        return Stack(children: <Widget> [
-            Align(alignment: Alignment(-0.90, -0.9) , child:
-              Text("${name.substring(0,13)}-", style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),),
-            Align(alignment: Alignment(-0.9, -0.8) , child:
-              Text(name.substring(13), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.6*widget.heightBig/550),),)
-            ,]
+    if (s == Size.small) {
+      if (name.length > 13 && (name.substring(13, 14) != ' ' && name.substring(12, 13) != ' ')) {
+        return Stack(children: <Widget>[
+          Align(
+            alignment: Alignment(-0.90, -0.9),
+            child: Text(
+              "${name.substring(0, 13)}-",
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+            ),
+          ),
+          Align(
+            alignment: Alignment(-0.9, -0.8),
+            child: Text(
+              name.substring(13),
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textScaler: TextScaler.linear(1.6 * widget.heightBig / 550),
+            ),
+          ),
+        ]);
+      } else if (name.length > 13) {
+        return Stack(children: <Widget>[
+          Align(
+            alignment: Alignment(-0.90, -0.9),
+            child: Text(
+              name.substring(0, 13),
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+            ),
+          ),
+          Align(
+            alignment: Alignment(-0.9, -0.78),
+            child: Text(
+              name.substring(13),
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textScaler: TextScaler.linear(1.6 * widget.heightBig / 550),
+            ),
+          ),
+        ]);
+      } else {
+        return Align(
+          alignment: Alignment(-0.90, -0.9),
+          child: Text(
+            name,
+            style: TextStyle(fontWeight: FontWeight.bold),
+            textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+          ),
         );
-      }
-      else if(name.length>13) {
-        return Stack(children: <Widget> [
-            Align(alignment: Alignment(-0.90, -0.9) , child:
-              Text(name.substring(0,13), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),),
-            Align(alignment: Alignment(-0.9, -0.78) , child:
-              Text(name.substring(13), style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.6*widget.heightBig/550),),)
-            ,]
-        );
-      }
-      else {
-        return Align(alignment: Alignment(-0.90, -0.9) , child:
-          Text(name, style: TextStyle(fontWeight: FontWeight.bold), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),);
       }
     } else {
-      return Align(alignment: Alignment(-0.8, -0.94) , child:
-            ConstrainedBox(constraints: BoxConstraints(maxHeight: 50*widget.heightBig/550, maxWidth: 190*widget.heightBig/550), child:
-              Text(name, maxLines: 2, textHeightBehavior: TextHeightBehavior(), style: TextStyle(fontWeight: FontWeight.bold, height: 1.2*widget.heightBig/550), textScaler: TextScaler.linear(1.4*widget.heightBig/550),),)
-      );
+      return Align(
+          alignment: Alignment(-0.8, -0.94),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: 50 * widget.heightBig / 550, maxWidth: 190 * widget.heightBig / 550),
+            child: Text(
+              name,
+              maxLines: 2,
+              textHeightBehavior: TextHeightBehavior(),
+              style: TextStyle(fontWeight: FontWeight.bold, height: 1.2 * widget.heightBig / 550),
+              textScaler: TextScaler.linear(1.4 * widget.heightBig / 550),
+            ),
+          ));
     }
   }
 
   void chooseImage(AsyncSnapshot<Task> s) async {
     final ImagePicker picker = ImagePicker();
     XFile? image = await picker.pickImage(source: ImageSource.gallery) as XFile;
-    if(image == null) {
+    if (image == null) {
       return;
     }
     setState(() {
@@ -1023,7 +1171,7 @@ class _Cards extends State<Cards> {
           ),
           value: f.isDone,
           onChanged: (bool? value) => setState(() {
-            s.elementAt(subTaskIdx).isDone = value;
+            s.elementAt(subTaskIdx).isDone = value ?? false;
           }),
           dense: true,
           visualDensity: VisualDensity(horizontal: -2, vertical: -2),
@@ -1057,7 +1205,7 @@ class _Cards extends State<Cards> {
           ),
           value: check,
           onChanged: (bool? value) => setState(() {
-            widget.bState == BigState.edit ? toBeDeleted[i] = value! : l.elementAt(i).isDone = value;
+            widget.bState == BigState.edit ? toBeDeleted[i] = value! : l.elementAt(i).isDone = value ?? false;
           }),
           dense: true,
           visualDensity: VisualDensity(horizontal: -4, vertical: -4),
@@ -1072,26 +1220,27 @@ class _Cards extends State<Cards> {
 
   Widget text4Subtask(AsyncSnapshot<Task> s) {
     if (textBoxOpen) {
-      Future<Subtask> newSub = Subtask.create(name: "toBeWritten");
+      Future<Subtask> newSub = Subtask.create(taskId: s.requireData.taskId, name: "toBeWritten");
       return FutureBuilder<Subtask>(
           future: newSub,
           builder: (context, snapshot) {
-            return Stack(children:[
-            ColoredBox(
+            return Stack(children: [
+              ColoredBox(
                 color: Color.fromARGB(255, 242, 242, 242),
                 child: SizedBox(
-                  width: 400 * widget.heightBig/550,
-                  height: 50* widget.heightBig/550,
+                  width: 400 * widget.heightBig / 550,
+                  height: 50 * widget.heightBig / 550,
                 ),
-            ),
-            TextField(
-              onSubmitted: (String value) => setState(() {
-                textBoxOpen = false;
-                snapshot.requireData.name = value;
-                s.requireData.subtasks.add(snapshot.requireData);
-              }),
-              autofocus: true,
-            )]);
+              ),
+              TextField(
+                onSubmitted: (String value) => setState(() {
+                  textBoxOpen = false;
+                  snapshot.requireData.name = value;
+                  s.requireData.subtasks.add(snapshot.requireData);
+                }),
+                autofocus: true,
+              )
+            ]);
           });
     } else {
       return SizedBox.shrink();
@@ -1099,63 +1248,205 @@ class _Cards extends State<Cards> {
   }
 
   Widget categoryMenu(AsyncSnapshot<Task> s) {
-    if(widget.bState == BigState.info) {
-      return Align(alignment: Alignment(0.65, -0.92) , child:
-          Text(s.requireData.category.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
-            Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-            Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ],
-        ), textScaler: TextScaler.linear(1.4),),);
+    if (widget.bState == BigState.info) {
+      return Align(
+        alignment: Alignment(0.65, -0.92),
+        child: Text(
+          s.requireData.category.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.4),
+        ),
+      );
     } else if (widget.bState == BigState.swipe) {
-       return Align(alignment: Alignment(0.85, -0.95) , child:
-          Text(s.requireData.category.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
-            Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-            Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ],
-        ), textScaler: TextScaler.linear(1.4),),);
+      return Align(
+        alignment: Alignment(0.85, -0.95),
+        child: Text(
+          s.requireData.category.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.4),
+        ),
+      );
     }
     var list = [
-      DropdownMenuItem<Category>(value: Category.Admin, child:
-        Text(Category.Admin.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
-          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
+      DropdownMenuItem<Category>(
+        value: Category.Admin,
+        child: Text(
+          Category.Admin.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+        ),
       ),
-      DropdownMenuItem<Category>(value: Category.Childcare, child:
-        Text(Category.Childcare.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
-          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
+      DropdownMenuItem<Category>(
+        value: Category.Childcare,
+        child: Text(
+          Category.Childcare.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+        ),
       ),
-      DropdownMenuItem<Category>(value: Category.Cleaning, child:
-        Text(Category.Cleaning.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
-          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
+      DropdownMenuItem<Category>(
+        value: Category.Cleaning,
+        child: Text(
+          Category.Cleaning.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+        ),
       ),
-      DropdownMenuItem<Category>(value: Category.Cooking, child:
-        Text(Category.Cooking.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
-          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
+      DropdownMenuItem<Category>(
+        value: Category.Cooking,
+        child: Text(
+          Category.Cooking.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+        ),
       ),
-      DropdownMenuItem<Category>(value: Category.Laundry, child:
-        Text(Category.Laundry.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550,shadows: <Shadow>[
-          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
+      DropdownMenuItem<Category>(
+        value: Category.Laundry,
+        child: Text(
+          Category.Laundry.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+        ),
       ),
-      DropdownMenuItem<Category>(value: Category.Outdoor, child:
-        Text(Category.Outdoor.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14*widget.heightBig/550, shadows: <Shadow>[
-          Shadow( offset: Offset(1, 1), blurRadius: 2.2, color: Color.fromARGB(188, 175, 175, 175),),
-          Shadow( offset: Offset(0, 0), blurRadius: 5, color: Color.fromARGB(105, 175, 175, 175),),
-          ], ), textScaler: TextScaler.linear(1.7*widget.heightBig/550),),
+      DropdownMenuItem<Category>(
+        value: Category.Outdoor,
+        child: Text(
+          Category.Outdoor.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * widget.heightBig / 550,
+            shadows: <Shadow>[
+              Shadow(
+                offset: Offset(1, 1),
+                blurRadius: 2.2,
+                color: Color.fromARGB(188, 175, 175, 175),
+              ),
+              Shadow(
+                offset: Offset(0, 0),
+                blurRadius: 5,
+                color: Color.fromARGB(105, 175, 175, 175),
+              ),
+            ],
+          ),
+          textScaler: TextScaler.linear(1.7 * widget.heightBig / 550),
+        ),
       ),
     ];
-    return Align(alignment: Alignment(0.7, -0.97) , child:
-      DropdownButton<Category>(value: s.requireData.category, alignment: Alignment.centerRight, items: list, onChanged: (chosen) => setState(() {
-        s.requireData.category = chosen;
-      }),),
+    return Align(
+      alignment: Alignment(0.7, -0.97),
+      child: DropdownButton<Category>(
+        value: s.requireData.category,
+        alignment: Alignment.centerRight,
+        items: list,
+        onChanged: (chosen) => setState(() {
+          s.requireData.category = chosen ?? Category.Admin;
+        }),
+      ),
     );
   }
 
@@ -1177,9 +1468,6 @@ class _Cards extends State<Cards> {
         children: freqOptions,
         onPressed: (value) => setState(() {
           s.requireData.frequency = Frequency.values.elementAt(value);
-          if(Frequency.values.elementAt(value) == Frequency.oneTime) {
-            datePicker(s);
-          }
         }),
         borderRadius: BorderRadius.all(Radius.circular(40)),
         constraints: BoxConstraints(minWidth: 75 * widget.heightBig / 550, minHeight: 35 * widget.heightBig / 550),
@@ -1188,18 +1476,20 @@ class _Cards extends State<Cards> {
   }
 
   Future<void> datePicker(AsyncSnapshot<Task> s) async {
-    DateTime end = DateTime(DateTime.now().year+2);
+    DateTime end = DateTime(DateTime.now().year + 2);
     DateTime start = DateTime.now();
-    if(s.requireData.startDate != null) {
+    if (s.requireData.startDate != null) {
       start = s.requireData.startDate as DateTime;
     }
     DateTime init = DateTime.now();
-    if(s.requireData.dueDate != null) {
+    if (s.requireData.dueDate != null) {
       init = s.requireData.dueDate as DateTime;
     }
     DateTime? picked = await showDatePicker(context: context, firstDate: start, initialDate: init, lastDate: end);
-    if(picked != null) {
-      setState(() { s.requireData.dueDate = picked;});
+    if (picked != null) {
+      setState(() {
+        s.requireData.dueDate = picked;
+      });
     }
   }
 

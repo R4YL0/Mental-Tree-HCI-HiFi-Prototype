@@ -1,8 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:mental_load/classes/DBHandler.dart';
+import 'package:mental_load/classes/Subtask.dart';
 import 'package:mental_load/classes/Task.dart';
 import 'package:mental_load/functions/sharedPreferences.dart';
-import 'package:mental_load/main.dart';
 import 'package:mental_load/widgets/cards_bottom_sheet.dart';
 import 'package:mental_load/widgets/cards_widget.dart';
 
@@ -13,17 +15,10 @@ class TaskOverviewScreen extends StatefulWidget {
 
 class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
   String _sortOption = "Name"; // Default sorting option is now "Name"
-  Category? _selectedCategory;
-  Future<List<Task>>? _allTasks;
 
   @override
   void initState() {
     super.initState();
-    _fetchTasks();
-  }
-
-  void _fetchTasks() {
-    _allTasks = DBHandler().getTasks();
   }
 
   void _rotateSortOption() {
@@ -35,7 +30,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
       } else if (_sortOption == "Priority") {
         _sortOption = "Category";
       } else {
-        _sortOption = "Name"; // Rotate back to "Name"
+        _sortOption = "Name";
       }
     });
   }
@@ -77,8 +72,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),
                     ),
@@ -94,8 +88,8 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
           ),
           const SizedBox(height: 10),
           Expanded(
-            child: FutureBuilder<List<Task>>(
-              future: _allTasks,
+            child: StreamBuilder<List<Task>>(
+              stream: DBHandler().tasksStream, // Use the task stream
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -104,15 +98,12 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                   return const Center(child: Text("No tasks found."));
                 } else {
-                  final tasks = _applySorting(snapshot.data!);
+                  final tasks = _applySorting(snapshot.data!); // Apply sorting to the streamed data
                   return LayoutBuilder(
                     builder: (context, constraints) {
-                      final crossAxisCount =
-                          (constraints.maxWidth ~/ 200).clamp(2, 4);
+                      final crossAxisCount = (constraints.maxWidth ~/ 200).clamp(2, 4);
                       final aspectRatio = 140 / 200;
-                      final cardWidth =
-                          (constraints.maxWidth - (crossAxisCount - 1) * 16) /
-                              crossAxisCount;
+                      final cardWidth = (constraints.maxWidth - (crossAxisCount - 1) * 16) / crossAxisCount;
                       final cardHeight = cardWidth / aspectRatio;
 
                       return GridView.builder(
@@ -133,7 +124,7 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
                               sState: SmallState.info,
                               bState: BigState.info,
                               size: Size.small,
-                              heightBig: cardHeight-30,
+                              heightBig: cardHeight - 30,
                             ),
                           );
                         },
@@ -157,17 +148,12 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
       bState: BigState.info,
       onClose: () {
         Navigator.pop(context);
-        setState(() {
-          _fetchTasks();
-        });
       },
       additionalWidgets: ElevatedButton.icon(
         onPressed: () async {
+          task.removeFromFirebase();
           await DBHandler().removeTask(task.taskId);
           Navigator.pop(context);
-          setState(() {
-            _fetchTasks();
-          });
         },
         icon: const Icon(Icons.delete),
         label: const Text(
@@ -175,23 +161,20 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              Theme.of(context).colorScheme.error, // Use error color for delete
+          backgroundColor: Theme.of(context).colorScheme.error, // Use error color for delete
           foregroundColor: Theme.of(context).colorScheme.onError,
           padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
-          side: BorderSide(
-              color: Theme.of(context).colorScheme.error.withOpacity(0.5),
-              width: 2),
+          side: BorderSide(color: Theme.of(context).colorScheme.error.withOpacity(0.5), width: 2),
         ),
       ),
     );
   }
 
   void _handleAddTask(BuildContext context) async {
-    Task task = await createDefaultTask();
+    Task task = await Task.createDefaultTask();
 
     showTaskBottomSheet(
       context: context,
@@ -199,20 +182,13 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
       size: Size.big,
       bState: BigState.edit,
       onClose: () {
-        DBHandler().removeTask(task.taskId);
-        Navigator.pop(context);
-        setState(() {
-          _fetchTasks(); // Refresh the task list
-        });
+        //Navigator.pop(context);
       },
       additionalWidgets: ElevatedButton.icon(
         onPressed: () async {
-          await DBHandler().saveTask(task);
+          
           DBHandler().removeSubmittedUser((await getCurUserId()));
           Navigator.pop(context);
-          setState(() {
-            _fetchTasks(); // Refresh the task list
-          });
         },
         icon: const Icon(Icons.save),
         label: const Text(
@@ -226,11 +202,13 @@ class _TaskOverviewScreenState extends State<TaskOverviewScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
-          side: BorderSide(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-              width: 2),
+          side: BorderSide(color: Theme.of(context).colorScheme.primary.withOpacity(0.5), width: 2),
         ),
       ),
     );
   }
+
+
+
+  
 }

@@ -20,19 +20,33 @@ class DiagramsScreen extends StatelessWidget {
           child: Column(
             children: [
               Text("Mood State", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               DiagramBox(title: "Mood"),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               Text("Completed Tasks", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               DiagramBox(title: "Distribution"),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               DiagramBox(title: "Last 20 days"),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               DiagramBox(title: "By Category"),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               DiagramBox(title: "History"),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
             ],
           ),
         ),
@@ -55,16 +69,18 @@ class DiagramBox extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DiagramTitle(text: title,),
-            if(title == "Distribution")
+            DiagramTitle(
+              text: title,
+            ),
+            if (title == "Distribution")
               const PieChart()
-            else if(title == "History")
+            else if (title == "History")
               const TaskHistory()
-            else if(title == "Last 20 days")
+            else if (title == "Last 20 days")
               const CompletedTasks()
-            else if(title == "By Category")
+            else if (title == "By Category")
               const CategoryBarChart()
-            else if(title == "Mood")
+            else if (title == "Mood")
               const MoodChart()
           ],
         ),
@@ -79,7 +95,10 @@ class DiagramTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),);
+    return Text(
+      text,
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    );
   }
 }
 
@@ -115,17 +134,17 @@ class _PieChartDiagramState extends State<PieChartDiagram> {
   }
 
   _myInit() async {
-    List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
-    for(AssignedTask assTask in completedTasks){
+    List<AssignedTask> completedTasks = await AssignedTask.getAllCompletedTasks();
+    for (AssignedTask assTask in completedTasks) {
       bool entryExists = false;
-      for(_PieChartData pD in pieData){
-        if(assTask.user.userId == pD.user.userId){
+      for (_PieChartData pD in pieData) {
+        if (assTask.user.userId == pD.user.userId) {
           pD.taskCount += 1;
           totalTasks += 1;
           entryExists = true;
         }
       }
-      if(entryExists == false){
+      if (entryExists == false) {
         pieData.add(_PieChartData(assTask.user, 1));
         totalTasks += 1;
       }
@@ -137,7 +156,7 @@ class _PieChartDiagramState extends State<PieChartDiagram> {
   Widget build(BuildContext context) {
     return SfCircularChart(
       legend: const Legend(
-        isVisible: true, 
+        isVisible: true,
         overflowMode: LegendItemOverflowMode.wrap,
       ),
       tooltipBehavior: TooltipBehavior(enable: true),
@@ -148,7 +167,9 @@ class _PieChartDiagramState extends State<PieChartDiagram> {
           yValueMapper: (_PieChartData data, _) => data.taskCount,
           pointColorMapper: (_PieChartData data, _) => data.user.flowerColor,
           dataLabelMapper: (_PieChartData data, _) => "${data.taskCount.toString()} Tasks",
-          dataLabelSettings: const DataLabelSettings(isVisible: true,),
+          dataLabelSettings: const DataLabelSettings(
+            isVisible: true,
+          ),
           enableTooltip: true,
         ),
       ],
@@ -181,7 +202,7 @@ class _TaskHistoryState extends State<TaskHistory> {
   }
 
   myInit() async {
-    completedTasks = await AssignedTask.getCompletedTasks();
+    completedTasks = await AssignedTask.getAllCompletedTasks();
     setState(() {});
   }
 
@@ -190,16 +211,27 @@ class _TaskHistoryState extends State<TaskHistory> {
     List<AssignedTask> completedTasksRev = completedTasks.reversed.toList();
     return Column(
       children: [
-        for(int i = 0;i<completedTasksRev.length;i++)
-          if(showAllEntries || i<10)
+        for (int i = 0; i < completedTasksRev.length; i++)
+          if (showAllEntries || i < 10)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DateBox(lasttask: i > 0 ? completedTasksRev[i-1] : null, task: completedTasksRev[i]),
-                TaskBox(task: completedTasksRev[i].task.name, category: completedTasksRev[i].task.category.name, person: completedTasksRev[i].user.name,),
+                DateBox(lasttask: i > 0 ? completedTasksRev[i - 1] : null, task: completedTasksRev[i]),
+                TaskBox(
+                  task: completedTasksRev[i].task.name,
+                  category: completedTasksRev[i].task.category.name,
+                  person: completedTasksRev[i].user.name,
+                ),
               ],
             ),
-        ShowMoreLess(showAllEntries: showAllEntries, onTap: () {setState(() {showAllEntries = !showAllEntries;});},),
+        ShowMoreLess(
+          showAllEntries: showAllEntries,
+          onTap: () {
+            setState(() {
+              showAllEntries = !showAllEntries;
+            });
+          },
+        ),
       ],
     );
   }
@@ -212,15 +244,13 @@ class DateBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if(lasttask != null && lasttask?.finishDate == task.finishDate){
+    if (lasttask != null && lasttask?.finishDate == task.finishDate) {
       return const SizedBox();
-    }else {
+    } else {
       return Padding(
         padding: const EdgeInsets.only(top: 10),
         child: Text(
-          task.finishDate != null
-          ? "${task.finishDate!.year}-${task.finishDate!.month.toString().padLeft(2, '0')}-${task.finishDate!.day.toString().padLeft(2, '0')}"
-          : "0000-00-00",
+          task.finishDate != null ? "${task.finishDate!.year}-${task.finishDate!.month.toString().padLeft(2, '0')}-${task.finishDate!.day.toString().padLeft(2, '0')}" : "0000-00-00",
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       );
@@ -239,10 +269,22 @@ class TaskBox extends StatelessWidget {
     return Row(
       children: [
         Text(task, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 14)),
-        const SizedBox(width: 5,),
-        Text(category, style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6),),),
+        const SizedBox(
+          width: 5,
+        ),
+        Text(
+          category,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.black.withOpacity(0.6),
+          ),
+        ),
         const Spacer(),
-        Text("done by ", style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6),)),
+        Text("done by ",
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.black.withOpacity(0.6),
+            )),
         Text(person, style: const TextStyle(fontSize: 14)),
       ],
     );
@@ -251,7 +293,7 @@ class TaskBox extends StatelessWidget {
 
 class ShowMoreLess extends StatefulWidget {
   final bool showAllEntries;
-  final Function () onTap;
+  final Function() onTap;
   const ShowMoreLess({super.key, required this.showAllEntries, required this.onTap});
 
   @override
@@ -260,8 +302,8 @@ class ShowMoreLess extends StatefulWidget {
 
 class _ShowMoreLessState extends State<ShowMoreLess> {
   late bool showAllEntries;
-  
-@override
+
+  @override
   void initState() {
     super.initState();
     showAllEntries = widget.showAllEntries;
@@ -272,10 +314,14 @@ class _ShowMoreLessState extends State<ShowMoreLess> {
     return SizedBox(
       width: double.infinity,
       child: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: (){widget.onTap(); setState(() {showAllEntries = !showAllEntries;});},
-        child: Center(child: Text(widget.showAllEntries? "show less" : "show more", style: const TextStyle(fontSize: 12)))
-      ),
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            widget.onTap();
+            setState(() {
+              showAllEntries = !showAllEntries;
+            });
+          },
+          child: Center(child: Text(widget.showAllEntries ? "show less" : "show more", style: const TextStyle(fontSize: 12)))),
     );
   }
 }
@@ -337,14 +383,13 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
   }
 
   void _myInit() async {
-    List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
-    /*print("length ${completedTasks.length}");*/
+    List<AssignedTask> completedTasks = await AssignedTask.getAllCompletedTasks();
 
-    for(int i=0;i<completedTasks.length;i++){
+    for (int i = 0; i < completedTasks.length; i++) {
       int differenceInDays = DateTime.now().difference(completedTasks[i].finishDate!).inDays;
       User user = completedTasks[i].user;
       _CompletedTask tmp = _CompletedTask(differenceInDays, 1);
-      if(data.keys.any((tmpUser) => tmpUser.userId == user.userId)){
+      if (data.keys.any((tmpUser) => tmpUser.userId == user.userId)) {
         bool entryExists = false;
         User? userWithId = data.keys.firstWhere((tmpUser) => tmpUser.userId == user.userId);
         for (var entry in data[userWithId]!) {
@@ -354,11 +399,11 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
             break;
           }
         }
-        if(!entryExists){
+        if (!entryExists) {
           data[userWithId]!.add(tmp);
         }
-      }else{
-       data[user] = [tmp];
+      } else {
+        data[user] = [tmp];
       }
 
       setState(() {
@@ -375,25 +420,34 @@ class _CompletedTasksDiagramState extends State<CompletedTasksDiagram> {
   @override
   Widget build(BuildContext context) {
     return SfCartesianChart(
-      primaryXAxis: const NumericAxis(title: AxisTitle(text: "..days ago", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
-      primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 10,),
-      legend: const Legend(isVisible: true,),
-      tooltipBehavior: TooltipBehavior(enable: true),
-      series: <CartesianSeries<_CompletedTask, int>>[
-        for(var person in data.entries)
-          LineSeries<_CompletedTask, int>(
-            dataSource: person.value,
-            xValueMapper: (_CompletedTask data, _) => data.daysAgo,
-            yValueMapper: (_CompletedTask data, _) => data.number,
-            name: person.key.name,
-            color: person.key.flowerColor,
-          ),   
-      ]
-    );
+        primaryXAxis: const NumericAxis(
+          title: AxisTitle(text: "..days ago", textStyle: TextStyle(fontSize: 12)),
+          minimum: 0,
+          maximum: 20,
+        ),
+        primaryYAxis: const NumericAxis(
+          title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)),
+          minimum: 0,
+          maximum: 10,
+        ),
+        legend: const Legend(
+          isVisible: true,
+        ),
+        tooltipBehavior: TooltipBehavior(enable: true),
+        series: <CartesianSeries<_CompletedTask, int>>[
+          for (var person in data.entries)
+            LineSeries<_CompletedTask, int>(
+              dataSource: person.value,
+              xValueMapper: (_CompletedTask data, _) => data.daysAgo,
+              yValueMapper: (_CompletedTask data, _) => data.number,
+              name: person.key.name,
+              color: person.key.flowerColor,
+            ),
+        ]);
   }
 }
 
-class _CompletedTask{
+class _CompletedTask {
   _CompletedTask(this.daysAgo, this.number);
 
   final int daysAgo;
@@ -411,14 +465,19 @@ class CompletedTasksLegend extends StatefulWidget {
 }
 
 class _CompletedTasksLegendState extends State<CompletedTasksLegend> {
-
   @override
   Widget build(BuildContext context) {
     return Wrap(
       alignment: WrapAlignment.center,
       children: [
-        for(int i=0; i<widget.activeCurves.length;i++)
-          Person(isActive: widget.activeCurves[i], name: widget.users[i].name, tapped: (bool newValue){widget.tapped(newValue, i);},),
+        for (int i = 0; i < widget.activeCurves.length; i++)
+          Person(
+            isActive: widget.activeCurves[i],
+            name: widget.users[i].name,
+            tapped: (bool newValue) {
+              widget.tapped(newValue, i);
+            },
+          ),
       ],
     );
   }
@@ -434,12 +493,21 @@ class Person extends StatelessWidget {
   Widget build(BuildContext context) {
     return IntrinsicWidth(
       child: Row(
-          children: [
-            Transform.scale(scale: 0.8, child: Checkbox(value: isActive, onChanged: (bool? value){tapped(value?? false);})),
-            Text(name, style: const TextStyle(fontSize: 12),),
-            const Spacer(),
-          ],
-        ),
+        children: [
+          Transform.scale(
+              scale: 0.8,
+              child: Checkbox(
+                  value: isActive,
+                  onChanged: (bool? value) {
+                    tapped(value ?? false);
+                  })),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 12),
+          ),
+          const Spacer(),
+        ],
+      ),
     );
   }
 }
@@ -457,7 +525,6 @@ class CategoryBarChart extends StatelessWidget {
     );
   }
 }
-
 
 class CategoryBarChartDiagram extends StatefulWidget {
   const CategoryBarChartDiagram({super.key});
@@ -478,16 +545,16 @@ class _CategoryBarChartDiagramState extends State<CategoryBarChartDiagram> {
 
   _myInit() async {
     users = await DBHandler().getUsers();
-    List<AssignedTask> completedTasks = await AssignedTask.getCompletedTasks();
-    for(AssignedTask aTask in completedTasks){
+    List<AssignedTask> completedTasks = await AssignedTask.getAllCompletedTasks();
+    for (AssignedTask aTask in completedTasks) {
       bool entryExists = false;
-      for(_CategoryCount catCount in chartData){
-        if(catCount.userId == aTask.user.userId && catCount.category == aTask.task.category.name){
+      for (_CategoryCount catCount in chartData) {
+        if (catCount.userId == aTask.user.userId && catCount.category == aTask.task.category.name) {
           catCount.count += 1;
           entryExists = true;
         }
       }
-      if(entryExists == false){
+      if (entryExists == false) {
         chartData.add(_CategoryCount(aTask.task.category.name, 1, aTask.user.userId));
       }
     }
@@ -498,12 +565,19 @@ class _CategoryBarChartDiagramState extends State<CategoryBarChartDiagram> {
   @override
   Widget build(BuildContext context) {
     return SfCartesianChart(
-      primaryXAxis: const CategoryAxis(title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),labelStyle: TextStyle(fontSize: 10),),
-      primaryYAxis: const NumericAxis(title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)), minimum: 0, maximum: 20,),
+      primaryXAxis: const CategoryAxis(
+        title: AxisTitle(text: "Category", textStyle: TextStyle(fontSize: 12)),
+        labelStyle: TextStyle(fontSize: 10),
+      ),
+      primaryYAxis: const NumericAxis(
+        title: AxisTitle(text: "Tasks", textStyle: TextStyle(fontSize: 12)),
+        minimum: 0,
+        maximum: 20,
+      ),
       legend: const Legend(isVisible: true),
       tooltipBehavior: TooltipBehavior(enable: true),
       series: <CartesianSeries>[
-        for(User tmpUser in users)
+        for (User tmpUser in users)
           ColumnSeries<_CategoryCount, String>(
             dataSource: chartData.where((data) => data.userId == tmpUser.userId).toList(),
             xValueMapper: (_CategoryCount data, _) => data.category,
@@ -519,7 +593,7 @@ class _CategoryBarChartDiagramState extends State<CategoryBarChartDiagram> {
 class _CategoryCount {
   final String category;
   int count;
-  final int userId;
+  final String userId;
 
   _CategoryCount(this.category, this.count, this.userId);
 }
@@ -532,7 +606,10 @@ class Info extends StatelessWidget {
     return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.lightbulb_outline, size: 16,),
+        Icon(
+          Icons.lightbulb_outline,
+          size: 16,
+        ),
         Text("You can click on a name to deactivate its data!", style: TextStyle(fontSize: 12)),
       ],
     );
@@ -557,20 +634,20 @@ class _MoodChartState extends State<MoodChart> {
 
   _myInit() async {
     List<User> users = await DBHandler().getUsers();
-    for(User u in users){
+    for (User u in users) {
       List<Mood> m = await DBHandler().getMoodsByUserId(u.userId);
       List<Mood> res = [];
-      for(int i=0;i<m.length;i++){
-        if(i+1 == m.length || m[i].date != m[i+1].date){
+      for (int i = 0; i < m.length; i++) {
+        if (i + 1 == m.length || m[i].date != m[i + 1].date) {
           res.add(m[i]);
         }
       }
       Map<int, Mood> mapRes = {};
-      for(int i=0;i<res.length;i++){
+      for (int i = 0; i < res.length; i++) {
         int dayDiff = (DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day).difference(DateTime(res[i].date.year, res[i].date.month, res[i].date.day))).inDays;
         mapRes[dayDiff] = res[i];
       }
-      
+
       data[u.name] = mapRes;
     }
     setState(() {});
@@ -584,10 +661,18 @@ class _MoodChartState extends State<MoodChart> {
           height: 20,
           child: Row(
             children: [
-              const SizedBox(width: 100,),
-              Text("today..", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),),
+              const SizedBox(
+                width: 100,
+              ),
+              Text(
+                "today..",
+                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+              ),
               const Spacer(),
-              Text("..20 days ago", style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),),
+              Text(
+                "..20 days ago",
+                style: TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
+              ),
             ],
           ),
         ),
@@ -598,8 +683,7 @@ class _MoodChartState extends State<MoodChart> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  for(String name in data.keys)
-                    Text(name),
+                  for (String name in data.keys) Text(name),
                 ],
               ),
             ),
@@ -609,17 +693,21 @@ class _MoodChartState extends State<MoodChart> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for(var moodMap in data.values)
+                    for (var moodMap in data.values)
                       Row(
                         children: [
-                          for (int i=0;i<moodMap.values.length;i++)
+                          for (int i = 0; i < moodMap.values.length; i++)
                             Padding(
                               padding: const EdgeInsets.all(2),
                               child: Container(
                                 width: 16,
                                 height: 16,
                                 decoration: BoxDecoration(
-                                  color: moodMap.values.elementAt(i).mood == Moods.bad ? Colors.red : moodMap.values.elementAt(i).mood == Moods.mid ? Colors.yellow : Colors.green,
+                                  color: moodMap.values.elementAt(i).mood == Moods.bad
+                                      ? Colors.red
+                                      : moodMap.values.elementAt(i).mood == Moods.mid
+                                          ? Colors.yellow
+                                          : Colors.green,
                                   borderRadius: BorderRadius.circular(3),
                                 ),
                               ),

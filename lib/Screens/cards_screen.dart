@@ -5,7 +5,6 @@ import 'package:mental_load/Screens/tasks_overview_screen.dart';
 import 'package:mental_load/Screens/verify_submission_screen.dart';
 import 'package:mental_load/Screens/waiting_for_others_screen.dart';
 import 'package:mental_load/classes/DBHandler.dart';
-import 'package:mental_load/classes/User.dart';
 
 class CardsScreen extends StatefulWidget {
   const CardsScreen({Key? key}) : super(key: key);
@@ -17,6 +16,7 @@ class CardsScreen extends StatefulWidget {
 class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _allUsersSubmitted = false; // Track submission status
+  bool _noUsersExist = false; // Track if no users exist
   String _currentTitle = "Tasks Overview";
 
   final List<String> _titles = [
@@ -32,7 +32,7 @@ class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStat
     _tabController = TabController(length: 4, vsync: this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      showAssignedTasksIfSubmitted();
+      checkUsersStatus();
     });
 
     _tabController.addListener(() {
@@ -44,22 +44,21 @@ class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStat
     });
   }
 
-  Future<void> showAssignedTasksIfSubmitted() async {
+  Future<void> checkUsersStatus() async {
     final allUsers = await DBHandler().getUsers();
     final submittedUsers = await DBHandler().getSubmittedUsers();
 
     setState(() {
+      _noUsersExist = allUsers.isEmpty; // Check if there are no users
       _allUsersSubmitted = allUsers.length == submittedUsers.length;
     });
   }
 
   void updateScreen() {
     setState(() {
-      showAssignedTasksIfSubmitted();
+      checkUsersStatus();
     });
   }
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -70,53 +69,61 @@ class _CardsScreenState extends State<CardsScreen> with SingleTickerProviderStat
           right: 10,
           left: 10,
         ),
-        child: _allUsersSubmitted
-            ? AssignedTasksOverview()
-            : Column(
-                children: [
-                  if (_tabController.index != 4)
-                    Column(
-                      children: [
-                        Text(
-                          _currentTitle,
-                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 10),
-                        TabBar(
-                          controller: _tabController,
-                          tabs: const [
-                            Tab(icon: Icon(Icons.task), text: "Overview"),
-                            Tab(icon: Icon(Icons.swipe), text: "Swipe"),
-                            Tab(icon: Icon(Icons.assignment), text: "Preferences"),
-                            Tab(icon: Icon(Icons.people), text: "Group"),
+        child: _noUsersExist
+            ? Center(
+                child: Text(
+                  "No users exist. Please create a user first.",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            : _allUsersSubmitted
+                ? AssignedTasksOverview()
+                : Column(
+                    children: [
+                      if (_tabController.index != 4)
+                        Column(
+                          children: [
+                            Text(
+                              _currentTitle,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            TabBar(
+                              controller: _tabController,
+                              tabs: const [
+                                Tab(icon: Icon(Icons.task), text: "Overview"),
+                                Tab(icon: Icon(Icons.swipe), text: "Swipe"),
+                                Tab(icon: Icon(Icons.assignment), text: "Preferences"),
+                                Tab(icon: Icon(Icons.people), text: "Group"),
+                              ],
+                              indicatorColor: Colors.blue,
+                              labelColor: Colors.blue,
+                              unselectedLabelColor: Colors.grey,
+                            ),
+                            const SizedBox(height: 10),
                           ],
-                          indicatorColor: Colors.blue,
-                          labelColor: Colors.blue,
-                          unselectedLabelColor: Colors.grey,
                         ),
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        TaskOverviewScreen(),
-                        SwipableCardScreen(tabController: _tabController),
-                        TaskSubmissionScreen(
-                          tabController: _tabController,
-                          onUpdate: updateScreen, 
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            TaskOverviewScreen(),
+                            SwipableCardScreen(tabController: _tabController),
+                            TaskSubmissionScreen(
+                              tabController: _tabController,
+                              onUpdate: updateScreen,
+                            ),
+                            WaitingForOthersScreen(
+                              tabController: _tabController,
+                              onUpdate: updateScreen,
+                            ),
+                          ],
                         ),
-                        WaitingForOthersScreen(
-                           tabController: _tabController,
-                           onUpdate: updateScreen, 
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
       ),
     );
   }

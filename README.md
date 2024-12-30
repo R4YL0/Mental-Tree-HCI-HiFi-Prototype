@@ -1,9 +1,3 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/rcN7gEKM)
-<p align="left" width="100%">
-  <img height="56" src="img/eth-sip-3l.png">
-  <img height="56" src="img/logo-peach.jpg">
-</p>
-
 # Mental Tree, Group 16
 #### Thiago Knill, Marco Weder, Khaled Kottmann, Cristina Ettlin, Marcello Krahforst, Noah von Matt
 

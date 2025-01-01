@@ -12,7 +12,7 @@ https://github.com/user-attachments/assets/e451be22-3996-428d-9ca7-c5602e03f0a4
 ## Project description
 
 In progress of improving the lifes of people with mental load by visualising it.
-We want to give a better overview over mental load so people can tackle it better.
+We want to give a better overview over mental load so people can tackle it better. For this, we created the Mental Load App, which helps a household to manage and distribute their tasks fairly, while also showing the mental State of each member
 
 ## Needfinding
 First we had to figure out some good interview questions. After every group member wrote some questions down, we put them all together and discussed, which ones we can combine or strike out. Each member then conducted 2-4 interviews. The goal of the interviews was to understand our interviewees and to determine the needs and insights of potential users. Our interviewees were different kinds of people, such as a student living in a shared flat, a fresh couple living together in an apartment, full-time or part-time workers living with their families or a retired person. We then put observations, problems, quotes, needs and insights from our interviews in an affinity diagram in Figma.

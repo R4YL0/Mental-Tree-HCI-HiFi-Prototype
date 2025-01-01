@@ -1,7 +1,7 @@
 # Mental Tree, Group 16
 #### Thiago Knill, Marco Weder, Khaled Kottmann, Cristina Ettlin, Marcello Krahforst, Noah von Matt
 ## Trailers
-![Hi-Fi Video Explaining how the App works](https://r4yl0.github.io/media/Hifi_Prototype_walkthrough.mp4)
+![Trailer Video and How to Use](https://r4yl0.github.io/)
 
 ## Project description
 

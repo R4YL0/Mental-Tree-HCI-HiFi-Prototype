@@ -2,11 +2,12 @@
 #### Thiago Knill, Marco Weder, Khaled Kottmann, Cristina Ettlin, Marcello Krahforst, Noah von Matt
 ## Trailers
 
-https://github.com/user-attachments/assets/6755015e-7548-4d83-a88d-993f0d534865
+
+https://github.com/user-attachments/assets/ce0305c6-ef94-4f41-a7d9-2d2e3490a363
 
 
-https://github.com/user-attachments/assets/e451be22-3996-428d-9ca7-c5602e03f0a4
 
+https://github.com/user-attachments/assets/7ac35dbb-dbf0-4868-be54-ba35596cf496
 
 
 ## Project description

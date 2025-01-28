@@ -3,11 +3,13 @@
 ## Trailers
 
 
-https://github.com/user-attachments/assets/ce0305c6-ef94-4f41-a7d9-2d2e3490a363
+
+https://github.com/user-attachments/assets/d8413f31-1601-4ac0-9dbd-2324894449e0
 
 
 
-https://github.com/user-attachments/assets/7ac35dbb-dbf0-4868-be54-ba35596cf496
+
+https://github.com/user-attachments/assets/8b1125a7-a8a1-4caf-bab3-16e7fec7c7af
 
 
 ## Project description
